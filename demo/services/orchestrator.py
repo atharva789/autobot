@@ -65,4 +65,6 @@ class CLIOrchestrator:
             text=True,
             timeout=timeout_s,
         )
+        if result.returncode != 0:
+            raise RuntimeError(f"Both Codex and Claude CLI failed for draft_program_md.\nClaude stderr: {result.stderr}")
         return result.stdout.strip(), "claude-code"

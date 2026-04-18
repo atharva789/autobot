@@ -120,7 +120,7 @@ def _run_evolution_loop(evo_id: str) -> None:
     except Exception:
         smpl_url = ""
 
-    best_score = -1.0
+    best_score = -float("inf")
     no_improve = 0
     t0 = time.time()
 
@@ -217,7 +217,7 @@ def _run_evolution_loop(evo_id: str) -> None:
             },
         )
 
-        if result.fitness_score > best_score * (1 + cfg.keep_best_threshold):
+        if result.fitness_score > best_score + cfg.keep_best_threshold:
             best_score = result.fitness_score
             _evo_svc.set_best(evo_id, iter_id)
             no_improve = 0
