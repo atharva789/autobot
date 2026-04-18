@@ -33,27 +33,24 @@ def retarget_smpl_to_morphology(
     T = end_effectors.shape[0]
     q_target = np.zeros((T, model.nq), dtype=np.float32)
 
+    # Find pelvis/torso body ID (not world body 0)
+    torso_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "torso")
+    if torso_id < 0:
+        torso_id = 1  # fallback: first non-world body
+
     for t in range(T):
         mujoco.mj_resetData(model, data)
         for _ in range(ik_iters):
             mujoco.mj_forward(model, data)
             jac_pos = np.zeros((3, model.nv))
-            mujoco.mj_jacBody(model, data, jac_pos, None, 0)
-            target = end_effectors[t, 5]  # pelvis
-            current = data.xpos[0].copy()
+            mujoco.mj_jacBody(model, data, jac_pos, None, torso_id)
+            target = end_effectors[t, 5]   # pelvis (index 5)
+            current = data.xpos[torso_id]
             error = target - current
             lam = 0.01
-            dq = jac_pos.T @ np.linalg.solve(
-                jac_pos @ jac_pos.T + lam * np.eye(3), error
-            )
-            n = min(len(dq), model.nq)
-            data.qpos[:n] += dq[:n].astype(np.float32)
-            if model.nq > 0 and hasattr(model, 'jnt_range'):
-                data.qpos[:] = np.clip(
-                    data.qpos,
-                    model.jnt_range[:model.nq, 0] if model.jnt_range.shape[0] >= model.nq else data.qpos,
-                    model.jnt_range[:model.nq, 1] if model.jnt_range.shape[0] >= model.nq else data.qpos,
-                )
-        q_target[t] = data.qpos[:model.nq].copy()
+            dq = jac_pos.T @ np.linalg.solve(jac_pos @ jac_pos.T + lam * np.eye(3), error)
+            data.qpos[:model.nv] += dq[:model.nq]
+            data.qpos = np.clip(data.qpos, model.jnt_range[:, 0], model.jnt_range[:, 1])
+        q_target[t] = data.qpos.copy()
 
     return q_target

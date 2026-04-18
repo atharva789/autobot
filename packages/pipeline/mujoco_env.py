@@ -49,6 +49,11 @@ class MuJoCoEnv:
                 frames.append(self.render_frame())
         return np.array(traj), frames
 
+    def close(self) -> None:
+        if self._renderer is not None:
+            self._renderer.close()
+            self._renderer = None
+
     def save_video(self, frames: list, path: str, fps: int = 30) -> None:
         import subprocess, tempfile, shutil
         tmp = tempfile.mkdtemp()

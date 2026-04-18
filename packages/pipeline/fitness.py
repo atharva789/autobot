@@ -34,7 +34,9 @@ def er16_success_prob(
     try:
         parsed = json.loads(resp.text)
         return float(parsed["success_probability"])
-    except Exception:
+    except (json.JSONDecodeError, KeyError, ValueError) as e:
+        import logging
+        logging.warning("er16_success_prob: failed to parse Gemini response: %r. Raw: %.200s", e, resp.text)
         return 0.0
 
 
