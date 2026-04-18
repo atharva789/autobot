@@ -11,12 +11,20 @@ export default function ProgramPage() {
   const initialDraft = decodeURIComponent(searchParams.get("draft") ?? "");
   const [content, setContent] = useState(initialDraft);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleApprove() {
     setLoading(true);
-    await api.evolutions.approveProgram(evoId, content);
-    router.push(`/evolutions/${evoId}`);
+    setError(null);
+    try {
+      await api.evolutions.approveProgram(evoId, content);
+      router.push(`/evolutions/${evoId}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to approve research plan.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleRegenerate() {
@@ -44,6 +52,7 @@ export default function ProgramPage() {
           ↺ Regenerate
         </Button>
       </div>
+      {error && <p className="text-red-400 text-sm">{error}</p>}
     </main>
   );
 }

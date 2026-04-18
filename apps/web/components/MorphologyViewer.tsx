@@ -11,7 +11,7 @@ interface LinkGeom {
 }
 
 interface Props {
-  urdgXml?: string | null;
+  urdfXml?: string | null;
 }
 
 function parseUrdfLinks(xml: string): LinkGeom[] {
@@ -50,10 +50,10 @@ function LinkMesh({ geom }: { geom: LinkGeom }) {
   );
 }
 
-export function MorphologyViewer({ urdgXml }: Props) {
+export function MorphologyViewer({ urdfXml }: Props) {
   const links = useMemo(
-    () => (urdgXml ? parseUrdfLinks(urdgXml) : []),
-    [urdgXml]
+    () => (urdfXml ? parseUrdfLinks(urdfXml) : []),
+    [urdfXml]
   );
 
   return (
@@ -66,7 +66,7 @@ export function MorphologyViewer({ urdgXml }: Props) {
         <OrbitControls enablePan={false} />
         <gridHelper args={[4, 20, "#333", "#222"]} />
       </Canvas>
-      {!urdgXml && (
+      {!urdfXml && (
         <div className="absolute inset-0 flex items-center justify-center text-zinc-500 text-sm">
           Waiting for morphology…
         </div>

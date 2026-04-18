@@ -14,19 +14,23 @@ export default function IngestPage() {
 
   const [plan, setPlan] = useState<Er16Plan | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api.ingest.get(jobId).then((job) => {
       try { setPlan(JSON.parse(job.er16_plan_json.replace(/'/g, '"'))); }
-      catch { /* ignore parse error, show raw */ }
+      catch { setError("Failed to parse task analysis — the server returned invalid JSON."); }
     });
   }, [jobId]);
 
   async function handleDraftPlan() {
     setLoading(true);
+    setError(null);
     try {
       const evo: EvolutionCreated = await api.evolutions.create("run-placeholder", jobId);
       router.push(`/evolutions/${evo.evolution_id}/program?draft=${encodeURIComponent(evo.draft_content)}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to draft research plan.");
     } finally {
       setLoading(false);
     }
@@ -54,6 +58,7 @@ export default function IngestPage() {
         <Button onClick={handleDraftPlan} disabled={loading || !plan} className="mt-4 w-fit">
           {loading ? "Drafting research plan…" : "Draft research plan →"}
         </Button>
+        {error && <p className="text-red-400 text-sm">{error}</p>}
       </section>
 
       <section className="flex flex-col gap-4">

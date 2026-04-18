@@ -1,3 +1,5 @@
+import type { IngestJob, EvolutionCreated, Evolution } from "./types";
+
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
@@ -8,8 +10,6 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   return res.json() as Promise<T>;
 }
-
-import type { IngestJob, EvolutionCreated, Evolution, Iteration } from "./types";
 
 export const api = {
   ingest: {

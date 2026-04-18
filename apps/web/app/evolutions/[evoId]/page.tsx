@@ -75,7 +75,7 @@ export default function EvolutionPage() {
         <div className="flex flex-col gap-3 bg-zinc-900 rounded-lg p-4">
           <p className="text-xs text-zinc-500 uppercase tracking-wide">Current morphology</p>
           <div className="flex-1 min-h-[240px] relative">
-            <MorphologyViewer urdgXml={null} />
+            <MorphologyViewer urdfXml={null} />
           </div>
           <div className="text-xs font-mono text-zinc-400">
             <span>score: {current?.fitness_score?.toFixed(3) ?? "—"}</span>
