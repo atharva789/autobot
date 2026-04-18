@@ -120,111 +120,118 @@ def _run_evolution_loop(evo_id: str) -> None:
     except Exception:
         smpl_url = ""
 
-    best_score = -float("inf")
-    no_improve = 0
-    t0 = time.time()
+    try:
+        best_score = -float("inf")
+        no_improve = 0
+        t0 = time.time()
 
-    for i in range(cfg.max_iters):
-        evo_fresh = _evo_svc.get(evo_id)
-        if evo_fresh["status"] in ("stopped", "done"):
-            break
-        if (time.time() - t0) / 3600 >= cfg.max_hours:
-            break
+        for i in range(cfg.max_iters):
+            evo_fresh = _evo_svc.get(evo_id)
+            if evo_fresh["status"] in ("stopped", "done", "failed"):
+                return   # user stopped or already terminal — do NOT overwrite status
+            if (time.time() - t0) / 3600 >= cfg.max_hours:
+                break
 
-        train_py = (
-            (workdir / "train.py").read_text()
-            if (workdir / "train.py").exists()
-            else ""
-        )
-        morph_py = (
-            (workdir / "morphology_factory.py").read_text()
-            if (workdir / "morphology_factory.py").exists()
-            else ""
-        )
-
-        context = (
-            f"program.md:\n{(workdir / 'program.md').read_text()}\n"
-            if (workdir / "program.md").exists()
-            else ""
-        )
-        orch.edit_files(
-            prompt=context + f"Iteration {i}. Improve train.py and/or morphology_factory.py.",
-            editable=["train.py", "morphology_factory.py"],
-        )
-
-        try:
-            result = _dispatch.run_trial(
-                evolution_id=evo_id,
-                iter_num=i,
-                train_py_source=(
-                    (workdir / "train.py").read_text()
-                    if (workdir / "train.py").exists()
-                    else ""
-                ),
-                morph_factory_source=(
-                    (workdir / "morphology_factory.py").read_text()
-                    if (workdir / "morphology_factory.py").exists()
-                    else ""
-                ),
-                smpl_trajectory_url=smpl_url,
+            train_py = (
+                (workdir / "train.py").read_text()
+                if (workdir / "train.py").exists()
+                else ""
             )
-        except Exception as exc:
-            supa.table("iterations").insert({
-                "id": str(uuid.uuid4()),
-                "evolution_id": evo_id,
-                "iter_num": i,
-                "fitness_score": 0.0,
-                "reasoning_log": f"Trial failed: {exc}",
-            }).execute()
-            continue
-
-        new_train = (
-            (workdir / "train.py").read_text()
-            if (workdir / "train.py").exists()
-            else ""
-        )
-        new_morph = (
-            (workdir / "morphology_factory.py").read_text()
-            if (workdir / "morphology_factory.py").exists()
-            else ""
-        )
-        train_diff = "".join(
-            difflib.unified_diff(
-                train_py.splitlines(keepends=True),
-                new_train.splitlines(keepends=True),
+            morph_py = (
+                (workdir / "morphology_factory.py").read_text()
+                if (workdir / "morphology_factory.py").exists()
+                else ""
             )
-        )
-        morph_diff = "".join(
-            difflib.unified_diff(
-                morph_py.splitlines(keepends=True),
-                new_morph.splitlines(keepends=True),
+
+            context = (
+                f"program.md:\n{(workdir / 'program.md').read_text()}\n"
+                if (workdir / "program.md").exists()
+                else ""
             )
-        )
+            orch.edit_files(
+                prompt=context + f"Iteration {i}. Improve train.py and/or morphology_factory.py.",
+                editable=["train.py", "morphology_factory.py"],
+            )
 
-        iter_id = _evo_svc.record_iteration(
-            evo_id,
-            i,
-            {
-                "fitness_score": result.fitness_score,
-                "tracking_error": result.tracking_error,
-                "er16_success_prob": result.er16_success_prob,
-                "replay_mp4_url": result.replay_mp4_url,
-                "controller_ckpt_url": result.controller_ckpt_url,
-                "trajectory_npz_url": result.trajectory_npz_url,
-                "reasoning_log": result.reasoning_md,
-                "train_py_diff": train_diff,
-                "morph_factory_diff": morph_diff,
-            },
-        )
+            try:
+                result = _dispatch.run_trial(
+                    evolution_id=evo_id,
+                    iter_num=i,
+                    train_py_source=(
+                        (workdir / "train.py").read_text()
+                        if (workdir / "train.py").exists()
+                        else ""
+                    ),
+                    morph_factory_source=(
+                        (workdir / "morphology_factory.py").read_text()
+                        if (workdir / "morphology_factory.py").exists()
+                        else ""
+                    ),
+                    smpl_trajectory_url=smpl_url,
+                )
+            except Exception as exc:
+                supa.table("iterations").insert({
+                    "id": str(uuid.uuid4()),
+                    "evolution_id": evo_id,
+                    "iter_num": i,
+                    "fitness_score": 0.0,
+                    "reasoning_log": f"Trial failed: {exc}",
+                }).execute()
+                continue
 
-        if result.fitness_score > best_score + cfg.keep_best_threshold:
-            best_score = result.fitness_score
-            _evo_svc.set_best(evo_id, iter_id)
-            no_improve = 0
-        else:
-            no_improve += 1
+            new_train = (
+                (workdir / "train.py").read_text()
+                if (workdir / "train.py").exists()
+                else ""
+            )
+            new_morph = (
+                (workdir / "morphology_factory.py").read_text()
+                if (workdir / "morphology_factory.py").exists()
+                else ""
+            )
+            train_diff = "".join(
+                difflib.unified_diff(
+                    train_py.splitlines(keepends=True),
+                    new_train.splitlines(keepends=True),
+                )
+            )
+            morph_diff = "".join(
+                difflib.unified_diff(
+                    morph_py.splitlines(keepends=True),
+                    new_morph.splitlines(keepends=True),
+                )
+            )
 
-        if no_improve >= 5:
-            break
+            iter_id = _evo_svc.record_iteration(
+                evo_id,
+                i,
+                {
+                    "fitness_score": result.fitness_score,
+                    "tracking_error": result.tracking_error,
+                    "er16_success_prob": result.er16_success_prob,
+                    "replay_mp4_url": result.replay_mp4_url,
+                    "controller_ckpt_url": result.controller_ckpt_url,
+                    "trajectory_npz_url": result.trajectory_npz_url,
+                    "reasoning_log": result.reasoning_md,
+                    "train_py_diff": train_diff,
+                    "morph_factory_diff": morph_diff,
+                },
+            )
 
-    _evo_svc.update_status(evo_id, "done")
+            if result.fitness_score > best_score + cfg.keep_best_threshold:
+                best_score = result.fitness_score
+                _evo_svc.set_best(evo_id, iter_id)
+                no_improve = 0
+            else:
+                no_improve += 1
+
+            if no_improve >= 5:
+                break
+
+        # Only mark done if still running (not stopped by user)
+        evo_final = _evo_svc.get(evo_id)
+        if evo_final["status"] == "running":
+            _evo_svc.update_status(evo_id, "done")
+    except Exception as exc:
+        _evo_svc.update_status(evo_id, "failed")
+        raise

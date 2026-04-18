@@ -13,27 +13,31 @@ class CLIOrchestrator:
     ) -> dict:
         file_list = " ".join(editable)
         full_prompt = f"{prompt}\n\nYou may only edit these files: {file_list}"
-        result = subprocess.run(
+        codex_result = subprocess.run(
             ["codex", "exec", full_prompt],
             cwd=self.workdir,
             capture_output=True,
             text=True,
             timeout=timeout_s,
         )
-        if result.returncode == 0:
-            return {"generator": "codex", "stdout": result.stdout}
-        result = subprocess.run(
+        if codex_result.returncode == 0:
+            return {"generator": "codex", "stdout": codex_result.stdout}
+        codex_stderr = codex_result.stderr
+
+        claude_result = subprocess.run(
             ["claude", "-p", full_prompt, "--allowedTools", "Edit,Read"],
             cwd=self.workdir,
             capture_output=True,
             text=True,
             timeout=timeout_s,
         )
-        if result.returncode != 0:
+        if claude_result.returncode != 0:
             raise RuntimeError(
-                f"Both Codex and Claude CLI failed.\nClaude stderr: {result.stderr}"
+                f"Both Codex and Claude CLI failed.\n"
+                f"Codex stderr: {codex_stderr}\n"
+                f"Claude stderr: {claude_result.stderr}"
             )
-        return {"generator": "claude-code", "stdout": result.stdout}
+        return {"generator": "claude-code", "stdout": claude_result.stdout}
 
     def draft_program_md(
         self, er16_plan: dict, timeout_s: int = 60
@@ -49,22 +53,28 @@ class CLIOrchestrator:
             "4. What to avoid (known failure modes)\n"
             "Keep it under 300 words. Plain English."
         )
-        result = subprocess.run(
+        codex_result = subprocess.run(
             ["codex", "exec", prompt],
             cwd=self.workdir,
             capture_output=True,
             text=True,
             timeout=timeout_s,
         )
-        if result.returncode == 0:
-            return result.stdout.strip(), "codex"
-        result = subprocess.run(
+        if codex_result.returncode == 0:
+            return codex_result.stdout.strip(), "codex"
+        codex_stderr = codex_result.stderr
+
+        claude_result = subprocess.run(
             ["claude", "-p", prompt],
             cwd=self.workdir,
             capture_output=True,
             text=True,
             timeout=timeout_s,
         )
-        if result.returncode != 0:
-            raise RuntimeError(f"Both Codex and Claude CLI failed for draft_program_md.\nClaude stderr: {result.stderr}")
-        return result.stdout.strip(), "claude-code"
+        if claude_result.returncode != 0:
+            raise RuntimeError(
+                f"Both Codex and Claude CLI failed for draft_program_md.\n"
+                f"Codex stderr: {codex_stderr}\n"
+                f"Claude stderr: {claude_result.stderr}"
+            )
+        return claude_result.stdout.strip(), "claude-code"

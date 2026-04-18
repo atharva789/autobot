@@ -52,9 +52,14 @@ class IngestService:
         return out
 
     def run_gvhmr(self, video_url: str) -> str:
+        """Dispatch to existing Modal GVHMR endpoint. Returns job_id."""
         try:
             from scripts.gvhmr_modal_probe import process_video
             result = process_video.remote(video_url=video_url)
             return result.get("run_id", str(uuid.uuid4()))
-        except Exception:
-            return str(uuid.uuid4())
+        except ImportError:
+            raise RuntimeError(
+                "GVHMR Modal endpoint not deployed. Run: modal deploy scripts/gvhmr_modal_probe.py"
+            )
+        except Exception as exc:
+            raise RuntimeError(f"GVHMR dispatch failed for {video_url}: {exc}") from exc
