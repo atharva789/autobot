@@ -3,3 +3,10 @@ tmp_outputs/
 tmp_clips/*.mp4
 tmp_clips/*.mov
 tmp_clips/*.avi
+.env
+*.pyc
+.DS_Store
+node_modules/
+.next/
+.env.local
+
