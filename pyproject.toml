@@ -1,3 +1,10 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["packages*"]
+
 [project]
 name = "autoresearch-robotics"
 version = "0.1.0"

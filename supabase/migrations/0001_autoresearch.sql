@@ -57,5 +57,11 @@ CREATE TABLE IF NOT EXISTS program_md_drafts (
   user_edited_content TEXT
 );
 
+-- Indexes on high-traffic FK columns
+CREATE INDEX IF NOT EXISTS idx_iterations_evolution_id ON iterations(evolution_id);
+CREATE INDEX IF NOT EXISTS idx_iterations_morphology_id ON iterations(morphology_id);
+CREATE INDEX IF NOT EXISTS idx_program_md_drafts_evolution_id ON program_md_drafts(evolution_id);
+CREATE INDEX IF NOT EXISTS idx_evolutions_run_id ON evolutions(run_id);
+
 -- Enable Supabase Realtime on iterations so dashboard updates live
 ALTER PUBLICATION supabase_realtime ADD TABLE iterations;
