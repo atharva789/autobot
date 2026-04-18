@@ -37,7 +37,7 @@ def _load_vae():
         from packages.pipeline.vae import MorphologyVAE
 
         _vae = MorphologyVAE(latent_dim=8)
-        _vae.load_state_dict(torch.load(VAE_CKPT_PATH, map_location="cpu"))
+        _vae.load_state_dict(torch.load(VAE_CKPT_PATH, map_location="cpu", weights_only=True))
         _vae.eval()
     return _vae
 

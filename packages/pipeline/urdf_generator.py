@@ -41,7 +41,9 @@ def _passes_gravity_test(xml: str, duration_s: float = 0.5) -> bool:
         return float(root_z) > 0.05
     except ImportError:
         return True  # mujoco not installed — skip gravity filter
-    except Exception:
+    except Exception as exc:
+        import logging
+        logging.warning("gravity test failed for xml: %s", exc)
         return False
 
 

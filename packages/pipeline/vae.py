@@ -64,7 +64,7 @@ def tensor_to_params(t) -> MorphologyParams:
 
     vals: dict = {}
     for i, (name, lo, hi) in enumerate(_CONTINUOUS):
-        vals[name] = float(t[i]) * (hi - lo) + lo
+        vals[name] = max(lo, min(hi, float(t[i]) * (hi - lo) + lo))
 
     offset = len(_CONTINUOUS)
     for i, (name, lo, hi) in enumerate(_DISCRETE):

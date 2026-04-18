@@ -60,7 +60,7 @@ def _worldbody(p: MorphologyParams) -> str:
     if p.spine_dof > 0:
         lines.append('      <joint name="spine" type="ball" range="-30 30"/>')
 
-    for side, sign in [("left", -1), ("right", 1)]:
+    for side, sign in [("left", -1), ("right", 1)][:p.num_arms]:
         lines.extend(_arm_links(p, side, sign))
 
     for side, sign in [("left", -1), ("right", 1)]:
