@@ -33,6 +33,20 @@ def create_app(
 
     app = FastAPI(title="Prompt2Policy Data Demo API")
 
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:3000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    from demo.routes.ingest import router as ingest_router
+    from demo.routes.evolutions import router as evolutions_router
+    app.include_router(ingest_router)
+    app.include_router(evolutions_router)
+
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
