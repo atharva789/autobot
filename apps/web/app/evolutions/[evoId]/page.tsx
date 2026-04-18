@@ -38,13 +38,21 @@ export default function EvolutionPage() {
   }, [evo?.best_iteration_id]);
 
   async function handleStop() {
-    await api.evolutions.stop(evoId);
-    setEvo((e) => e ? { ...e, status: "stopped" } : e);
+    try {
+      await api.evolutions.stop(evoId);
+      setEvo((e) => e ? { ...e, status: "stopped" } : e);
+    } catch (err: unknown) {
+      console.error("Failed to stop evolution:", err instanceof Error ? err.message : err);
+    }
   }
 
   async function handleMarkBest(iterId: string) {
-    await api.evolutions.markBest(evoId, iterId);
-    setEvo((e) => e ? { ...e, best_iteration_id: iterId } : e);
+    try {
+      await api.evolutions.markBest(evoId, iterId);
+      setEvo((e) => e ? { ...e, best_iteration_id: iterId } : e);
+    } catch (err: unknown) {
+      console.error("Failed to mark best iteration:", err instanceof Error ? err.message : err);
+    }
   }
 
   const isRunning = evo?.status === "running";
@@ -109,7 +117,13 @@ export default function EvolutionPage() {
       <Button
         className="w-full"
         disabled={!evo?.best_iteration_id}
-        onClick={() => fetch(`/api/runs/${evoId}/export`, { method: "POST" })}
+        onClick={() => {
+          if (current?.controller_ckpt_url) {
+            window.open(current.controller_ckpt_url, "_blank");
+          } else {
+            alert("No checkpoint available — select a best iteration first.");
+          }
+        }}
       >
         ✓ Approve best + Export
       </Button>

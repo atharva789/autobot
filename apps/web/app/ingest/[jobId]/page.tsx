@@ -17,10 +17,13 @@ export default function IngestPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let ignore = false;
     api.ingest.get(jobId).then((job) => {
-      try { setPlan(JSON.parse(job.er16_plan_json.replace(/'/g, '"'))); }
-      catch { setError("Failed to parse task analysis — the server returned invalid JSON."); }
-    });
+      if (ignore) return;
+      try { setPlan(JSON.parse(job.er16_plan_json)); }
+      catch { setError("Server returned invalid task analysis — please retry."); }
+    }).catch(() => setError("Failed to load task analysis."));
+    return () => { ignore = true; };
   }, [jobId]);
 
   async function handleDraftPlan() {

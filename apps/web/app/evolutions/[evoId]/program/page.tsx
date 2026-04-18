@@ -27,12 +27,6 @@ export default function ProgramPage() {
     }
   }
 
-  async function handleRegenerate() {
-    setLoading(true);
-    setContent("# Regenerated plan\n\nPlease describe your research agenda here.");
-    setLoading(false);
-  }
-
   return (
     <main className="min-h-screen flex flex-col gap-6 p-8 bg-zinc-950 text-zinc-100 max-w-3xl mx-auto">
       <div>
@@ -48,7 +42,7 @@ export default function ProgramPage() {
         <Button onClick={handleApprove} disabled={loading || !content.trim()}>
           {loading ? "Starting evolution…" : "✓ Approve + Start"}
         </Button>
-        <Button variant="outline" onClick={handleRegenerate} disabled={loading}>
+        <Button variant="outline" disabled title="Regeneration not available in this build">
           ↺ Regenerate
         </Button>
       </div>

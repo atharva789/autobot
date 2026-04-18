@@ -21,7 +21,10 @@ export function EvolutionHistory({ evolutionId, bestIterationId, onSelect, onMar
       .select("*")
       .eq("evolution_id", evolutionId)
       .order("iter_num")
-      .then(({ data }) => { if (data) setIterations(data as Iteration[]); });
+      .then(({ data, error }) => {
+        if (error) { console.error("EvolutionHistory fetch error:", error.message); return; }
+        if (data) setIterations(data as Iteration[]);
+      });
 
     const channel = supabase
       .channel(`iterations:${evolutionId}`)

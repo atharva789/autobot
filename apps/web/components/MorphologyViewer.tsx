@@ -57,7 +57,7 @@ export function MorphologyViewer({ urdfXml }: Props) {
   );
 
   return (
-    <div className="w-full h-full min-h-[240px] bg-zinc-900 rounded-lg overflow-hidden">
+    <div className="relative w-full h-full min-h-[240px] bg-zinc-900 rounded-lg overflow-hidden">
       <Canvas camera={{ position: [2, 2, 2], fov: 50 }} shadows>
         <ambientLight intensity={0.4} />
         <directionalLight position={[5, 5, 5]} intensity={0.8} castShadow />
