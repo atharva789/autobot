@@ -1,0 +1,29 @@
+# Research Agenda — Box Lifting Robot
+
+## Task
+Design a robot morphology and controller that can reliably pick up a box
+from the ground and lift it to waist height, matching the motion demonstrated
+in the reference video.
+
+## What to optimize
+- Minimize trajectory tracking error against the GVHMR-extracted human motion
+- Maximize Gemini Robotics-ER 1.6 task completion probability
+
+## Morphology exploration strategy
+Start with a biped (2 legs, 2 arms). If tracking error is high after 3 iterations,
+try increasing arm_dof to 7 (more wrist articulation). If the robot keeps falling,
+reduce leg_length to improve stability. Explore arm_length in 0.4–0.7m range.
+
+## Controller exploration strategy
+Default 40 epochs of behavioral cloning. If loss plateau is reached before epoch 30,
+try reducing learning_rate to 1e-4. Try increasing grad_clip_norm to 2.0 if gradients
+are unstable.
+
+## Known failure modes to avoid
+- torso_length < 0.2m causes MuJoCo loading errors
+- num_legs=4 with high arm_dof (>5) makes training slow — skip quadruped+7dof combos
+- epochs > 40 is not permitted (prepare.py enforces this)
+
+## Success threshold
+Score >= 0.75 (tracking weight 0.6, ER16 weight 0.4).
+Stop early if 5 consecutive iterations show no improvement.
