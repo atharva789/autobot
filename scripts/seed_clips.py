@@ -63,8 +63,16 @@ def upload_to_supabase(local_path: Path, remote_path: str, bucket: str) -> str:
 
 def run_gvhmr(video_url: str) -> str:
     """Dispatch to Modal GVHMR endpoint. Returns SMPL pkl URL."""
-    from scripts.gvhmr_modal_probe import process_video  # type: ignore
-    result = process_video.remote(video_url=video_url)
+    from scripts import gvhmr_modal_probe
+
+    remote_fn = getattr(gvhmr_modal_probe, "run_probe", None) or getattr(
+        gvhmr_modal_probe, "process_video", None
+    )
+    if remote_fn is None:
+        raise RuntimeError(
+            "GVHMR Modal module does not expose `run_probe` or `process_video`."
+        )
+    result = remote_fn.remote(video_url=video_url)
     return result.get("smpl_url", "")
 
 

@@ -18,25 +18,34 @@ def er16_success_prob(
     gemini_api_key: str,
 ) -> float:
     """Call Gemini Robotics-ER 1.6 to evaluate task completion. Returns P(success) in [0, 1]."""
-    import google.generativeai as genai
-    genai.configure(api_key=gemini_api_key)
-    model = genai.GenerativeModel("gemini-robotics-er-1.6")
+    from google import genai
+
+    client = genai.Client(api_key=gemini_api_key)
     with open(replay_mp4_path, "rb") as f:
         video_bytes = f.read()
     prompt = (
         f"Watch this robot simulation video. Success criteria: '{success_criteria}'.\n"
         'Reply with ONLY a JSON object: {"success_probability": <float 0-1>, "reasoning": <str>}'
     )
-    resp = model.generate_content([
-        {"mime_type": "video/mp4", "data": video_bytes},
-        prompt,
-    ])
+    resp = client.models.generate_content(
+        model="gemini-2.5-pro",
+        contents=[
+            prompt,
+            {
+                "inline_data": {
+                    "mime_type": "video/mp4",
+                    "data": video_bytes,
+                }
+            },
+        ],
+    )
+    text = getattr(resp, "text", None)
     try:
-        parsed = json.loads(resp.text)
+        parsed = json.loads(text)
         return float(parsed["success_probability"])
     except (json.JSONDecodeError, KeyError, ValueError) as e:
         import logging
-        logging.warning("er16_success_prob: failed to parse Gemini response: %r. Raw: %.200s", e, resp.text)
+        logging.warning("er16_success_prob: failed to parse Gemini response: %r. Raw: %.200s", e, text)
         return 0.0
 
 

@@ -1,12 +1,14 @@
 from __future__ import annotations
 import difflib
 import json
+import logging
 import os
+import tempfile
 import time
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from demo.supabase_client import supa
@@ -18,8 +20,15 @@ from packages.pipeline.types import EvolutionConfig
 router = APIRouter(prefix="/evolutions", tags=["evolutions"])
 _evo_svc = EvolutionService(supa=supa)
 _dispatch = ModalDispatch()
+logger = logging.getLogger(__name__)
 
-ARTIFACTS_DIR = Path("data/artifacts/evolutions")
+TEMPLATE_DIR = Path("data/artifacts/evolutions/template")
+ARTIFACTS_DIR = Path(
+    os.environ.get(
+        "EVOLUTION_ARTIFACTS_DIR",
+        str(Path(tempfile.gettempdir()) / "il_ideation" / "evolutions"),
+    )
+)
 
 
 class CreateEvolutionRequest(BaseModel):
@@ -33,34 +42,44 @@ class ApproveProgramRequest(BaseModel):
 
 @router.post("", status_code=201)
 def create_evolution(req: CreateEvolutionRequest) -> dict:
-    evo_id = _evo_svc.create(run_id=req.run_id)
-    workdir = ARTIFACTS_DIR / evo_id
-    workdir.mkdir(parents=True, exist_ok=True)
-    template = ARTIFACTS_DIR / "template"
-    if template.exists():
-        for f in ["prepare.py", "train.py", "morphology_factory.py"]:
-            src = template / f
-            if src.exists():
-                (workdir / f).write_text(src.read_text())
-    orch = CLIOrchestrator(workdir=workdir)
-    ingest = (
-        supa.table("ingest_jobs")
-        .select("er16_plan_json")
-        .eq("id", req.ingest_job_id)
-        .single()
-        .execute()
-    )
-    plan = json.loads(ingest.data["er16_plan_json"])
-    draft, generator = orch.draft_program_md(er16_plan=plan)
-    draft_id = str(uuid.uuid4())
-    supa.table("program_md_drafts").insert({
-        "id": draft_id,
-        "evolution_id": evo_id,
-        "generator": generator,
-        "draft_content": draft,
-        "approved": False,
-    }).execute()
-    return {"evolution_id": evo_id, "draft_id": draft_id, "draft_content": draft}
+    stage = "create_evolution"
+    try:
+        evo_id = _evo_svc.create(run_id=req.run_id)
+        workdir = ARTIFACTS_DIR / evo_id
+        workdir.mkdir(parents=True, exist_ok=True)
+        if TEMPLATE_DIR.exists():
+            for f in ["prepare.py", "train.py", "morphology_factory.py"]:
+                src = TEMPLATE_DIR / f
+                if src.exists():
+                    (workdir / f).write_text(src.read_text())
+        orch = CLIOrchestrator(workdir=workdir)
+        stage = "load_ingest_plan"
+        ingest = (
+            supa.table("ingest_jobs")
+            .select("er16_plan_json")
+            .eq("id", req.ingest_job_id)
+            .single()
+            .execute()
+        )
+        plan = json.loads(ingest.data["er16_plan_json"])
+        stage = "draft_program_md"
+        draft, generator = orch.draft_program_md(er16_plan=plan)
+        draft_id = str(uuid.uuid4())
+        stage = "persist_draft"
+        supa.table("program_md_drafts").insert({
+            "id": draft_id,
+            "evolution_id": evo_id,
+            "generator": generator,
+            "draft_content": draft,
+            "approved": False,
+        }).execute()
+        return {"evolution_id": evo_id, "draft_id": draft_id, "draft_content": draft}
+    except Exception as exc:
+        logger.exception("Evolution creation failed at stage=%s", stage)
+        raise HTTPException(
+            status_code=502,
+            detail={"stage": stage, "error": str(exc)},
+        ) from exc
 
 
 @router.post("/{evo_id}/approve-program")
