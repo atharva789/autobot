@@ -1,0 +1,42 @@
+# IL Platform Context for Codex
+
+## Mission
+Build a platform that converts natural-language robot task requests plus sourced video into reviewed, simulator-validated imitation-learning datasets for humanoid robots.
+
+## Startup Read Order
+1. `plans/00-master-platform-plan.md`
+2. The active phase discovery doc:
+   - `plans/phase-01-foundation/implementation-discovery-and-validation.md`
+   - `plans/phase-02-robot-and-task-ingest/implementation-discovery-and-validation.md`
+   - `plans/phase-03-video-intelligence/implementation-discovery-and-validation.md`
+   - `plans/phase-04-retargeting-and-simulation/implementation-discovery-and-validation.md`
+   - `plans/phase-05-dataset-export-and-productization/implementation-discovery-and-validation.md`
+
+If no active phase is specified, assume work starts at Phase 01.
+
+## Planning and Execution Workflow
+1. Read the master plan to inherit locked product and architecture decisions.
+2. Read the relevant phase `implementation-discovery-and-validation.md`.
+3. Resolve phase-local open decisions and validation requirements.
+4. Write a phase-specific implementation spec in a separate file when that phase meets its exit criteria.
+5. Implement only after the phase spec exists or the user explicitly authorizes implementation from the discovery doc.
+
+## Guardrails
+- Preserve these defaults unless the master plan changes:
+  web-first product, URDF-first ingest, humanoids, open-web discovery, full source mirroring, human review gate, cloud jobs, Isaac Lab / Isaac Sim, LeRobot-compatible export, no in-platform training in v1.
+- Keep cloud-job boundaries explicit.
+- Keep provenance and auditability first-class.
+- Treat mirrored-source lifecycle, takedown, retention, and deletion as real product requirements.
+- Do not bypass review gates for convenience.
+- Do not invent custom standards if existing robotics or dataset conventions are sufficient.
+
+## Handoff Rules
+- Phase specs must reference the source phase discovery doc they came from.
+- Implementation work should reference both the master plan and the phase spec.
+- If implementation pressure conflicts with the master plan, update the planning artifacts first instead of drifting silently.
+- Keep cross-phase interfaces stable unless you intentionally revise upstream documents.
+
+## Invariants
+- Every exportable episode must be traceable back to source clips and review decisions.
+- Original extracted motion, retargeted motion, and simulator-corrected motion must remain distinguishable.
+- Export is blocked unless approval and validation requirements are satisfied.

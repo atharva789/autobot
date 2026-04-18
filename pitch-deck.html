@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video → Robot Policy | IL Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #07090c;
+  --surface:   #0d1117;
+  --surface2:  #161b22;
+  --border:    #21262d;
+  --green:     #3fffa0;
+  --green-dim: #145235;
+  --blue:      #58a6ff;
+  --purple:    #bc8cff;
+  --orange:    #ffa657;
+  --text:      #e6edf3;
+  --muted:     #7d8590;
+  --danger:    #f85149;
+  --ease:      cubic-bezier(0.22, 1, 0.36, 1);
+}
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; -webkit-font-smoothing:antialiased; }
+
+/* ── grid bg ── */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.3;
+  mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
+  z-index:0;
+}
+
+/* ── slide engine ── */
+.deck { width:100%; height:100%; position:relative; overflow:hidden; }
+.slide {
+  position:absolute; inset:0; width:100%; height:100dvh;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  padding: clamp(1.5rem, 4vw, 4rem);
+  opacity:0; pointer-events:none; transform:translateY(36px);
+  transition: opacity 550ms var(--ease), transform 550ms var(--ease);
+  overflow:hidden; z-index:1;
+}
+.slide.active { opacity:1; pointer-events:auto; transform:translateY(0); }
+.slide.exit   { opacity:0; transform:translateY(-36px); transition-duration:380ms; }
+
+/* ── nav ── */
+nav { position:fixed; bottom:1.75rem; left:50%; transform:translateX(-50%); display:flex; gap:0.45rem; z-index:100; }
+.dot { width:5px; height:5px; border-radius:50%; background:var(--muted); cursor:pointer; border:none; transition:background 250ms, transform 250ms; }
+.dot.active { background:var(--green); transform:scale(1.7); }
+.arrow-nav {
+  position:fixed; top:50%; transform:translateY(-50%);
+  background:rgba(13,17,23,0.85); border:1px solid var(--border); color:var(--muted);
+  font-size:1.1rem; width:2.25rem; height:2.25rem; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:color 200ms, border-color 200ms; z-index:100; backdrop-filter:blur(12px);
+}
+.arrow-nav:hover { color:var(--green); border-color:var(--green); }
+.arrow-nav.prev { left:1.25rem; }
+.arrow-nav.next { right:1.25rem; }
+.slide-count { position:fixed; top:1.25rem; right:1.25rem; font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--muted); z-index:100; }
+
+/* ── type ── */
+.label { font-family:'Space Mono',monospace; font-size:clamp(0.6rem,1vw,0.75rem); letter-spacing:0.2em; text-transform:uppercase; color:var(--green); margin-bottom:1rem; }
+h1 { font-size:clamp(2.2rem,6.5vw,5.5rem); font-weight:700; line-height:1.0; letter-spacing:-0.03em; }
+h2 { font-size:clamp(1.4rem,3.5vw,2.8rem); font-weight:600; line-height:1.1; letter-spacing:-0.02em; }
+h3 { font-size:clamp(0.85rem,1.6vw,1.1rem); font-weight:500; }
+p, li { font-size:clamp(0.78rem,1.4vw,0.95rem); line-height:1.65; color:var(--muted); }
+code { font-family:'Space Mono',monospace; font-size:0.85em; background:var(--surface2); padding:0.1em 0.35em; border-radius:4px; }
+.g { color:var(--green); }
+.b { color:var(--blue); }
+.p { color:var(--purple); }
+.o { color:var(--orange); }
+.r { color:var(--danger); }
+
+/* ══════════════════════════════
+   SLIDE 1 — Title
+══════════════════════════════ */
+#s1 { text-align:center; }
+#s1 h1 { margin-bottom:1.5rem; }
+.chain { display:flex; align-items:center; gap:0.5rem; justify-content:center; flex-wrap:wrap; margin-bottom:2rem; }
+.pill { font-family:'Space Mono',monospace; font-size:clamp(0.65rem,1.1vw,0.8rem); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:0.4em 0.8em; white-space:nowrap; }
+.pill.g { border-color:var(--green-dim); color:var(--green); background:rgba(63,255,160,0.05); }
+.pill.b { border-color:rgba(88,166,255,0.25); color:var(--blue); background:rgba(88,166,255,0.05); }
+.pill.p { border-color:rgba(188,140,255,0.25); color:var(--purple); background:rgba(188,140,255,0.05); }
+.arr { color:var(--muted); font-size:0.9rem; }
+#s1 .sub { color:var(--muted); font-size:clamp(0.85rem,1.5vw,1.1rem); max-width:520px; line-height:1.6; }
+#s1 .byline { margin-top:2.5rem; font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; }
+.market-ticker {
+  display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; margin-top:1.5rem;
+}
+.ticker-item { font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--muted); }
+.ticker-item span { color:var(--green); }
+
+/* ══════════════════════════════
+   SLIDE 2 — The real problem
+══════════════════════════════ */
+#s2 .wrap { max-width:920px; width:100%; }
+.vs-grid { display:grid; grid-template-columns:1fr auto 1fr; gap:1.25rem; align-items:start; margin-top:1.75rem; }
+.vs-col { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.5rem 1.25rem; }
+.vs-col.bad { border-top:2px solid var(--danger); }
+.vs-col.good { border-top:2px solid var(--green); }
+.vs-label { font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem; }
+.vs-col.bad .vs-label { color:var(--danger); }
+.vs-col.good .vs-label { color:var(--green); }
+.vs-col ul { list-style:none; display:flex; flex-direction:column; gap:0.45rem; }
+.vs-col li { font-size:0.82rem; padding-left:1.1rem; position:relative; }
+.vs-col li::before { content:'·'; position:absolute; left:0; }
+.vs-col.bad li::before { color:var(--danger); }
+.vs-col.good li::before { color:var(--green); }
+.vs-divider { display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--muted); padding-top:3rem; }
+.stat-row { display:flex; gap:1.25rem; margin-top:1.25rem; }
+.stat-box { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem; text-align:center; }
+.stat-num { font-family:'Space Mono',monospace; font-size:clamp(1.2rem,2.5vw,1.8rem); font-weight:700; color:var(--danger); }
+.stat-lbl { font-size:0.72rem; color:var(--muted); margin-top:0.25rem; line-height:1.4; }
+
+/* ══════════════════════════════
+   SLIDE 3 — How RL actually works
+══════════════════════════════ */
+#s3 .wrap { max-width:920px; width:100%; }
+.rl-diagram { display:flex; flex-direction:column; gap:0.75rem; margin-top:1.75rem; }
+.rl-row { display:grid; grid-template-columns:1fr auto 1fr; gap:1rem; align-items:center; }
+.rl-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem 1.25rem; }
+.rl-box h3 { font-size:0.9rem; margin-bottom:0.3rem; }
+.rl-box p { font-size:0.78rem; }
+.rl-box.problem { border-color:rgba(248,81,73,0.4); }
+.rl-box.solution { border-color:rgba(63,255,160,0.35); }
+.rl-arrow { text-align:center; color:var(--muted); font-size:1.2rem; }
+.key-insight {
+  margin-top:1rem; background:rgba(63,255,160,0.05); border:1px solid var(--green-dim);
+  border-radius:10px; padding:1rem 1.5rem; text-align:center;
+}
+.key-insight p { color:var(--text); font-size:0.88rem; }
+.key-insight strong { color:var(--green); }
+
+/* ══════════════════════════════
+   SLIDE 4 — The pipeline
+══════════════════════════════ */
+#s4 .wrap { max-width:1040px; width:100%; }
+.pipeline { display:grid; grid-template-columns:repeat(5,1fr); gap:0.6rem; margin-top:1.75rem; position:relative; }
+.pipe { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1.1rem 0.75rem; text-align:center; position:relative; }
+.pipe::after { content:'→'; position:absolute; right:-0.55rem; top:50%; transform:translateY(-50%); font-size:0.85rem; z-index:2; color:var(--muted); }
+.pipe:last-child::after { display:none; }
+.pipe-n { font-family:'Space Mono',monospace; font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--green); margin-bottom:0.4rem; }
+.pipe-ico { font-size:1.6rem; margin:0.3rem 0; }
+.pipe h3 { font-size:0.8rem; margin-bottom:0.25rem; }
+.pipe p { font-size:0.7rem; line-height:1.4; }
+.pipe-tag { margin-top:0.4rem; font-family:'Space Mono',monospace; font-size:0.6rem; border-radius:4px; padding:0.2em 0.4em; display:inline-block; }
+.pipe-tag.g { color:var(--green); background:rgba(63,255,160,0.08); }
+.pipe-tag.b { color:var(--blue); background:rgba(88,166,255,0.08); }
+.pipe-tag.p { color:var(--purple); background:rgba(188,140,255,0.08); }
+.pipe-tag.o { color:var(--orange); background:rgba(255,166,87,0.08); }
+.pipe.highlight { border-color:var(--green-dim); }
+.pipe.highlight .pipe-n { color:var(--green); }
+.pipe-note { margin-top:0.75rem; font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--muted); text-align:center; }
+.pipe-note span { color:var(--green); }
+
+/* ══════════════════════════════
+   SLIDE 5 — The LLM reward trick
+══════════════════════════════ */
+#s5 .wrap { max-width:920px; width:100%; }
+.eureka-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-top:1.75rem; }
+.eureka-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.4rem; }
+.eureka-box.ours { border-color:var(--green-dim); }
+.e-tag { font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.6rem; color:var(--muted); }
+.eureka-box.ours .e-tag { color:var(--green); }
+.eureka-box h3 { font-size:0.95rem; margin-bottom:0.5rem; }
+.eureka-box ul { list-style:none; display:flex; flex-direction:column; gap:0.4rem; }
+.eureka-box li { font-size:0.8rem; padding-left:1rem; position:relative; }
+.eureka-box li::before { content:'·'; position:absolute; left:0; color:var(--muted); }
+.eureka-box.ours li::before { color:var(--green); }
+.code-snippet {
+  background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  padding:0.75rem 1rem; font-family:'Space Mono',monospace; font-size:0.68rem; line-height:1.8;
+  color:var(--muted); margin-top:0.75rem; grid-column:1/-1;
+}
+.code-snippet .kw { color:var(--purple); }
+.code-snippet .fn { color:var(--blue); }
+.code-snippet .str { color:var(--orange); }
+.code-snippet .cm { color:var(--muted); opacity:0.6; }
+.code-snippet .g  { color:var(--green); }
+.proof-bar { display:flex; gap:1rem; margin-top:0.75rem; grid-column:1/-1; }
+.proof-item { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:0.75rem; text-align:center; }
+.proof-num { font-family:'Space Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--green); }
+.proof-lbl { font-size:0.7rem; color:var(--muted); margin-top:0.15rem; line-height:1.4; }
+
+/* ══════════════════════════════
+   SLIDE 6 — Demo flow
+══════════════════════════════ */
+#s6 .wrap { max-width:820px; width:100%; }
+.demo-list { display:flex; flex-direction:column; gap:0.65rem; margin-top:1.5rem; }
+.demo-item { display:flex; gap:1.1rem; align-items:flex-start; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:0.9rem 1.1rem; }
+.demo-num { font-family:'Space Mono',monospace; font-size:0.65rem; color:var(--green); background:rgba(63,255,160,0.08); border:1px solid var(--green-dim); border-radius:5px; padding:0.2em 0.5em; flex-shrink:0; margin-top:0.1rem; }
+.demo-item h3 { font-size:0.88rem; margin-bottom:0.15rem; }
+.demo-item p { font-size:0.76rem; }
+.export-box { margin-top:1rem; background:rgba(88,166,255,0.05); border:1px solid rgba(88,166,255,0.2); border-radius:10px; padding:0.9rem 1.25rem; }
+.export-box p { color:var(--blue); font-family:'Space Mono',monospace; font-size:0.76rem; line-height:1.8; }
+
+/* ══════════════════════════════
+   SLIDE 7 — Originality / gap
+══════════════════════════════ */
+#s7 .wrap { max-width:940px; width:100%; }
+.gap-table { width:100%; border-collapse:collapse; margin-top:1.5rem; }
+.gap-table th { font-family:'Space Mono',monospace; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); padding:0.5rem 0.75rem; text-align:left; border-bottom:1px solid var(--border); }
+.gap-table td { font-size:0.8rem; padding:0.6rem 0.75rem; border-bottom:1px solid rgba(33,38,45,0.6); vertical-align:middle; }
+.gap-table tr:last-child td { border-bottom:none; }
+.gap-table .ours td { background:rgba(63,255,160,0.04); }
+.gap-table .ours td:first-child { color:var(--green); font-weight:600; }
+.check { color:var(--green); font-size:0.9rem; }
+.cross { color:var(--danger); font-size:0.9rem; }
+.gap-table td:first-child { font-weight:500; color:var(--text); }
+
+/* ══════════════════════════════
+   SLIDE 8 — Market
+══════════════════════════════ */
+#s8 .wrap { max-width:900px; width:100%; }
+.fund-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1.75rem; }
+.fund-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.25rem; }
+.fund-amount { font-family:'Space Mono',monospace; font-size:1.3rem; font-weight:700; color:var(--green); }
+.fund-co { font-size:0.85rem; font-weight:500; margin:0.25rem 0; }
+.fund-desc { font-size:0.75rem; color:var(--muted); line-height:1.5; }
+.fund-date { font-family:'Space Mono',monospace; font-size:0.62rem; color:var(--muted); margin-top:0.4rem; }
+.market-bottom { margin-top:1.25rem; display:flex; gap:1rem; }
+.mkt-stat { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1rem; text-align:center; }
+.mkt-val { font-family:'Space Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--blue); }
+.mkt-lbl { font-size:0.72rem; color:var(--muted); margin-top:0.2rem; line-height:1.4; }
+
+/* ══════════════════════════════
+   SLIDE 9 — Roadmap
+══════════════════════════════ */
+#s9 .wrap { max-width:900px; width:100%; }
+.roadmap { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1.75rem; }
+.rm-col { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.4rem 1.2rem; position:relative; overflow:hidden; }
+.rm-col::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.rm-col.v1::before { background:var(--green); }
+.rm-col.v2::before { background:var(--blue); }
+.rm-col.v3::before { background:var(--purple); }
+.rm-tag { font-family:'Space Mono',monospace; font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:0.6rem; }
+.rm-col.v1 .rm-tag { color:var(--green); }
+.rm-col.v2 .rm-tag { color:var(--blue); }
+.rm-col.v3 .rm-tag { color:var(--purple); }
+.rm-col h3 { font-size:0.95rem; margin-bottom:0.65rem; }
+.rm-col ul { list-style:none; display:flex; flex-direction:column; gap:0.4rem; }
+.rm-col li { font-size:0.78rem; padding-left:1rem; position:relative; color:var(--muted); }
+.rm-col li::before { content:'·'; position:absolute; left:0; }
+.rm-col.v1 li::before { color:var(--green); }
+.rm-col.v2 li::before { color:var(--blue); }
+.rm-col.v3 li::before { color:var(--purple); }
+
+/* ══════════════════════════════
+   SLIDE 10 — Team
+══════════════════════════════ */
+#s10 { text-align:center; }
+.team-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:2.25rem 2.75rem; margin-top:1.75rem; display:inline-block; min-width:300px; }
+.av { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg, var(--green-dim), var(--green)); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; font-size:1.5rem; font-weight:700; color:var(--bg); }
+.t-name { font-size:1.25rem; font-weight:600; }
+.t-role { font-size:0.82rem; color:var(--muted); margin:0.2rem 0 1rem; }
+.t-links { display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap; }
+.t-link { font-family:'Space Mono',monospace; font-size:0.7rem; color:var(--blue); background:rgba(88,166,255,0.08); border:1px solid rgba(88,166,255,0.2); border-radius:6px; padding:0.3em 0.7em; text-decoration:none; }
+.closing { margin-top:2rem; font-size:clamp(1.1rem,2.5vw,1.75rem); font-weight:600; color:var(--green); }
+.closing small { display:block; font-size:0.75rem; font-weight:400; color:var(--muted); margin-top:0.4rem; font-family:'Space Mono',monospace; letter-spacing:0.05em; }
+
+/* ── mobile ── */
+@media (max-width:700px) {
+  .vs-grid { grid-template-columns:1fr; }
+  .vs-divider { display:none; }
+  .pipeline { grid-template-columns:1fr 1fr; }
+  .pipe::after { display:none; }
+  .eureka-grid { grid-template-columns:1fr; }
+  .fund-grid { grid-template-columns:1fr; }
+  .roadmap { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .slide { transition:opacity 200ms; transform:none !important; }
+  .slide.exit { transform:none !important; }
+}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ═══ SLIDE 1: Title ═══ -->
+<section class="slide active" id="s1">
+  <div class="label">Hackathon Demo · 2026</div>
+  <h1>Human Video<br><span class="g">→</span> Robot Policy</h1>
+  <br>
+  <div class="chain">
+    <div class="pill">Watch a human</div>
+    <span class="arr">→</span>
+    <div class="pill g">Extract motion</div>
+    <span class="arr">→</span>
+    <div class="pill b">LLM writes reward fn</div>
+    <span class="arr">→</span>
+    <div class="pill p">RL trains robot</div>
+    <span class="arr">→</span>
+    <div class="pill">Deploy</div>
+  </div>
+  <p class="sub" style="color:var(--muted);text-align:center;max-width:520px;font-size:clamp(0.85rem,1.5vw,1.05rem);line-height:1.6;">
+    A pipeline that turns human motion video into an RL training kit —
+    IL warm start + LLM-generated reward function — ready to drop into Isaac Lab.
+  </p>
+  <div class="market-ticker">
+    <div class="ticker-item">Rhoda AI <span>$450M</span> ↑</div>
+    <div class="ticker-item">Physical Intelligence <span>$600M</span> ↑</div>
+    <div class="ticker-item">RLWRLD <span>$41M</span> ↑</div>
+  </div>
+  <p class="byline">Built by Atharva Gupta · 24 hours</p>
+</section>
+
+<!-- ═══ SLIDE 2: The real problem ═══ -->
+<section class="slide" id="s2">
+  <div class="wrap">
+    <div class="label">The Problem</div>
+    <h2>RL is <span class="r">wasteful</span>. Training data is <span class="r">expensive</span>.</h2>
+    <div class="vs-grid">
+      <div class="vs-col bad">
+        <div class="vs-label">Traditional RL</div>
+        <ul>
+          <li>Agent explores randomly for thousands of episodes</li>
+          <li>Most early actions are completely useless</li>
+          <li>Reward function designed by hand — takes weeks</li>
+          <li>No prior knowledge of the task</li>
+          <li>GPU hours wasted before first useful behavior</li>
+        </ul>
+      </div>
+      <div class="vs-divider">vs</div>
+      <div class="vs-col good">
+        <div class="vs-label">IL-Bootstrapped RL (Our Approach)</div>
+        <ul>
+          <li>Start from human demonstration → skip random exploration</li>
+          <li>LLM generates reward function in seconds (Eureka, ICLR 2024)</li>
+          <li>IL warm start = policy already knows <em>roughly</em> what to do</li>
+          <li>RL refines from a good starting point</li>
+          <li>~2× performance on hard tasks vs RL alone (IBRL paper)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-num">$50k+</div>
+        <div class="stat-lbl">Cost of teleoperation rig<br>to collect 1 demo dataset</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">~$0</div>
+        <div class="stat-lbl">Cost of AMASS/internet video<br>for the same motion data</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">2×</div>
+        <div class="stat-lbl">Performance uplift from<br>IL warm-start over pure RL</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 3: How RL actually works ═══ -->
+<section class="slide" id="s3">
+  <div class="wrap">
+    <div class="label">The Mechanism</div>
+    <h2>What IL data <span class="g">actually does</span> to RL</h2>
+    <div class="rl-diagram">
+      <div class="rl-row">
+        <div class="rl-box problem">
+          <h3 class="r">Without IL</h3>
+          <p>Random policy → random actions → sparse reward → almost never rewarded → slow convergence</p>
+        </div>
+        <div class="rl-arrow">→</div>
+        <div class="rl-box problem">
+          <h3 class="r">Problem</h3>
+          <p>Thousands of GPU hours wasted on useless exploration. Reward function engineered by hand.</p>
+        </div>
+      </div>
+      <div class="rl-row">
+        <div class="rl-box solution">
+          <h3 class="g">Step 1 — IL Warm Start</h3>
+          <p>Behavior clone the video trajectory → policy now <em>roughly</em> knows the motion. Exploration starts in useful space.</p>
+        </div>
+        <div class="rl-arrow">+</div>
+        <div class="rl-box solution">
+          <h3 class="g">Step 2 — LLM Reward Function</h3>
+          <p>GPT-4 reads: task description + robot env code → writes <code>reward_fn.py</code>. No human reward engineering needed.</p>
+        </div>
+      </div>
+    </div>
+    <div class="key-insight">
+      <p>IRL extracts a <strong>reward function</strong> from demos (not a policy). The policy is trained <em>using</em> that reward by RL. <strong>We skip IRL</strong> — the LLM writes the reward directly, informed by the IL trajectory.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 4: Pipeline ═══ -->
+<section class="slide" id="s4">
+  <div class="wrap">
+    <div class="label">The Pipeline</div>
+    <h2>Video → deployable RL training kit</h2>
+    <div class="pipeline">
+      <div class="pipe">
+        <div class="pipe-n">01</div>
+        <div class="pipe-ico">🎬</div>
+        <h3>Motion Source</h3>
+        <p>AMASS SMPL-X sequences or GVHMR extraction from any video</p>
+        <div class="pipe-tag g">AMASS / GVHMR</div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-n">02</div>
+        <div class="pipe-ico">🦴</div>
+        <h3>Retarget</h3>
+        <p>SMPL-X joints → G1 URDF joints. DOF clamping. Proportions scaled.</p>
+        <div class="pipe-tag g">OmniH2O</div>
+      </div>
+      <div class="pipe highlight">
+        <div class="pipe-n">03 ✦ new</div>
+        <div class="pipe-ico">🤖</div>
+        <h3>LLM Reward</h3>
+        <p>GPT-4 reads task + env → writes <code>reward_fn.py</code> in seconds</p>
+        <div class="pipe-tag p">GPT-4 API · Eureka</div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-n">04</div>
+        <div class="pipe-ico">🖥</div>
+        <h3>Sim Preview</h3>
+        <p>Kinematic playback in MuJoCo. Side-by-side with reference video.</p>
+        <div class="pipe-tag b">MuJoCo 3.x</div>
+      </div>
+      <div class="pipe highlight">
+        <div class="pipe-n">05 ✦ new</div>
+        <div class="pipe-ico">📦</div>
+        <h3>Export Kit</h3>
+        <p>ZIP: trajectory.npy + reward_fn.py + Isaac Lab config. Drop in and train.</p>
+        <div class="pipe-tag o">Isaac Lab</div>
+      </div>
+    </div>
+    <p class="pipe-note">Export = <span>one-click RL training kit</span>, not just a parquet. Drop into Isaac Lab and run.</p>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 5: The LLM reward trick ═══ -->
+<section class="slide" id="s5">
+  <div class="wrap">
+    <div class="label">Technical Depth</div>
+    <h2>LLM reward functions <span class="g">outperform human experts</span></h2>
+    <div class="eureka-grid">
+      <div class="eureka-box">
+        <div class="e-tag">Prior Art — Eureka (NVIDIA, ICLR 2024)</div>
+        <h3>LLMs write reward code</h3>
+        <ul>
+          <li>GPT-4 reads raw environment code</li>
+          <li>Generates executable Python reward functions</li>
+          <li>Outperforms human experts on 83% of tasks</li>
+          <li>52% average normalized improvement</li>
+        </ul>
+      </div>
+      <div class="eureka-box ours">
+        <div class="e-tag">Our Addition</div>
+        <h3>IL trajectory informs the reward</h3>
+        <ul>
+          <li>LLM also receives the extracted joint trajectory</li>
+          <li>Reward function shaped by <em>actual human motion</em></li>
+          <li>Warm start + reward = double advantage</li>
+          <li>No IRL needed — GPT-4 replaces it</li>
+        </ul>
+      </div>
+      <div class="code-snippet">
+<span class="cm"># Generated by GPT-4 from: "wave both arms" + G1 env code + trajectory.npy</span><br>
+<span class="kw">def</span> <span class="fn">reward_fn</span>(obs, action, trajectory_ref):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;arm_match  = <span class="fn">cosine_similarity</span>(obs[<span class="str">'arm_pos'</span>], trajectory_ref[t])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;smoothness = -<span class="fn">jerk_penalty</span>(action)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;balance    = <span class="fn">com_stability</span>(obs[<span class="str">'base_pos'</span>])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="g">0.6</span> * arm_match + <span class="g">0.2</span> * smoothness + <span class="g">0.2</span> * balance
+      </div>
+      <div class="proof-bar">
+        <div class="proof-item"><div class="proof-num">83%</div><div class="proof-lbl">tasks where LLM beats human reward design (Eureka, ICLR 2024)</div></div>
+        <div class="proof-item"><div class="proof-num">~$0.02</div><div class="proof-lbl">GPT-4 API cost per reward function generated</div></div>
+        <div class="proof-item"><div class="proof-num">2×</div><div class="proof-lbl">sample efficiency from IL warm start (IBRL paper)</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 6: Demo flow ═══ -->
+<section class="slide" id="s6">
+  <div class="wrap">
+    <div class="label">Live Demo — 24h Build</div>
+    <h2>Judge flow in <span class="g">under 60 seconds</span></h2>
+    <div class="demo-list">
+      <div class="demo-item">
+        <div class="demo-num">01</div>
+        <div><h3>Describe the task</h3><p>Type "wave both arms" — stored as task label, passed to GPT-4</p></div>
+      </div>
+      <div class="demo-item">
+        <div class="demo-num">02</div>
+        <div><h3>Pick a reference clip</h3><p>3 AMASS clips pre-staged: waving · walking · reaching. SMPL-X poses committed to repo.</p></div>
+      </div>
+      <div class="demo-item">
+        <div class="demo-num">03</div>
+        <div><h3>Generate</h3><p>Retarget runs → MuJoCo renders preview mp4. Simultaneously: GPT-4 generates <code>reward_fn.py</code> for this task.</p></div>
+      </div>
+      <div class="demo-item">
+        <div class="demo-num">04</div>
+        <div><h3>See side-by-side</h3><p>Reference video ↔ G1 MuJoCo replay. Review the generated reward function code below.</p></div>
+      </div>
+      <div class="demo-item">
+        <div class="demo-num">05</div>
+        <div><h3>Approve → Export</h3><p>Downloads a ZIP containing everything needed to train this policy in Isaac Lab.</p></div>
+      </div>
+    </div>
+    <div class="export-box">
+      <p>
+        📦 &nbsp;export.zip<br>
+        &nbsp;&nbsp;&nbsp;├── trajectory.npy &nbsp;&nbsp;&nbsp;<span style="color:var(--muted);"># G1 joint positions [T × N_dof]</span><br>
+        &nbsp;&nbsp;&nbsp;├── reward_fn.py &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted);"># LLM-generated, drop into Isaac Lab</span><br>
+        &nbsp;&nbsp;&nbsp;└── config.yaml &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--muted);"># robot + task + training hyperparams</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 7: What's original ═══ -->
+<section class="slide" id="s7">
+  <div class="wrap">
+    <div class="label">Originality</div>
+    <h2>Each piece exists. <span class="g">The integration doesn't.</span></h2>
+    <table class="gap-table">
+      <thead>
+        <tr>
+          <th>Tool / Paper</th>
+          <th>Video → Poses</th>
+          <th>Retarget to Robot</th>
+          <th>LLM Reward</th>
+          <th>IL Warm Start</th>
+          <th>One-Click Export</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>GVHMR / WHAM</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+        <tr><td>OmniH2O</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+        <tr><td>Eureka (NVIDIA)</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+        <tr><td>IBRL / WSRL</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td><td class="cross">✗</td></tr>
+        <tr><td>Rhoda AI ($450M)</td><td class="check">✓</td><td class="cross">?</td><td class="cross">?</td><td class="cross">?</td><td class="cross">✗</td></tr>
+        <tr class="ours"><td>This platform ✦</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 8: Market ═══ -->
+<section class="slide" id="s8">
+  <div class="wrap">
+    <div class="label">Market Validation</div>
+    <h2>The market is <span class="g">already here</span></h2>
+    <div class="fund-grid">
+      <div class="fund-card">
+        <div class="fund-amount">$450M</div>
+        <div class="fund-co">Rhoda AI</div>
+        <div class="fund-desc">Train robots on millions of publicly available internet videos for industrial tasks.</div>
+        <div class="fund-date">Mar 2026 · $1.7B valuation</div>
+      </div>
+      <div class="fund-card">
+        <div class="fund-amount">$600M</div>
+        <div class="fund-co">Physical Intelligence</div>
+        <div class="fund-desc">Foundation models for robots to understand and interact with the material world.</div>
+        <div class="fund-date">2024 · Led by CapitalG / Sequoia</div>
+      </div>
+      <div class="fund-card">
+        <div class="fund-amount">$41M</div>
+        <div class="fund-co">RLWRLD</div>
+        <div class="fund-desc">Physical AI startup building robotics foundation models trained inside live industrial sites.</div>
+        <div class="fund-date">2025–26 · Seed rounds</div>
+      </div>
+    </div>
+    <div class="market-bottom">
+      <div class="mkt-stat"><div class="mkt-val">$2.26B</div><div class="mkt-lbl">Global robotics funding<br>Q1 2025 alone</div></div>
+      <div class="mkt-stat"><div class="mkt-val">Every humanoid co.</div><div class="mkt-lbl">needs training data pipelines.<br>Training data = the bottleneck.</div></div>
+      <div class="mkt-stat"><div class="mkt-val">10× cheaper</div><div class="mkt-lbl">vs teleoperation rigs<br>to generate equivalent data</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 9: Roadmap ═══ -->
+<section class="slide" id="s9">
+  <div class="wrap">
+    <div class="label">Roadmap</div>
+    <h2>Where this goes <span class="g">next</span></h2>
+    <div class="roadmap">
+      <div class="rm-col v1">
+        <div class="rm-tag">v1 · 24h Demo</div>
+        <h3>Proof of Pipeline</h3>
+        <ul>
+          <li>3 AMASS clips, Unitree G1</li>
+          <li>SMPL-X → retarget → MuJoCo preview</li>
+          <li>GPT-4 reward function generation</li>
+          <li>Export: trajectory.npy + reward_fn.py</li>
+          <li>Isaac Lab config included</li>
+        </ul>
+      </div>
+      <div class="rm-col v2">
+        <div class="rm-tag">v2 · Open Input</div>
+        <h3>Any Video, Any Robot</h3>
+        <ul>
+          <li>Upload any video → GVHMR extraction</li>
+          <li>Multi-robot URDF support</li>
+          <li>Iterative reward refinement (Eureka-style)</li>
+          <li>Isaac Lab one-click training launch</li>
+          <li>In-sim RL validation before export</li>
+        </ul>
+      </div>
+      <div class="rm-col v3">
+        <div class="rm-tag">v3 · Platform</div>
+        <h3>Dataset × Policy API</h3>
+        <ul>
+          <li>Cloud pipeline, async GPU queue</li>
+          <li>HuggingFace Hub policy publishing</li>
+          <li>Multi-tenant teams / auth</li>
+          <li>Policy fine-tuning on proprietary data</li>
+          <li>Real2Sim feedback loop</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SLIDE 10: Team ═══ -->
+<section class="slide" id="s10">
+  <div class="label">Team</div>
+  <h2>Built in <span class="g">24 hours</span></h2>
+  <div class="team-card">
+    <div class="av">AG</div>
+    <div class="t-name">Atharva Gupta</div>
+    <div class="t-role">Builder · ML Systems</div>
+    <div class="t-links">
+      <a class="t-link" href="mailto:atharva.jgupta@gmail.com">atharva.jgupta@gmail.com</a>
+      <a class="t-link" href="https://github.com/atharva789" target="_blank">github/atharva789</a>
+    </div>
+  </div>
+  <p class="closing">
+    Watch a human. Train a robot.
+    <small>video → IL warm start + LLM reward → RL training kit</small>
+  </p>
+</section>
+
+</div>
+
+<button class="arrow-nav prev" id="prev">‹</button>
+<button class="arrow-nav next" id="next">›</button>
+<div class="slide-count" id="counter">1 / 10</div>
+<nav id="dots"></nav>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+const dotsEl=document.getElementById('dots');
+const counter=document.getElementById('counter');
+let cur=0,busy=false;
+
+slides.forEach((_,i)=>{
+  const d=document.createElement('button');
+  d.className='dot'+(i===0?' active':'');
+  d.setAttribute('aria-label',`Slide ${i+1}`);
+  d.addEventListener('click',()=>go(i));
+  dotsEl.appendChild(d);
+});
+
+function go(n){
+  if(busy||n===cur||n<0||n>=slides.length)return;
+  busy=true;
+  slides[cur].classList.add('exit');
+  slides[cur].classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  setTimeout(()=>{
+    slides[cur].classList.remove('exit');
+    cur=n;
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    counter.textContent=`${cur+1} / ${slides.length}`;
+    busy=false;
+  },400);
+}
+
+document.getElementById('prev').addEventListener('click',()=>go(cur-1));
+document.getElementById('next').addEventListener('click',()=>go(cur+1));
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(cur+1);}
+  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(cur-1);}
+});
+let lw=0;
+document.addEventListener('wheel',e=>{
+  const now=Date.now();if(now-lw<800)return;lw=now;
+  e.deltaY>0?go(cur+1):go(cur-1);
+},{passive:true});
+let tx=0,ty=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dy)>Math.abs(dx)){dy<-40?go(cur+1):dy>40&&go(cur-1);}
+},{passive:true});
+</script>
+</body>
+</html>

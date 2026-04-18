@@ -1,0 +1,2 @@
+"""Hackathon demo backend package."""
+

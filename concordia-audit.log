@@ -1,0 +1,7 @@
+{"ts": 1776480103.925856, "event": "client_join", "user": "thorbthorb", "compliance_mode": "strict"}
+{"ts": 1776480104.022004, "user": "thorbthorb", "accepted": true, "reason": "accepted", "bytes": 8, "sha256": "35fd97278572b2fcab8eb3db84ea2229e541c959bc7b84f253451f89cae9d97c", "compliance_mode": "strict"}
+{"ts": 1776480104.038115, "user": "thorbthorb", "accepted": true, "reason": "accepted", "bytes": 5, "sha256": "018f1907e37a1d45987caaf750017e01d29e0273f7173d65742f14f2eb745b8e", "compliance_mode": "strict"}
+{"ts": 1776480104.053442, "user": "thorbthorb", "accepted": true, "reason": "accepted", "bytes": 29, "sha256": "1174d12dc78f4b7d824874de48d6e0b2d8a291329df34c6cc528d4f480f9a755", "compliance_mode": "strict"}
+{"ts": 1776480104.057981, "user": "thorbthorb", "accepted": true, "reason": "accepted", "bytes": 25, "sha256": "201f7c91eb9afd90d8726e455d63d801e1ef6a9045d5ddb93bf150cd018ea7e2", "compliance_mode": "strict"}
+{"ts": 1776480104.069039, "user": "thorbthorb", "accepted": true, "reason": "accepted", "bytes": 25, "sha256": "08efec0bb7a7de6a39a06cfbd0a4a6fb8f12b6f99235f6ae5b2e2e9847ffa595", "compliance_mode": "strict"}
+{"ts": 1776480166.666406, "user": "thorbthorb", "accepted": true, "reason": "accepted", "bytes": 7, "sha256": "a24a719f4de2a834f92a3eb44b3e6d943d71d773332a83ec2ae7cd6db466cf5d", "compliance_mode": "strict"}

@@ -1,0 +1,91 @@
+<h2>Text → Robot Dashboard (v1 mockup)</h2>
+<p class="subtitle">Click a layout to react. This is my first interpretation — we'll iterate.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Preview: Full pipeline dashboard (single page)</div>
+  <div class="mockup-body">
+    <div class="mock-nav" style="display:flex;justify-content:space-between;align-items:center;">
+      <span><strong>autoResearch · Robotics</strong> &nbsp;|&nbsp; Ingest · Retarget · Simulate · Evolve</span>
+      <span style="font-size:0.8em;opacity:0.7;">run #042 · g1-variant-7</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:320px 1fr 1fr;gap:12px;margin-top:12px;">
+
+      <div style="border:1px solid #333;padding:12px;border-radius:6px;">
+        <div class="label">1 · Task prompt</div>
+        <input class="mock-input" placeholder="e.g. 'a robot that can pick up a box and carry it upstairs'" style="width:100%;margin:8px 0;">
+        <div class="label" style="margin-top:12px;">2 · Reference clip</div>
+        <div class="placeholder" style="height:120px;margin:6px 0;">▶ tennis_serve.mp4 (GVHMR cached)</div>
+        <select class="mock-input" style="width:100%;">
+          <option>tennis_serve.mp4</option>
+          <option>box_lift.mp4</option>
+          <option>stairs_climb.mp4</option>
+        </select>
+        <button class="mock-button" style="width:100%;margin-top:12px;">▶ Run pipeline</button>
+        <button class="mock-button" style="width:100%;margin-top:6px;background:#2a4;">✓ Approve + Export</button>
+      </div>
+
+      <div style="border:1px solid #333;padding:12px;border-radius:6px;">
+        <div class="label">3 · Generated morphology (VAE latent)</div>
+        <div class="placeholder" style="height:240px;margin:8px 0;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:3em;">🦾</span>
+          <span style="margin-left:8px;font-family:monospace;">URDF · 18 DoF · 2 arms · quadruped base</span>
+        </div>
+        <div style="font-family:monospace;font-size:0.8em;opacity:0.8;">
+          latent z = [0.42, -1.1, 0.08, 2.3, ...]<br>
+          fitness = 0.81 · stability = 0.92
+        </div>
+        <div class="label" style="margin-top:10px;">Pipeline status</div>
+        <div style="font-family:monospace;font-size:0.8em;">
+          ✓ video ingest (2.1s)<br>
+          ✓ GVHMR motion extract (4.3s)<br>
+          ✓ VAE design sample (0.8s)<br>
+          ⟳ GNN controller rollout... (12.5s)
+        </div>
+      </div>
+
+      <div style="border:1px solid #333;padding:12px;border-radius:6px;">
+        <div class="label">4 · MuJoCo replay</div>
+        <div class="placeholder" style="height:240px;margin:8px 0;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:3em;">🎬</span>
+          <span style="margin-left:8px;">MuJoCo viewer · frame 142/240</span>
+        </div>
+        <div style="font-family:monospace;font-size:0.8em;opacity:0.8;">
+          tracking error: 0.14 rad<br>
+          contact mismatch: 3.2%<br>
+          episode reward: 8.4
+        </div>
+        <div class="label" style="margin-top:10px;">Export</div>
+        <div style="font-family:monospace;font-size:0.8em;">
+          → lerobot_dataset.parquet<br>
+          → morphology.urdf<br>
+          → controller.ckpt
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options" style="margin-top:20px;">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Yes — this matches what I want</h3>
+      <p>3-pane dashboard: prompt/clip on left, morphology + pipeline in middle, MuJoCo replay right</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Close but simplify</h3>
+      <p>Text → MuJoCo replay only. Hide morphology details; expose them in a "research" tab</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Demo-first redesign</h3>
+      <p>Cinema mode: one big MuJoCo viewport, text prompt floats on top, pipeline as a timeline at bottom (optimized for the 2-min video)</p>
+    </div>
+  </div>
+</div>

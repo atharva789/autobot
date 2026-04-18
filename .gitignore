@@ -1,0 +1,5 @@
+__pycache__/
+tmp_outputs/
+tmp_clips/*.mp4
+tmp_clips/*.mov
+tmp_clips/*.avi
