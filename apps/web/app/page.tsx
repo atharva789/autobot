@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import {
@@ -358,11 +358,21 @@ function CheckpointBanner({
 }) {
   const tone = checkpoint.label === "Budget" ? "warning" : "success";
   const borderColor = decision === "approved" ? "border-green-500/30" : decision === "denied" ? "border-red-400/30" : "border-lime-400/20";
+  const handleHeaderKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onToggle();
+    }
+  };
 
   return (
     <div className={`rounded-md border ${borderColor} bg-black/40 overflow-hidden`}>
-      <button
+      <div
         onClick={onToggle}
+        onKeyDown={handleHeaderKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -392,7 +402,7 @@ function CheckpointBanner({
           )}
           <ChevronRight className={`size-3 text-slate-500 transition-transform ${expanded ? "rotate-90" : ""}`} />
         </div>
-      </button>
+      </div>
       {expanded && (
         <div className="border-t border-white/5 px-3 py-2 text-[11px]">
           <p className="text-slate-400 leading-relaxed">{checkpoint.summary}</p>
