@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 function ProgramPageContent() {
   const { evoId } = useParams<{ evoId: string }>();
   const searchParams = useSearchParams();
-  const initialDraft = decodeURIComponent(searchParams.get("draft") ?? "");
+  const initialDraft = searchParams.get("draft") ?? "";
   const [content, setContent] = useState(initialDraft);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
