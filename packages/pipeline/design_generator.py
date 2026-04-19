@@ -1,6 +1,6 @@
 """Gemini-driven robot design generation.
 
-Replaces VAE sampling with task-conditioned structured output from Gemini 3.1 Pro Preview.
+Replaces VAE sampling with task-conditioned structured output from Gemini 2.5 Pro.
 """
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from packages.pipeline.mjx_screener import generate_mjcf_from_candidate
 from packages.pipeline.schemas import (
     DesignCandidatesResponse,
     RobotDesignCandidate,
@@ -182,14 +183,14 @@ def _coerce_json_text(text: str) -> str:
 def generate_design_candidates(
     task_spec: TaskSpec,
     *,
-    model: str = "gemini-2.5-pro",
+    model: str = "gemini-1.5-pro",
     max_retries: int = 2,
 ) -> DesignCandidatesResponse:
     """Generate 3 robot design candidates using Gemini structured output.
 
     Args:
         task_spec: The extracted task specification.
-        model: Gemini model to use (default: gemini-2.5-pro).
+        model: Gemini model to use (default: gemini-1.5-pro).
         max_retries: Number of retries on validation failure.
 
     Returns:
@@ -198,8 +199,6 @@ def generate_design_candidates(
     Raises:
         RuntimeError: If Gemini call fails or returns invalid response.
     """
-    client = _get_gemini_client()
-
     few_shot_example = json.dumps(_FEW_SHOT_WALKING_BIPED, indent=2)
     task_spec_json = task_spec.model_dump_json(indent=2)
 
@@ -213,34 +212,38 @@ Now generate designs for this task:
 {_DESIGN_USER_PROMPT.format(task_spec_json=task_spec_json)}"""
 
     last_error: Exception | None = None
-    for attempt in range(max_retries + 1):
-        try:
-            response = client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_json_schema": DesignCandidatesResponse.model_json_schema(),
-                },
-            )
-            text = _extract_response_text(response)
-            if not isinstance(text, str):
-                raise RuntimeError(
-                    f"Gemini returned non-text response on attempt {attempt + 1}"
-                )
-            text = _coerce_json_text(text)
-            result = DesignCandidatesResponse.model_validate_json(text)
-            _validate_candidates(result)
-            return result
-        except (ValidationError, json.JSONDecodeError, RuntimeError) as exc:
-            last_error = exc
-            if attempt < max_retries:
-                continue
-            raise RuntimeError(
-                f"Failed to generate valid design candidates after {max_retries + 1} attempts: {exc}"
-            ) from exc
+    try:
+        client = _get_gemini_client()
+    except RuntimeError as exc:
+        client = None
+        last_error = exc
 
-    raise RuntimeError(f"Design generation failed: {last_error}")
+    if client is not None:
+        for attempt in range(max_retries + 1):
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config={
+                        "response_mime_type": "application/json",
+                        "response_json_schema": DesignCandidatesResponse.model_json_schema(),
+                    },
+                )
+                text = _extract_response_text(response)
+                if not isinstance(text, str):
+                    raise RuntimeError(
+                        f"Gemini returned non-text response on attempt {attempt + 1}"
+                    )
+                text = _coerce_json_text(text)
+                result = DesignCandidatesResponse.model_validate_json(text)
+                _validate_candidates(result)
+                return result
+            except (ValidationError, json.JSONDecodeError, RuntimeError) as exc:
+                last_error = exc
+                if attempt < max_retries:
+                    continue
+
+    return _fallback_design_candidates(task_spec, last_error)
 
 
 def _validate_candidates(response: DesignCandidatesResponse) -> None:
@@ -263,6 +266,127 @@ def _validate_candidates(response: DesignCandidatesResponse) -> None:
             raise ValidationError(
                 f"Candidate {candidate.candidate_id}: has arm_length but num_arms=0"
             )
+
+
+def _infer_payload(task_spec: TaskSpec) -> float:
+    payload = max(task_spec.payload_kg, 0.0)
+    task_text = f"{task_spec.task_goal} {' '.join(task_spec.search_queries)}".lower()
+    if payload > 0:
+        return payload
+    if any(keyword in task_text for keyword in ("carry", "box", "crate", "bin", "bag")):
+        return 4.0
+    if any(keyword in task_text for keyword in ("lift", "stack", "shelf")):
+        return 2.0
+    return 0.5
+
+
+def _fallback_design_candidates(
+    task_spec: TaskSpec,
+    last_error: Exception | None,
+) -> DesignCandidatesResponse:
+    task_text = f"{task_spec.task_goal} {' '.join(task_spec.search_queries)}".lower()
+    payload = _infer_payload(task_spec)
+    needs_stairs = any(keyword in task_text for keyword in ("stairs", "stair", "upstairs", "steps"))
+    needs_manipulation = task_spec.manipulation_required or any(
+        keyword in task_text for keyword in ("carry", "pick", "place", "lift", "hold", "grasp")
+    )
+    outdoor_bias = task_spec.environment in {"outdoor", "mixed"}
+
+    candidate_a = RobotDesignCandidate(
+        candidate_id="A",
+        embodiment_class="biped" if needs_stairs else "wheeled",
+        num_legs=2 if needs_stairs else 0,
+        num_arms=2 if needs_manipulation else 0,
+        has_torso=True,
+        torso_length_m=0.52 if needs_manipulation else 0.38,
+        arm_length_m=0.44 if needs_manipulation else 0.0,
+        leg_length_m=0.72 if needs_stairs else 0.0,
+        arm_dof=4 if needs_manipulation else 0,
+        leg_dof=5 if needs_stairs else 0,
+        spine_dof=2 if needs_manipulation else 1,
+        actuator_class="bldc" if payload >= 3 else "servo",
+        actuator_torque_nm=28.0 if payload >= 3 else 12.0,
+        total_mass_kg=26.0 if needs_stairs else 18.0,
+        payload_capacity_kg=max(payload, 2.0 if needs_manipulation else 0.0),
+        sensor_package=["imu", "encoder", "camera"],
+        joint_damping=0.55,
+        joint_stiffness=180.0,
+        friction=0.95 if needs_stairs else 0.8,
+        rationale="Fallback candidate tuned for direct task coverage with balanced manipulation and locomotion.",
+        confidence=0.84,
+    )
+
+    candidate_b = RobotDesignCandidate(
+        candidate_id="B",
+        embodiment_class="quadruped" if outdoor_bias or needs_stairs else "hybrid",
+        num_legs=4 if (outdoor_bias or needs_stairs) else 2,
+        num_arms=1 if needs_manipulation else 0,
+        has_torso=True,
+        torso_length_m=0.58,
+        arm_length_m=0.38 if needs_manipulation else 0.0,
+        leg_length_m=0.48 if (outdoor_bias or needs_stairs) else 0.35,
+        arm_dof=4 if needs_manipulation else 0,
+        leg_dof=3,
+        spine_dof=1,
+        actuator_class="bldc" if payload >= 2 else "servo",
+        actuator_torque_nm=18.0 if payload >= 2 else 10.0,
+        total_mass_kg=22.0,
+        payload_capacity_kg=max(payload * 0.8, 1.0 if needs_manipulation else 0.0),
+        sensor_package=["imu", "encoder", "camera"],
+        joint_damping=0.45,
+        joint_stiffness=150.0,
+        friction=1.0 if outdoor_bias or needs_stairs else 0.82,
+        rationale="Fallback candidate emphasizes stability and terrain robustness while keeping a simpler manipulator package.",
+        confidence=0.78,
+    )
+
+    candidate_c = RobotDesignCandidate(
+        candidate_id="C",
+        embodiment_class="arm" if not needs_stairs and needs_manipulation else "biped",
+        num_legs=0 if (not needs_stairs and needs_manipulation) else 2,
+        num_arms=1 if (not needs_stairs and needs_manipulation) else 0,
+        has_torso=not (not needs_stairs and needs_manipulation),
+        torso_length_m=0.24 if (not needs_stairs and needs_manipulation) else 0.34,
+        arm_length_m=0.65 if (not needs_stairs and needs_manipulation) else 0.0,
+        leg_length_m=0.0 if (not needs_stairs and needs_manipulation) else 0.52,
+        arm_dof=6 if (not needs_stairs and needs_manipulation) else 0,
+        leg_dof=3 if needs_stairs else 4,
+        spine_dof=0 if (not needs_stairs and needs_manipulation) else 1,
+        actuator_class="servo",
+        actuator_torque_nm=9.0 if (not needs_stairs and needs_manipulation) else 11.0,
+        total_mass_kg=9.0 if (not needs_stairs and needs_manipulation) else 12.0,
+        payload_capacity_kg=max(payload * 0.6, 0.5),
+        sensor_package=["imu", "encoder"],
+        joint_damping=0.62,
+        joint_stiffness=110.0,
+        friction=0.78,
+        rationale="Fallback candidate minimizes complexity for rapid prototyping and easier procurement.",
+        confidence=0.72,
+    )
+
+    preferred = "A" if needs_stairs or needs_manipulation else "B"
+    reason = "Fallback selection was used because Gemini design generation was unavailable."
+    if last_error is not None:
+        reason += f" Last error: {last_error}"
+
+    return DesignCandidatesResponse(
+        task_interpretation=f"Offline fallback generated candidates for task: {task_spec.task_goal}",
+        candidates=[candidate_a, candidate_b, candidate_c],
+        model_preferred_id=preferred,
+        selection_rationale=reason,
+    )
+
+
+def build_render_payload(candidate: RobotDesignCandidate) -> dict[str, Any]:
+    return {
+        "candidate_id": candidate.candidate_id,
+        "topology_label": f"{candidate.embodiment_class}:{candidate.num_legs}L/{candidate.num_arms}A",
+        "view_modes": ["concept", "wireframe", "joints", "components"],
+        "mjcf": generate_mjcf_from_candidate(candidate),
+        "joint_count": candidate.num_legs * candidate.leg_dof
+        + candidate.num_arms * candidate.arm_dof
+        + candidate.spine_dof,
+    }
 
 
 def candidate_to_morphology_params(candidate: RobotDesignCandidate) -> dict[str, Any]:
