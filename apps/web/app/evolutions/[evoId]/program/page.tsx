@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProgramMdEditor } from "@/components/ProgramMdEditor";
 import { api } from "@/lib/api";
 
-export default function ProgramPage() {
+function ProgramPageContent() {
   const { evoId } = useParams<{ evoId: string }>();
   const searchParams = useSearchParams();
   const initialDraft = decodeURIComponent(searchParams.get("draft") ?? "");
@@ -48,5 +48,13 @@ export default function ProgramPage() {
       </div>
       {error && <p className="text-red-400 text-sm">{error}</p>}
     </main>
+  );
+}
+
+export default function ProgramPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProgramPageContent />
+    </Suspense>
   );
 }

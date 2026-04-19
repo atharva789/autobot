@@ -12,6 +12,7 @@ interface DesignSelectorProps {
   rankings: FallbackRanking[];
   onSelect: (designId: string, candidateId: "A" | "B" | "C") => void;
   disabled?: boolean;
+  initialSelectedId?: "A" | "B" | "C" | null;
 }
 
 function ScoreBar({ score, label }: { score: number; label: string }) {
@@ -255,8 +256,9 @@ export function DesignSelector({
   rankings,
   onSelect,
   disabled,
+  initialSelectedId = null,
 }: DesignSelectorProps) {
-  const [selectedId, setSelectedId] = useState<"A" | "B" | "C" | null>(null);
+  const [selectedId, setSelectedId] = useState<"A" | "B" | "C" | null>(initialSelectedId);
   const [bomData, setBomData] = useState<BOMOutput | null>(null);
   const [bomLoading, setBomLoading] = useState(false);
 

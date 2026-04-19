@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from demo.supabase_client import supa
 from demo.workspace_store import workspace_store
 from demo.services.evolution_service import EvolutionService
-from demo.services.orchestrator import CLIOrchestrator
+from demo.services.orchestrator import CLIOrchestrator, build_fallback_program_md
 from demo.services.modal_dispatch import ModalDispatch
 from packages.pipeline.types import EvolutionConfig
 
@@ -60,7 +60,12 @@ def create_evolution(req: CreateEvolutionRequest) -> dict:
             raise HTTPException(status_code=404, detail="Ingest job not found")
         plan = json.loads(ingest["er16_plan_json"])
         stage = "draft_program_md"
-        draft, generator = orch.draft_program_md(er16_plan=plan)
+        try:
+            draft, generator = orch.draft_program_md(er16_plan=plan)
+        except Exception as exc:
+            logger.warning("Program drafting degraded for evolution_id=%s: %s", evo_id, exc)
+            draft = build_fallback_program_md(plan, str(exc))
+            generator = "fallback"
         draft_id = str(uuid.uuid4())
         stage = "persist_draft"
         workspace_store.save_program_draft({
@@ -118,6 +123,15 @@ def get_evolution(evo_id: str) -> dict:
 def _run_evolution_loop(evo_id: str) -> None:
     cfg = EvolutionConfig()
     workdir = ARTIFACTS_DIR / evo_id
+    workdir.mkdir(parents=True, exist_ok=True)
+    for filename, fallback in {
+        "program.md": "# Program\n",
+        "train.py": "",
+        "morphology_factory.py": "",
+    }.items():
+        target = workdir / filename
+        if not target.exists():
+            target.write_text(fallback)
     orch = CLIOrchestrator(workdir=workdir)
 
     evo = _evo_svc.get(evo_id)
@@ -143,6 +157,7 @@ def _run_evolution_loop(evo_id: str) -> None:
     try:
         best_score = -float("inf")
         no_improve = 0
+        any_success = False
         t0 = time.time()
 
         for i in range(cfg.max_iters):
@@ -168,10 +183,33 @@ def _run_evolution_loop(evo_id: str) -> None:
                 if (workdir / "program.md").exists()
                 else ""
             )
-            orch.edit_files(
-                prompt=context + f"Iteration {i}. Improve train.py and/or morphology_factory.py.",
-                editable=["train.py", "morphology_factory.py"],
-            )
+            edit_warning = None
+            try:
+                edit_result = orch.edit_files(
+                    prompt=context + f"Iteration {i}. Improve train.py and/or morphology_factory.py.",
+                    editable=["train.py", "morphology_factory.py"],
+                )
+                if isinstance(edit_result, dict):
+                    edit_warning = edit_result.get("warning")
+                    if edit_result.get("generator") == "gemini" and edit_result.get("stdout"):
+                        updated_paths = orch.apply_edit_output(
+                            edit_result["stdout"],
+                            ["train.py", "morphology_factory.py"],
+                        )
+                        if not updated_paths:
+                            edit_warning = (
+                                f"{edit_warning}\n"
+                                if edit_warning
+                                else ""
+                            ) + "Edit output could not be parsed; existing files reused."
+            except Exception as exc:
+                edit_warning = f"Edit step degraded; existing files reused. reason={exc}"
+                logger.warning(
+                    "Evolution edit step degraded for evo_id=%s iter=%s: %s",
+                    evo_id,
+                    i,
+                    exc,
+                )
 
             try:
                 result = _dispatch.run_trial(
@@ -190,14 +228,16 @@ def _run_evolution_loop(evo_id: str) -> None:
                     smpl_trajectory_url=smpl_url,
                 )
             except Exception as exc:
-                supa.table("iterations").insert({
-                    "id": str(uuid.uuid4()),
-                    "evolution_id": evo_id,
-                    "iter_num": i,
-                    "fitness_score": 0.0,
-                    "reasoning_log": f"Trial failed: {exc}",
-                }).execute()
+                _evo_svc.record_iteration(
+                    evo_id,
+                    i,
+                    {
+                        "fitness_score": 0.0,
+                        "reasoning_log": f"Trial failed: {exc}",
+                    },
+                )
                 continue
+            any_success = True
 
             new_train = (
                 (workdir / "train.py").read_text()
@@ -232,7 +272,11 @@ def _run_evolution_loop(evo_id: str) -> None:
                     "replay_mp4_url": result.replay_mp4_url,
                     "controller_ckpt_url": result.controller_ckpt_url,
                     "trajectory_npz_url": result.trajectory_npz_url,
-                    "reasoning_log": result.reasoning_md,
+                    "reasoning_log": (
+                        f"{edit_warning}\n\n{result.reasoning_md}"
+                        if edit_warning
+                        else result.reasoning_md
+                    ),
                     "train_py_diff": train_diff,
                     "morph_factory_diff": morph_diff,
                 },
@@ -251,7 +295,7 @@ def _run_evolution_loop(evo_id: str) -> None:
         # Only mark done if still running (not stopped by user)
         evo_final = _evo_svc.get(evo_id)
         if evo_final["status"] == "running":
-            _evo_svc.update_status(evo_id, "done")
+            _evo_svc.update_status(evo_id, "done" if any_success else "failed")
     except Exception as exc:
         _evo_svc.update_status(evo_id, "failed")
         raise

@@ -282,3 +282,55 @@ export interface BOMOutput {
   procurement_confidence: number;
   missing_items: string[];
 }
+
+export interface HierarchicalNode {
+  id: string;
+  parent_id: string | null;
+  level: "robot" | "subsystem" | "assembly" | "component" | "part";
+  kind: string;
+  display_name: string;
+  has_children: boolean;
+  position?: [number, number, number];
+  geometry?: {
+    primitive: "box" | "cylinder" | "sphere" | "capsule" | "cone";
+    dimensions: [number, number, number];
+    position?: [number, number, number];
+    rotation?: [number, number, number];
+    material_key?: string;
+  };
+  color?: [number, number, number, number];
+  material_key?: string;
+  material_label?: string;
+  is_actuated?: boolean;
+  dof?: number;
+  vendor?: string;
+  sku?: string;
+  role?: string;
+}
+
+export interface ComponentGraphSummary {
+  id: string;
+  candidate_id: "A" | "B" | "C";
+  embodiment_class: string;
+  total_mass_kg: number;
+  total_cost_usd: number;
+  total_dof: number;
+  subsystem_count: number;
+  assembly_count: number;
+  component_count: number;
+  part_count: number;
+}
+
+export interface HierarchicalBOMNode {
+  id: string;
+  level: "robot" | "subsystem" | "assembly" | "component" | "part";
+  display_name: string;
+  kind?: string;
+  role?: string;
+  vendor?: string;
+  sku?: string;
+  unit_price_usd?: number | null;
+  mass_kg?: number | null;
+  subtotal_usd?: number | null;
+  children?: HierarchicalBOMNode[];
+}

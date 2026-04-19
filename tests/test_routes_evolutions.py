@@ -17,6 +17,7 @@ from packages.pipeline.schemas import (
     FallbackRanking,
     RobotDesignCandidate,
 )
+from packages.pipeline.types import EvolutionConfig, TrialResult
 
 client = TestClient(create_app())
 
@@ -166,7 +167,7 @@ def test_ingest_post_uses_droid_fallback_when_youtube_times_out():
     assert "droid fallback selected" in payload["selection_rationale"].lower()
 
 
-def test_create_evolution_returns_stage_on_orchestrator_failure():
+def test_create_evolution_uses_fallback_program_when_orchestrator_fails():
     local_store = WorkspaceStore(Path("/tmp") / "test-create-evolution.sqlite3")
     local_store.save_ingest_job(
         {
@@ -188,9 +189,142 @@ def test_create_evolution_returns_stage_on_orchestrator_failure():
         mock_orch.return_value.draft_program_md.side_effect = RuntimeError("claude failed")
         r = client.post("/evolutions", json={"run_id": "run-1", "ingest_job_id": "ing-1"})
 
-    assert r.status_code == 502
-    assert r.json()["detail"]["stage"] == "draft_program_md"
-    assert r.json()["detail"]["error"] == "claude failed"
+    assert r.status_code == 201
+    assert r.json()["evolution_id"] == "evo-1"
+    assert "Fallback draft generated" in r.json()["draft_content"]
+    assert "claude failed" in r.json()["draft_content"]
+
+
+def test_run_evolution_loop_continues_when_edit_step_fails(tmp_path):
+    local_store = WorkspaceStore(tmp_path / "evolution-loop.sqlite3")
+    local_store.create_evolution("run-1", evo_id="evo-loop")
+    local_store.update_evolution("evo-loop", {"status": "running"})
+
+    artifacts_dir = tmp_path / "artifacts"
+    workdir = artifacts_dir / "evo-loop"
+    workdir.mkdir(parents=True, exist_ok=True)
+    (workdir / "program.md").write_text("# Program: wall climb\n")
+    (workdir / "train.py").write_text("x = 1\n")
+    (workdir / "morphology_factory.py").write_text("y = 1\n")
+
+    orchestrator = type(
+        "FakeOrchestrator",
+        (),
+        {"edit_files": lambda self, *args, **kwargs: (_ for _ in ()).throw(RuntimeError("provider outage"))},
+    )()
+
+    with patch.object(evolutions_module, "ARTIFACTS_DIR", artifacts_dir), \
+         patch.object(evolutions_module._evo_svc, "store", local_store), \
+         patch("demo.routes.evolutions.CLIOrchestrator", return_value=orchestrator), \
+         patch("demo.routes.evolutions.EvolutionConfig", side_effect=lambda: EvolutionConfig(max_iters=1)), \
+         patch.object(
+             evolutions_module._dispatch,
+             "run_trial",
+             return_value=TrialResult(
+                 tracking_error=0.12,
+                 er16_success_prob=0.81,
+                 fitness_score=0.84,
+                 replay_mp4_url="file:///tmp/replay.mp4",
+                 controller_ckpt_url="file:///tmp/controller.pt",
+                 trajectory_npz_url="file:///tmp/traj.npz",
+                 reasoning_md="Trial succeeded with baseline files.",
+             ),
+         ):
+        evolutions_module._run_evolution_loop("evo-loop")
+
+    evolution = local_store.get_evolution("evo-loop")
+    assert evolution["status"] == "done"
+    assert evolution["best_iteration_id"] is not None
+    iteration = local_store.get_iteration(evolution["best_iteration_id"])
+    assert "Edit step degraded" in iteration["reasoning_log"]
+    assert "Trial succeeded with baseline files." in iteration["reasoning_log"]
+
+
+def test_run_evolution_loop_applies_gemini_edits_before_trial(tmp_path):
+    local_store = WorkspaceStore(tmp_path / "evolution-apply.sqlite3")
+    local_store.create_evolution("run-1", evo_id="evo-apply")
+    local_store.update_evolution("evo-apply", {"status": "running"})
+
+    artifacts_dir = tmp_path / "artifacts"
+    workdir = artifacts_dir / "evo-apply"
+    workdir.mkdir(parents=True, exist_ok=True)
+    (workdir / "program.md").write_text("# Program: improve gait\n")
+    (workdir / "train.py").write_text("x = 1\n")
+    (workdir / "morphology_factory.py").write_text("y = 1\n")
+
+    class FakeOrchestrator:
+        def edit_files(self, *args, **kwargs):
+            return {
+                "generator": "gemini",
+                "stdout": "=== train.py ===\n"
+                "x = 2\n"
+                "=== morphology_factory.py ===\n"
+                "y = 3\n",
+            }
+
+        def apply_edit_output(self, stdout, editable):
+            from demo.services.orchestrator import GeminiOrchestrator
+
+            return GeminiOrchestrator(workdir).apply_edit_output(stdout, editable)
+
+    seen: dict = {}
+
+    def fake_run_trial(**kwargs):
+        seen["train"] = kwargs["train_py_source"]
+        seen["morph"] = kwargs["morph_factory_source"]
+        return TrialResult(
+            tracking_error=0.11,
+            er16_success_prob=0.82,
+            fitness_score=0.86,
+            replay_mp4_url="file:///tmp/replay.mp4",
+            controller_ckpt_url="file:///tmp/controller.pt",
+            trajectory_npz_url="file:///tmp/traj.npz",
+            reasoning_md="Trial used edited files.",
+        )
+
+    with patch.object(evolutions_module, "ARTIFACTS_DIR", artifacts_dir), \
+         patch.object(evolutions_module._evo_svc, "store", local_store), \
+         patch("demo.routes.evolutions.CLIOrchestrator", return_value=FakeOrchestrator()), \
+         patch("demo.routes.evolutions.EvolutionConfig", side_effect=lambda: EvolutionConfig(max_iters=1)), \
+         patch.object(evolutions_module._dispatch, "run_trial", side_effect=fake_run_trial):
+        evolutions_module._run_evolution_loop("evo-apply")
+
+    assert seen["train"] == "x = 2\n"
+    assert seen["morph"] == "y = 3\n"
+    assert (workdir / "train.py").read_text() == "x = 2\n"
+    assert (workdir / "morphology_factory.py").read_text() == "y = 3\n"
+
+
+def test_run_evolution_loop_marks_failed_when_all_trials_fail(tmp_path):
+    local_store = WorkspaceStore(tmp_path / "evolution-fail.sqlite3")
+    local_store.create_evolution("run-1", evo_id="evo-fail")
+    local_store.update_evolution("evo-fail", {"status": "running"})
+
+    artifacts_dir = tmp_path / "artifacts"
+    workdir = artifacts_dir / "evo-fail"
+    workdir.mkdir(parents=True, exist_ok=True)
+    (workdir / "program.md").write_text("# Program: wall climb\n")
+    (workdir / "train.py").write_text("x = 1\n")
+    (workdir / "morphology_factory.py").write_text("y = 1\n")
+
+    orchestrator = type(
+        "FakeOrchestrator",
+        (),
+        {"edit_files": lambda self, *args, **kwargs: {"generator": "fallback", "stdout": ""}},
+    )()
+
+    with patch.object(evolutions_module, "ARTIFACTS_DIR", artifacts_dir), \
+         patch.object(evolutions_module._evo_svc, "store", local_store), \
+         patch("demo.routes.evolutions.CLIOrchestrator", return_value=orchestrator), \
+         patch("demo.routes.evolutions.EvolutionConfig", side_effect=lambda: EvolutionConfig(max_iters=1)), \
+         patch.object(evolutions_module._dispatch, "run_trial", side_effect=RuntimeError("dispatch offline")):
+        evolutions_module._run_evolution_loop("evo-fail")
+
+    evolution = local_store.get_evolution("evo-fail")
+    assert evolution["status"] == "failed"
+    iterations = local_store.list_iterations("evo-fail")
+    assert len(iterations) == 1
+    assert "Trial failed: dispatch offline" in iterations[0]["reasoning_log"]
 
 
 def _sample_candidates_response() -> DesignCandidatesResponse:

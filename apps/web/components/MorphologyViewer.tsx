@@ -25,6 +25,8 @@ interface Props {
   uiScene?: EngineeringScene | null;
   mode?: ViewerMode;
   animated?: boolean;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
   onHoverComponent?: (component: EngineeringScene["nodes"][number] | null) => void;
 }
 
@@ -250,6 +252,8 @@ export function MorphologyViewer({
   uiScene,
   mode = "concept",
   animated = true,
+  isFullscreen = false,
+  onToggleFullscreen,
   onHoverComponent,
 }: Props) {
   const [hoveredComponentId, setHoveredComponentId] = useState<string | null>(null);
@@ -271,8 +275,44 @@ export function MorphologyViewer({
     }
   }, [hoveredComponentId, onHoverComponent, uiScene]);
 
+  useEffect(() => {
+    if (!isFullscreen || !onToggleFullscreen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onToggleFullscreen();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen, onToggleFullscreen]);
+
+  const containerClasses = isFullscreen
+    ? "fixed inset-0 z-50 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black"
+    : "relative h-full min-h-[240px] w-full overflow-hidden rounded-lg bg-gradient-to-b from-zinc-900 via-zinc-950 to-black";
+
   return (
-    <div className="relative h-full min-h-[240px] w-full overflow-hidden rounded-lg bg-gradient-to-b from-zinc-900 via-zinc-950 to-black">
+    <div className={containerClasses}>
+      {onToggleFullscreen && (
+        <button
+          onClick={onToggleFullscreen}
+          className="absolute right-3 bottom-3 z-10 flex h-9 w-9 items-center justify-center rounded-md border border-zinc-700/50 bg-black/60 text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-500 hover:bg-black/80 hover:text-zinc-200"
+          title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+        >
+          {isFullscreen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4 14 10 14 10 20" />
+              <polyline points="20 10 14 10 14 4" />
+              <line x1="14" y1="10" x2="21" y2="3" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          )}
+        </button>
+      )}
       <Canvas
         camera={{ position: [1.25, 0.95, 1.25], fov: 42 }}
         shadows

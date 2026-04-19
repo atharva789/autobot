@@ -26,31 +26,66 @@ def _join_lines(lines: Iterable[str]) -> str:
 
 
 def build_candidate_prompt_family(task: str | TaskSpec) -> list[str]:
-    """Return three prompt variants that bias Gemini toward feasible designs."""
+    """Return three CONTRASTIVE prompt variants forcing embodiment diversity.
+
+    Each prompt explicitly requires a DIFFERENT embodiment class:
+    - Candidate A: CONVENTIONAL (proven topology like quadruped, wheeled, biped)
+    - Candidate B: UNCONVENTIONAL (different class - snake, tensegrity, hexapod, etc.)
+    - Candidate C: MINIMAL (simplest - often wheeled, fixed_arm, or tracked)
+    """
     task_text = _task_text(task)
     return [
+        # Candidate A: CONVENTIONAL - proven, well-understood approach
         _join_lines(
             [
-                f"Conventional, physically plausible robot concept for: {task_text}",
-                "Prefer a proven topology, a low center of mass, and standard joint counts.",
-                "Do not invent gratuitous extra limbs or cartoonish mechanisms.",
-                "Keep the design manufacturable, inspectable, and easy to simulate.",
+                f"CANDIDATE A (CONVENTIONAL): Design a robot for: {task_text}",
+                "",
+                "EMBODIMENT CONSTRAINT: Use a PROVEN, well-understood topology.",
+                "Choose from: biped, quadruped, wheeled, tracked, mobile_arm, dual_arm.",
+                "",
+                "Design principles:",
+                "- Low center of mass for stability",
+                "- Standard joint configurations (3-6 DOF per limb)",
+                "- Manufacturable with off-the-shelf actuators",
+                "- Easy to simulate in MuJoCo/Isaac",
+                "",
+                "This is the SAFE, reliable choice that a robotics lab would build first.",
             ]
         ),
+        # Candidate B: UNCONVENTIONAL - explore different morphology
         _join_lines(
             [
-                f"Stability-first robot concept for: {task_text}",
-                "Bias toward a low-slung, contact-stable platform with clear support geometry.",
-                "If the terrain is difficult, prefer a realistic wide-base or hybrid design over an over-limbed creature.",
-                "Reason about torque, reach, and slip resistance explicitly.",
+                f"CANDIDATE B (UNCONVENTIONAL): Design a robot for: {task_text}",
+                "",
+                "EMBODIMENT CONSTRAINT: Use a DIFFERENT embodiment class than typical.",
+                "MUST choose from: hexapod, snake, inchworm, tensegrity, spherical,",
+                "climbing_hybrid, soft_continuum, legged_wheeled, omnidirectional, tripod.",
+                "",
+                "Design principles:",
+                "- Challenge conventional assumptions about locomotion",
+                "- Exploit unique advantages of non-standard morphology",
+                "- Consider bio-inspired or novel kinematic chains",
+                "- Still physically realizable and simulatable",
+                "",
+                "This design should make reviewers say 'I wouldn't have thought of that'.",
             ]
         ),
+        # Candidate C: MINIMAL - simplest possible solution
         _join_lines(
             [
-                f"Simplest feasible robot concept for: {task_text}",
-                "Use the fewest limbs, joints, and custom parts that still satisfy the task.",
-                "Optimize for buildability, procurement simplicity, and simulator reliability.",
-                "Reject speculative anatomy that would be hard to control or manufacture.",
+                f"CANDIDATE C (MINIMAL): Design a robot for: {task_text}",
+                "",
+                "EMBODIMENT CONSTRAINT: Use the SIMPLEST possible approach.",
+                "Prefer: wheeled, tracked, fixed_arm, or underactuated designs.",
+                "",
+                "Design principles:",
+                "- Fewest actuated joints that still accomplish the task",
+                "- Minimize DOF while maintaining capability",
+                "- Optimize for procurement simplicity and fast build",
+                "- Reject complexity unless absolutely necessary",
+                "",
+                "Ask: 'Can this be done with fewer joints? Simpler kinematics?'",
+                "A wheeled base with a 3-DOF arm often beats a 24-DOF humanoid.",
             ]
         ),
     ]

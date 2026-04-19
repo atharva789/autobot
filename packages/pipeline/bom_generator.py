@@ -448,3 +448,94 @@ def generate_bom_for_candidate(candidate: RobotDesignCandidate) -> BOMOutput:
     """End-to-end: design candidate -> componentized -> BOM."""
     morphology = design_to_componentized_morphology(candidate)
     return componentized_to_bom(morphology)
+
+
+def generate_hierarchical_bom_for_candidate(
+    candidate: RobotDesignCandidate,
+) -> dict:
+    """Generate hierarchical BOM from recursive component graph.
+
+    Returns a nested structure with assembly-level cost roll-ups.
+    """
+    from packages.pipeline.component_expander import expand_candidate_to_component_graph
+
+    graph = expand_candidate_to_component_graph(candidate)
+
+    def _resolve_part_price(part) -> float | None:
+        if part.unit_price_usd:
+            return part.unit_price_usd
+        if part.kind == "actuator":
+            servo = _select_servo(4.0)
+            return servo["price_usd"] if servo else None
+        return None
+
+    def _build_part_node(part) -> dict:
+        price = _resolve_part_price(part)
+        return {
+            "id": part.id,
+            "level": "part",
+            "display_name": part.display_name,
+            "kind": part.kind,
+            "role": part.role,
+            "vendor": part.vendor,
+            "sku": part.sku,
+            "unit_price_usd": price,
+            "mass_kg": part.mass_kg,
+        }
+
+    def _build_component_node(comp) -> dict:
+        parts = [_build_part_node(p) for p in comp.parts]
+        subtotal = sum(p["unit_price_usd"] or 0.0 for p in parts)
+        return {
+            "id": comp.id,
+            "level": "component",
+            "display_name": comp.display_name,
+            "kind": comp.kind,
+            "children": parts,
+            "subtotal_usd": round(subtotal, 2) if subtotal > 0 else None,
+        }
+
+    def _build_assembly_node(asm) -> dict:
+        components = [_build_component_node(c) for c in asm.components]
+        subtotal = sum(c["subtotal_usd"] or 0.0 for c in components)
+        return {
+            "id": asm.id,
+            "level": "assembly",
+            "display_name": asm.display_name,
+            "kind": asm.kind,
+            "template_key": asm.template_key,
+            "children": components,
+            "subtotal_usd": round(subtotal, 2) if subtotal > 0 else None,
+        }
+
+    def _build_subsystem_node(sub) -> dict:
+        assemblies = [_build_assembly_node(a) for a in sub.assemblies]
+        subtotal = sum(a["subtotal_usd"] or 0.0 for a in assemblies)
+        return {
+            "id": sub.id,
+            "level": "subsystem",
+            "display_name": sub.display_name,
+            "kind": sub.kind,
+            "children": assemblies,
+            "subtotal_usd": round(subtotal, 2) if subtotal > 0 else None,
+        }
+
+    subsystems = [_build_subsystem_node(s) for s in graph.subsystems]
+    total = sum(s["subtotal_usd"] or 0.0 for s in subsystems)
+
+    all_parts = graph.all_parts()
+    parts_with_sku = sum(1 for p in all_parts if p.sku)
+    confidence = parts_with_sku / max(len(all_parts), 1)
+
+    return {
+        "id": graph.id,
+        "candidate_id": graph.candidate_id,
+        "display_name": graph.display_name,
+        "level": "robot",
+        "children": subsystems,
+        "total_cost_usd": round(total, 2) if total > 0 else None,
+        "part_count": len(all_parts),
+        "procurement_confidence": round(confidence, 2),
+        "total_mass_kg": round(graph.total_mass_kg(), 3),
+        "total_dof": graph.total_dof(),
+    }

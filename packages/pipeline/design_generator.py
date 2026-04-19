@@ -30,27 +30,33 @@ from packages.pipeline.task_conditioning import (
     build_task_capability_graph,
 )
 
-_DESIGN_SYSTEM_PROMPT = """You are an expert robotics engineer designing robots for specific tasks.
+_DESIGN_SYSTEM_PROMPT = """You are an expert robotics engineer designing diverse robots for specific tasks.
 Your designs must be physically realizable, use standard components, and be appropriate for the task.
 
+CRITICAL: Generate THREE FUNDAMENTALLY DIFFERENT embodiment approaches. Not variations of the same design.
+
+Available embodiment classes (USE VARIETY):
+- Legged: biped, quadruped, hexapod, tripod
+- Wheeled: wheeled, tracked, omnidirectional
+- Hybrid: wheeled_manipulator, legged_wheeled, climbing_hybrid
+- Specialized: snake, inchworm, spherical, tensegrity
+- Manipulation: fixed_arm, mobile_arm, dual_arm
+- Novel: modular, soft_continuum
+
 Design principles:
-- Match embodiment to task (bipeds for human-like tasks, quadrupeds for stability, arms for manipulation)
+- Each candidate MUST use a DIFFERENT embodiment_class - no repeats allowed
+- Match embodiment to task affordances (climbing needs adhesion/gripping, payload needs stability)
+- Consider unconventional solutions: snake for confined spaces, tensegrity for rough terrain, spherical for exploration
 - Balance complexity vs. reliability (simpler is often better)
 - Consider actuator torque requirements for payload and limb lengths
-- Ensure joint DOF is sufficient for the motion requirements
 - Account for center of mass and stability
-- Prefer the smallest topology that can actually do the task.
-- Do not invent gratuitous extra limbs just to appear more capable.
-- For slippery or stair-like terrain, bias toward low-slung, support-stable, mechanically plausible designs.
-- Keep link geometry manufacturable and inspectable.
-- Avoid cartoonish anatomy, speculative leg counts, and implausible actuation stacks.
 
-You will generate exactly 3 meaningfully different robot designs:
-- Candidate A: Most conventional/proven approach for this task
-- Candidate B: More novel/experimental approach with potential advantages
-- Candidate C: Simplest feasible approach (minimize complexity while meeting requirements)
+CONTRASTIVE GENERATION RULES:
+- Candidate A: CONVENTIONAL - Use the most proven approach for this task family
+- Candidate B: UNCONVENTIONAL - Use a DIFFERENT embodiment class that challenges assumptions. Explore hybrid, specialized, or novel morphologies that could offer unexpected advantages.
+- Candidate C: MINIMAL - Use the SIMPLEST possible approach with the fewest actuated joints. Could be single manipulator, wheeled base, or underactuated design.
 
-Each candidate must be genuinely different in embodiment, DOF, or approach - not cosmetic variants."""
+HARD CONSTRAINT: If candidates share the same embodiment_class, regenerate until they differ."""
 
 _DESIGN_USER_PROMPT = """Design robots for this task:
 
@@ -149,11 +155,22 @@ _FEW_SHOT_WALKING_BIPED = {
 }
 
 
+_EMBODIMENT_ENUM = [
+    "biped", "quadruped", "hexapod", "tripod",
+    "wheeled", "tracked", "omnidirectional",
+    "wheeled_manipulator", "legged_wheeled", "climbing_hybrid",
+    "snake", "inchworm", "spherical", "tensegrity",
+    "fixed_arm", "mobile_arm", "dual_arm",
+    "modular", "soft_continuum",
+    "arm", "hybrid",
+]
+
+
 class _CompactCandidate(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     i: Literal["A", "B", "C"]
-    e: Literal["biped", "quadruped", "hexapod", "wheeled", "arm", "hybrid"]
+    e: str  # Validated post-hoc against _EMBODIMENT_ENUM
     nl: int
     na: int
     t: bool
@@ -192,7 +209,7 @@ def _compact_generation_schema() -> dict[str, Any]:
                     "type": "object",
                     "properties": {
                         "i": {"type": "string", "enum": ["A", "B", "C"]},
-                        "e": {"type": "string", "enum": ["biped", "quadruped", "hexapod", "wheeled", "arm", "hybrid"]},
+                        "e": {"type": "string", "enum": _EMBODIMENT_ENUM},
                         "nl": {"type": "integer"},
                         "na": {"type": "integer"},
                         "t": {"type": "boolean"},
@@ -312,11 +329,11 @@ def _extract_response_text(response: Any) -> str | None:
     parts = getattr(content, "parts", None)
     if not parts:
         return None
-    texts = [
-        getattr(part, "text", None)
-        for part in parts
-        if isinstance(getattr(part, "text", None), str)
-    ]
+    texts: list[str] = []
+    for part in parts:
+        text = getattr(part, "text", None)
+        if isinstance(text, str):
+            texts.append(text)
     return "".join(texts).strip() or None
 
 

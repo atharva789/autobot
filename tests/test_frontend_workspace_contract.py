@@ -37,6 +37,8 @@ def test_workspace_reads_runtime_state_from_backend_routes():
     assert "api.hitl.getSetup" in source
     assert "api.hitl.saveSetup" in source
     assert "readOnly" not in source
+    assert "Thread key" in source
+    assert "1/{tasks.length}" not in source
 
 
 def test_workspace_theme_uses_squared_ide_tokens():

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ interface VideoItem {
   duration?: string;
 }
 
-export default function IngestPage() {
+function IngestPageContent() {
   const { jobId } = useParams<{ jobId: string }>();
   const searchParams = useSearchParams();
   const videoId = searchParams.get("videoId") ?? "";
@@ -281,5 +281,13 @@ export default function IngestPage() {
         </section>
       )}
     </main>
+  );
+}
+
+export default function IngestPage() {
+  return (
+    <Suspense fallback={null}>
+      <IngestPageContent />
+    </Suspense>
   );
 }

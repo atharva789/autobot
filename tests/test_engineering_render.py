@@ -44,6 +44,9 @@ def test_render_payload_emits_engineering_scene_contract():
     assert payload["ui_scene"]["stats"]["joint_anchor_count"] > 0
     assert payload["ui_scene"]["stats"]["material_count"] >= 8
     assert payload["ui_scene"]["stats"]["panel_node_count"] >= 8
+    assert payload["ui_scene"]["stats"]["head_node_count"] >= 8
+    assert payload["ui_scene"]["stats"]["sensor_node_count"] >= 4
+    assert payload["ui_scene"]["stats"]["head_profile"] in {"visor_sleek", "sensor_cluster", "aperture_guard"}
     assert payload["ui_scene"]["stats"]["pbr_extension_count"] >= 4
     assert payload["ui_scene"]["stats"]["visual_complexity_score"] >= 0.75
     assert any(node["component_kind"] == "structural" for node in payload["ui_scene"]["nodes"])
@@ -60,7 +63,11 @@ def test_render_payload_emits_component_metadata_for_hover_inspection():
     assert isinstance(node["material_label"], str) and node["material_label"]
     assert isinstance(node["focus_summary"], str) and node["focus_summary"]
     assert isinstance(node["bounds_m"], list) and len(node["bounds_m"]) == 3
-    assert payload["ui_scene"]["stats"]["mesh_node_count"] >= 28
+    assert payload["ui_scene"]["stats"]["mesh_node_count"] >= 36
+    names = {scene_node["name"] for scene_node in payload["ui_scene"]["nodes"]}
+    assert "head_main_shell" in names
+    assert "head_visor" in names
+    assert "head_neck_yoke" in names
 
 
 def test_render_payload_uses_task_conditioned_geometry_for_climbing_payload():
@@ -87,6 +94,8 @@ def test_render_payload_uses_task_conditioned_geometry_for_climbing_payload():
     assert "torso_chest_plate" in names
     assert "torso_back_plate" in names
     assert "payload_strap_left" in names
+    assert "head_visor" in names
+    assert any(name.startswith("head_camera") or name.startswith("head_aperture") for name in names)
     assert "payload_module" in component_kinds
     assert "climbing_gripper" in component_kinds
 
@@ -144,11 +153,13 @@ console.log(JSON.stringify({ meshCount, meshesWithNormals, materialCount: materi
         check=True,
     )
     parsed = json.loads(completed.stdout)
-    assert parsed["meshCount"] >= 24
+    assert parsed["meshCount"] >= 30
     assert parsed["meshesWithNormals"] == parsed["meshCount"]
     assert parsed["materialCount"] >= 8
     assert any(name == "payload_pack" for name in parsed["nodeNames"])
     assert any(name.startswith("leg_1_spike") for name in parsed["nodeNames"])
     assert "torso_chest_plate" in parsed["nodeNames"]
     assert "payload_strap_left" in parsed["nodeNames"]
+    assert "head_main_shell" in parsed["nodeNames"]
+    assert "head_visor" in parsed["nodeNames"]
     assert len(parsed["nodeNames"]) >= payload["ui_scene"]["stats"]["mesh_node_count"]

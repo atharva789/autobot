@@ -1,39 +1,30 @@
-# Demo Backend (Hackathon v1)
+# Backend
 
-This is the minimal backend implementation for the 36-hour demo track:
-- Seed 3 staged clips
-- Create a run from prompt + clip
-- Execute a mock retarget/sim pipeline
-- Approve the run
-- Export an artifact with `.parquet` filename
+This is the FastAPI backend for the IL Ideation workspace.
 
-## API
+For the full project overview, current architecture, and environment setup, start at the repo root:
+- [../README.md](../README.md)
 
-- `GET /health`
-- `GET /clips`
-- `POST /runs` (creates and executes synchronously)
-- `GET /runs/{run_id}`
-- `POST /runs/{run_id}/approve`
-- `POST /runs/{run_id}/export`
-
-## Run locally
+## Local run
 
 ```bash
+source .venv/bin/activate
 uvicorn demo.app:app --reload
 ```
 
-## TDD test suites
+Default local URL:
+- `http://localhost:8000`
 
-```bash
-python3 -m pytest -q tests/test_phase1_store.py
-python3 -m pytest -q tests/test_phase2_service.py
-python3 -m pytest -q tests/test_phase3_api.py
-```
+## Main route groups
+
+- `/ingest`
+- `/designs`
+- `/exports`
+- `/hitl`
+- `/evolutions`
 
 ## Notes
 
-- The export path currently writes JSON content to a `.parquet` filename as a
-  placeholder until parquet dependencies (`lerobot` + parquet writer stack) are pinned.
-- The retarget/sim step currently writes deterministic mock artifacts for the
-  hackathon control flow.
-
+- The backend is local-first for design workspace state.
+- Design generation uses compact provider output plus deterministic expansion.
+- Engineering render artifacts, checkpoints, task streams, validation reports, and HITL state are served from this app.

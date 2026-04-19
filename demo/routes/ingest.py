@@ -66,48 +66,56 @@ def start_ingest(req: IngestRequest) -> dict:
     reference_payload: dict | None = None
     status = "analysis_ready"
 
-    try:
-        stage = "select_reference_video"
-        selection = _svc.select_reference_video(req.prompt, plan)
-        video_id = selection["video_id"]
-        selected_query = selection["query"]
-        selection_rationale = selection["rationale"]
-        candidate_reviews = selection["candidate_reviews"]
-        reference_source_type = "youtube"
-        reference_payload = {
-            "video_id": video_id,
-            "query": selected_query,
-            "url": f"https://www.youtube.com/watch?v={video_id}",
-            "candidate_reviews": candidate_reviews,
-            "rationale": selection_rationale,
-        }
-        status = "reference_selected"
-    except _REFERENCE_SELECTION_ERRORS as exc:
-        logger.warning(
-            "Reference video selection degraded for job_id=%s: %s",
-            job_id,
-            exc,
-        )
-        selection_rationale = f"Reference video unavailable: {exc}"
+    skip_youtube = os.environ.get("SKIP_YOUTUBE_SEARCH", "0") == "1"
+
+    if skip_youtube:
+        logger.info("Skipping YouTube search (SKIP_YOUTUBE_SEARCH=1) for job_id=%s", job_id)
+        selection_rationale = "YouTube search skipped; proceeding with task analysis only."
+        reference_source_type = "none"
+        status = "reference_skipped"
+    else:
         try:
-            stage = "select_droid_reference"
-            droid_selection = _svc.select_droid_reference(req.prompt, plan)
-            if not isinstance(droid_selection, dict) or "reference" not in droid_selection:
-                raise RuntimeError("DROID fallback returned an invalid payload.")
-            reference_source_type = droid_selection["source_type"]
-            reference_payload = droid_selection
-            selected_query = droid_selection["query_text"]
+            stage = "select_reference_video"
+            selection = _svc.select_reference_video(req.prompt, plan)
+            video_id = selection["video_id"]
+            selected_query = selection["query"]
+            selection_rationale = selection["rationale"]
+            candidate_reviews = selection["candidate_reviews"]
+            reference_source_type = "youtube"
+            reference_payload = {
+                "video_id": video_id,
+                "query": selected_query,
+                "url": f"https://www.youtube.com/watch?v={video_id}",
+                "candidate_reviews": candidate_reviews,
+                "rationale": selection_rationale,
+            }
             status = "reference_selected"
-            selection_rationale = (
-                "DROID fallback selected after YouTube/GVHMR reference search failed. "
-                f"{selection_rationale} DROID match: {droid_selection['reference']['reason']}"
-            )
-        except (LookupError, RuntimeError, ValueError) as fallback_exc:
+        except _REFERENCE_SELECTION_ERRORS as exc:
             logger.warning(
-                "DROID fallback unavailable for job_id=%s: %s",
+                "Reference video selection degraded for job_id=%s: %s",
                 job_id,
-                fallback_exc,
+                exc,
             )
+            selection_rationale = f"Reference video unavailable: {exc}"
+            try:
+                stage = "select_droid_reference"
+                droid_selection = _svc.select_droid_reference(req.prompt, plan)
+                if not isinstance(droid_selection, dict) or "reference" not in droid_selection:
+                    raise RuntimeError("DROID fallback returned an invalid payload.")
+                reference_source_type = droid_selection["source_type"]
+                reference_payload = droid_selection
+                selected_query = droid_selection["query_text"]
+                status = "reference_selected"
+                selection_rationale = (
+                    "DROID fallback selected after YouTube/GVHMR reference search failed. "
+                    f"{selection_rationale} DROID match: {droid_selection['reference']['reason']}"
+                )
+            except (LookupError, RuntimeError, ValueError) as fallback_exc:
+                logger.warning(
+                    "DROID fallback unavailable for job_id=%s: %s",
+                    job_id,
+                    fallback_exc,
+                )
 
     if video_id:
         try:

@@ -741,5 +741,13 @@ class WorkspaceStore:
             ).fetchone()
         return self._row_to_dict(row)
 
+    def list_iterations(self, evolution_id: str) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM iterations WHERE evolution_id = ? ORDER BY iter_num ASC, created_at ASC",
+                (evolution_id,),
+            ).fetchall()
+        return [self._row_to_dict(row) for row in rows if row is not None]
+
 
 workspace_store = WorkspaceStore()

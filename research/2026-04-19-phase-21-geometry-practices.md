@@ -86,6 +86,35 @@ It is a stronger intermediate step:
 
 That is the correct stepping stone toward a later CAD/STEP/mesh-authoring pipeline.
 
+## Practice 6: head geometry should be an assembly, not a sphere
+
+The head was the clearest weak point in the earlier renderer because it collapsed perception, shell, and scaffolding into a single dome.
+
+The improved pattern is:
+- choose a stable head profile from task/candidate fingerprints
+- expand that profile into a small assembly
+- keep the assembly sensor-bearing and inspectable
+
+Current profiles are intentionally original but inspired by real modern humanoid design language:
+- `visor_sleek`
+- `sensor_cluster`
+- `aperture_guard`
+
+Those profiles expand into parts such as:
+- `head_main_shell`
+- `head_visor`
+- `head_chin_frame`
+- `head_cheek_left/right`
+- `head_neck_yoke`
+- camera or optic nodes depending on the profile
+
+The important constraint is that this is still deterministic expansion, not freeform mesh hallucination.
+That keeps:
+- node IDs stable
+- materials inspectable
+- sensor-bearing parts visible in the UI
+- tests able to enforce minimum head/sensor complexity
+
 ## What remains after Phase 21
 
 Still not solved:

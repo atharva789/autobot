@@ -284,157 +284,131 @@ function PhotonSetupPanel({
   sendingTest: boolean;
 }) {
   return (
-    <div className="mt-4 rounded-[12px] border border-white/8 bg-black/28 px-3 py-3">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="autobot-label">Photon setup</p>
-          <p className="mt-1 text-sm text-slate-400">
-            Provide a phone number for HITL review polls and confirm consent before sending.
-          </p>
-        </div>
-        <span className="autobot-status" data-tone={hitlSetup?.can_send ? "success" : "warning"}>
-          {hitlSetup?.can_send ? "ready" : hitlSetup?.recipient ? hitlSetup.recipient.consent_status : "setup required"}
+    <div className="mt-3 rounded border border-white/6 bg-black/30 px-2 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500">Photon</p>
+        <span className={`rounded px-1.5 py-0.5 text-[9px] ${hitlSetup?.can_send ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+          {hitlSetup?.can_send ? "ready" : "setup"}
         </span>
       </div>
 
-      <div className="mt-3 grid gap-2">
+      <div className="mt-2 grid gap-1">
         <input
           value={displayName}
           onChange={(event) => onDisplayNameChange(event.target.value)}
           placeholder="Name"
-          className="rounded-md border border-white/8 bg-white/3 px-3 py-2 text-sm text-slate-100 outline-none"
+          className="rounded border border-white/6 bg-black/30 px-2 py-1 text-[11px] text-slate-200 outline-none"
         />
         <input
           value={recipient}
           onChange={(event) => onRecipientChange(event.target.value)}
-          placeholder="Phone number"
-          className="rounded-md border border-white/8 bg-white/3 px-3 py-2 text-sm text-slate-100 outline-none"
+          placeholder="Phone"
+          className="rounded border border-white/6 bg-black/30 px-2 py-1 text-[11px] text-slate-200 outline-none"
         />
         <input
           value={threadKey}
           onChange={(event) => onThreadKeyChange(event.target.value)}
-          placeholder="Thread key (optional)"
-          className="rounded-md border border-white/8 bg-white/3 px-3 py-2 text-sm text-slate-100 outline-none"
+          placeholder="Thread key"
+          className="rounded border border-white/6 bg-black/30 px-2 py-1 text-[11px] text-slate-200 outline-none"
         />
       </div>
 
-      <label className="mt-3 flex items-start gap-2 text-sm text-slate-300">
+      <label className="mt-2 flex items-center gap-1.5 text-[10px] text-slate-400">
         <input
           type="checkbox"
           checked={consentChecked}
           onChange={(event) => onConsentChange(event.target.checked)}
-          className="mt-1"
+          className="size-3"
         />
-        <span>I consent to receive robot review alerts and polls at this phone number.</span>
+        <span>I consent to HITL alerts</span>
       </label>
 
-      {hitlSetup?.recipient ? (
-        <p className="mt-3 text-xs text-slate-500">
-          Current recipient: {maskRecipient(hitlSetup.recipient.recipient)} · consent {hitlSetup.recipient.consent_status}
-        </p>
-      ) : null}
-
-      <div className="mt-3 flex items-center gap-2">
-        <Button
+      <div className="mt-2 flex items-center gap-1">
+        <button
           onClick={onSave}
           disabled={saving || !recipient.trim()}
-          className="h-9 bg-[#72cf63] text-[#08110b] hover:bg-[#87dc79]"
+          className="rounded bg-[#72cf63]/20 px-2 py-1 text-[10px] text-[#9be38f] hover:bg-[#72cf63]/30 disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Save & consent"}
-        </Button>
-        <Button
-          variant="outline"
+          {saving ? "…" : "Save"}
+        </button>
+        <button
           onClick={onSendTest}
           disabled={sendingTest || !hitlSetup?.can_send}
-          className="h-9 border-white/12 bg-white/3 text-slate-100 hover:bg-white/7"
+          className="rounded px-2 py-1 text-[10px] text-slate-400 hover:bg-white/5 disabled:opacity-50"
         >
-          {sendingTest ? "Sending…" : "Send test text"}
-        </Button>
+          {sendingTest ? "…" : "Test"}
+        </button>
       </div>
     </div>
   );
 }
 
-function CheckpointCard({
+function CheckpointBanner({
   checkpoint,
   decision,
   onDecision,
+  expanded,
+  onToggle,
 }: {
   checkpoint: DesignCheckpoint;
   decision: CheckpointDecision;
   onDecision: (decision: Exclude<CheckpointDecision, "pending">) => void;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
-  const accent =
-    decision === "approved"
-      ? "rgba(74,222,128,0.22)"
-      : decision === "denied"
-        ? "rgba(248,113,113,0.18)"
-        : "rgba(132,204,22,0.16)";
+  const tone = checkpoint.label === "Budget" ? "warning" : "success";
+  const borderColor = decision === "approved" ? "border-green-500/30" : decision === "denied" ? "border-red-400/30" : "border-lime-400/20";
 
   return (
-    <div
-      className="autobot-panel max-w-[560px] px-5 py-4"
-      style={{ boxShadow: `0 0 0 1px ${accent} inset` }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="autobot-status" data-tone={checkpoint.label === "Budget" ? "warning" : "success"}>
-              {checkpoint.label}
-            </span>
-            <h3 className="text-[15px] font-semibold text-slate-100">{checkpoint.title}</h3>
-          </div>
-          <p className="mt-3 max-w-[54ch] text-sm leading-6 text-slate-400">{checkpoint.summary}</p>
+    <div className={`rounded-md border ${borderColor} bg-black/40 overflow-hidden`}>
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="autobot-status text-[10px]" data-tone={tone}>{checkpoint.label}</span>
+          <span className="text-xs font-medium text-slate-200 truncate">{checkpoint.title}</span>
         </div>
-        <button
-          className="text-xs uppercase tracking-[0.22em] text-slate-500 transition hover:text-slate-300"
-          onClick={() => onDecision("parked")}
-        >
-          Park ×
-        </button>
-      </div>
-      <div className="mt-4 overflow-hidden rounded-[12px] border border-white/7">
-        <table className="autobot-table text-sm">
-          <thead>
-            <tr>
-              <th>Field</th>
-              <th>Before</th>
-              <th>After</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(checkpoint.rows_json ?? []).map((row) => (
-              <tr key={row.field}>
-                <td className="text-slate-400">{row.field}</td>
-                <td className="text-slate-500 line-through">{row.before}</td>
-                <td className="font-medium text-slate-100">{row.after}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="mt-4 flex items-center gap-3">
-        <Button
-          className="bg-[#72cf63] text-[#08110b] hover:bg-[#87dc79]"
-          onClick={() => onDecision("approved")}
-        >
-          Approve
-        </Button>
-        <Button
-          variant="outline"
-          className="border-white/12 bg-white/3 text-slate-100 hover:bg-white/7"
-          onClick={() => onDecision("denied")}
-        >
-          Deny
-        </Button>
-        <Button
-          variant="outline"
-          className="border-white/12 bg-white/3 text-slate-400 hover:bg-white/7"
-          onClick={() => onDecision("parked")}
-        >
-          Guide...
-        </Button>
-      </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {decision === "pending" ? (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDecision("approved"); }}
+                className="rounded px-2 py-0.5 text-[10px] font-medium bg-[#72cf63]/20 text-[#9be38f] hover:bg-[#72cf63]/30"
+              >
+                Approve
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDecision("denied"); }}
+                className="rounded px-2 py-0.5 text-[10px] font-medium bg-white/5 text-slate-400 hover:bg-white/10"
+              >
+                Deny
+              </button>
+            </>
+          ) : (
+            <span className={`text-[10px] font-medium ${decision === "approved" ? "text-green-400" : "text-red-400"}`}>
+              {decision}
+            </span>
+          )}
+          <ChevronRight className={`size-3 text-slate-500 transition-transform ${expanded ? "rotate-90" : ""}`} />
+        </div>
+      </button>
+      {expanded && (
+        <div className="border-t border-white/5 px-3 py-2 text-[11px]">
+          <p className="text-slate-400 leading-relaxed">{checkpoint.summary}</p>
+          {(checkpoint.rows_json ?? []).length > 0 && (
+            <div className="mt-2 grid grid-cols-3 gap-1 text-[10px]">
+              {(checkpoint.rows_json ?? []).map((row) => (
+                <div key={row.field} className="contents">
+                  <span className="text-slate-500">{row.field}</span>
+                  <span className="text-slate-600 line-through">{row.before}</span>
+                  <span className="text-slate-200">{row.after}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -495,33 +469,35 @@ function TaskRail({
   sendingHitlTest: boolean;
 }) {
   return (
-    <aside className="autobot-panel autobot-scrollbar flex min-h-[760px] flex-col overflow-hidden px-0 py-0">
-      <div className="border-b border-white/7 px-5 py-4">
+    <aside className="flex min-h-[680px] flex-col overflow-hidden rounded-lg border border-white/6 bg-black/30">
+      <div className="border-b border-white/5 px-3 py-2.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-semibold text-slate-100">Tasks</span>
-            <span className="text-lg font-semibold text-[#d3b15b]">{tasks.filter((task) => task.status === "review").length}</span>
-            <span className="font-mono text-sm text-slate-400">1/{tasks.length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-200">Tasks</span>
+            <span className="text-xs font-medium text-[#d3b15b]">{tasks.filter((task) => task.status === "review").length}</span>
+            <span className="font-mono text-[10px] text-slate-500">
+              {tasks.filter((task) => task.status === "done").length}/{tasks.length}
+            </span>
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-2">
-          <span className="autobot-status" data-tone="success">{activeCount} active</span>
-          <span className="autobot-status" data-tone="warning">{waitingCount} waiting</span>
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className="rounded px-1.5 py-0.5 text-[9px] bg-green-500/10 text-green-400">{activeCount} active</span>
+          <span className="rounded px-1.5 py-0.5 text-[9px] bg-yellow-500/10 text-yellow-400">{waitingCount} waiting</span>
         </div>
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         {tasks.map((task) => (
           <div
             key={task.id}
-            className={`flex items-center justify-between gap-3 border-b border-white/6 px-5 py-4 ${
-              task.status === "review" ? "bg-white/3 shadow-[inset_2px_0_0_0_rgba(132,204,22,0.9)]" : ""
+            className={`flex items-center justify-between gap-2 border-b border-white/5 px-3 py-2 ${
+              task.status === "review" ? "bg-white/2 shadow-[inset_2px_0_0_0_rgba(132,204,22,0.7)]" : ""
             }`}
           >
             <div className="min-w-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <span
-                  className={`size-2 rounded-full ${
+                  className={`size-1.5 rounded-full shrink-0 ${
                     task.status === "done"
                       ? "bg-[#74d86d]"
                       : task.status === "review"
@@ -531,24 +507,22 @@ function TaskRail({
                           : "border border-slate-500"
                   }`}
                 />
-                <p className="truncate text-[15px] font-medium text-slate-100">{task.title}</p>
-                {task.status === "review" ? (
-                  <span className="autobot-status" data-tone="warning">
-                    review
-                  </span>
-                ) : null}
+                <p className="truncate text-[11px] font-medium text-slate-200">{task.title}</p>
+                {task.status === "review" && (
+                  <span className="rounded px-1 py-0.5 text-[9px] bg-yellow-500/10 text-yellow-400">review</span>
+                )}
               </div>
-              <p className="mt-1 pl-5 text-sm text-slate-500">{task.subtitle}</p>
+              <p className="mt-0.5 pl-3.5 text-[10px] text-slate-500 truncate">{task.subtitle}</p>
             </div>
-            <span className="font-mono text-xs text-slate-500">{task.age}</span>
+            <span className="font-mono text-[9px] text-slate-500 shrink-0">{task.age}</span>
           </div>
         ))}
       </div>
 
-      <div className="border-t border-white/7 px-5 py-4">
-        <label className="autobot-label">Fire a task...</label>
-        <div className="mt-3 flex items-center gap-2 rounded-[12px] border border-white/8 bg-black/25 px-3 py-2">
-          <SendHorizontal className="size-4 text-[#79d165]" />
+      <div className="border-t border-white/5 px-3 py-2.5">
+        <label className="text-[10px] uppercase tracking-wider text-slate-500">Fire task</label>
+        <div className="mt-2 flex items-center gap-1.5 rounded border border-white/6 bg-black/30 px-2 py-1.5">
+          <SendHorizontal className="size-3 text-[#79d165]" />
           <input
             value={taskInstruction}
             onChange={(event) => onTaskInstructionChange(event.target.value)}
@@ -558,43 +532,43 @@ function TaskRail({
                 onSubmitTaskInstruction();
               }
             }}
-            className="w-full bg-transparent text-sm text-slate-300 outline-none"
+            className="w-full bg-transparent text-[11px] text-slate-300 outline-none"
           />
           <button
             onClick={onSubmitTaskInstruction}
-            className="rounded-md border border-white/8 px-1.5 py-1 text-xs text-slate-400"
+            className="rounded px-1 py-0.5 text-[10px] text-slate-400 hover:bg-white/5"
           >
             ↵
           </button>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-1">
           {QUICK_ACTIONS.map((action) => (
             <button
               key={action}
               onClick={() => onRunAction(action)}
-              className="rounded-md border border-white/8 bg-white/3 px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-white/6 hover:text-slate-200"
+              className="rounded px-1.5 py-1 text-[10px] text-slate-400 hover:bg-white/5"
             >
-              {runningTaskKey === action.toLowerCase().replaceAll(" ", "_") ? "running…" : action}
+              {runningTaskKey === action.toLowerCase().replaceAll(" ", "_") ? "…" : action}
             </button>
           ))}
         </div>
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-1">
           {(["A", "B", "C"] as CandidateId[]).map((candidateId) => (
             <button
               key={candidateId}
               onClick={() => onSelectCandidate(candidateId)}
-              className={`rounded-md border px-2.5 py-1.5 text-xs transition ${
+              className={`rounded px-2 py-1 text-[10px] transition ${
                 selectedCandidateId === candidateId
-                  ? "border-[#72cf63]/50 bg-[#72cf63]/12 text-[#9be38f]"
-                  : "border-white/8 bg-white/3 text-slate-400 hover:bg-white/6 hover:text-slate-200"
+                  ? "bg-[#72cf63]/15 text-[#9be38f]"
+                  : "text-slate-400 hover:bg-white/5"
               }`}
             >
-              candidate {candidateId}
+              {candidateId}
             </button>
           ))}
         </div>
 
-        {showHitlSetup ? (
+        {showHitlSetup && (
           <PhotonSetupPanel
             hitlSetup={hitlSetup}
             recipient={hitlRecipient}
@@ -610,7 +584,7 @@ function TaskRail({
             saving={savingHitl}
             sendingTest={sendingHitlTest}
           />
-        ) : null}
+        )}
       </div>
     </aside>
   );
@@ -626,6 +600,10 @@ function WorkspaceCanvas({
   onRecordClip,
   playback,
   onHoverComponent,
+  isViewerFullscreen,
+  onToggleFullscreen,
+  expandedCheckpoints,
+  onToggleCheckpoint,
 }: {
   candidate: RobotDesignCandidate | null;
   render: DesignSpecResponse["render"] | null;
@@ -643,44 +621,59 @@ function WorkspaceCanvas({
     provenance_summary: string;
   } | null;
   onHoverComponent: (component: EngineeringSceneNode | null) => void;
+  isViewerFullscreen: boolean;
+  onToggleFullscreen: () => void;
+  expandedCheckpoints: Set<string>;
+  onToggleCheckpoint: (id: string) => void;
 }) {
+  const pendingCheckpoints = checkpoints.filter((c) => (decisions[c.id] ?? "pending") === "pending");
+
   return (
-    <section className="relative flex min-h-[760px] flex-col gap-4">
-      <div className="flex justify-center">
-        <div className="flex w-full max-w-[620px] flex-col gap-4">
-          {checkpoints.map((checkpoint, index) => (
+    <section className={`relative flex flex-col ${isViewerFullscreen ? "fixed inset-0 z-50 bg-[#0a0d10]" : "min-h-[680px]"}`}>
+      {pendingCheckpoints.length > 0 && (
+        <div className={`flex flex-col gap-1.5 ${isViewerFullscreen ? "absolute top-3 left-3 right-3 z-10" : "mb-3"}`}>
+          {pendingCheckpoints.slice(0, 3).map((checkpoint) => (
             <motion.div
               key={checkpoint.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.24, delay: index * 0.06 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <CheckpointCard
+              <CheckpointBanner
                 checkpoint={checkpoint}
                 decision={decisions[checkpoint.id] ?? "pending"}
                 onDecision={(decision) => onDecision(checkpoint.id, decision)}
+                expanded={expandedCheckpoints.has(checkpoint.id)}
+                onToggle={() => onToggleCheckpoint(checkpoint.id)}
               />
             </motion.div>
           ))}
         </div>
-      </div>
+      )}
 
-      <div className="autobot-panel relative flex-1 overflow-hidden">
-        <div className="autobot-grid absolute inset-0 opacity-80" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(132,204,22,0.08),transparent_24%),radial-gradient(circle_at_72%_18%,rgba(59,130,246,0.08),transparent_26%)]" />
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-6 py-4">
-          <div>
-            <p className="autobot-label">Current candidate</p>
-            <h2 className="mt-2 text-[28px] font-semibold tracking-[-0.04em] text-slate-100">
-              {candidate ? `Model ${candidate.candidate_id}` : "Resolving candidate"}
-            </h2>
+      <div className={`relative flex-1 overflow-hidden rounded-lg border border-white/6 bg-black/30 ${isViewerFullscreen ? "" : ""}`}>
+        <div className="autobot-grid absolute inset-0 opacity-60" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(132,204,22,0.06),transparent_20%)]" />
+
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 py-2.5 z-10">
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-500">candidate</span>
+            <span className="text-sm font-medium text-slate-200">
+              {candidate ? `Model ${candidate.candidate_id}` : "..."}
+            </span>
           </div>
-          <div className="autobot-status" data-tone="muted">
-            live morphology canvas
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-slate-500">live</span>
+            <button
+              onClick={onToggleFullscreen}
+              className="rounded px-2 py-1 text-[10px] text-slate-400 hover:bg-white/5 border border-white/8"
+            >
+              {isViewerFullscreen ? "Exit" : "Expand"}
+            </button>
           </div>
         </div>
 
-        <div className="absolute inset-x-8 bottom-7 top-20 overflow-hidden rounded-[16px] border border-white/7 bg-black/22">
+        <div className={`absolute ${isViewerFullscreen ? "inset-4 top-12" : "inset-3 top-10"} overflow-hidden rounded-md border border-white/5 bg-black/20`}>
           {candidate ? (
             <MorphologyViewer
               candidate={candidate}
@@ -688,40 +681,40 @@ function WorkspaceCanvas({
               mode={detailMode}
               renderGlb={render?.render_glb ?? null}
               uiScene={render?.ui_scene ?? null}
+              isFullscreen={isViewerFullscreen}
+              onToggleFullscreen={onToggleFullscreen}
               onHoverComponent={onHoverComponent}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <LoaderCircle className="size-8 animate-spin text-slate-500" />
+              <LoaderCircle className="size-6 animate-spin text-slate-600" />
             </div>
           )}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-white/7 bg-black/35 px-5 py-4 text-sm text-slate-400">
-            <span className="font-mono text-xs tracking-[0.2em]">100 mm</span>
-            <div className="flex items-center gap-4">
-              <span className="rounded-md border border-white/8 px-3 py-1 font-mono text-xs">00:04.2</span>
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-10 rounded-full bg-slate-700" />
-                <span className="h-1.5 w-8 rounded-full bg-[#79d165]" />
-                <span className="h-1.5 w-6 rounded-full bg-slate-700" />
-              </div>
-              <span className="font-mono text-xs">1.0×</span>
-              <button
-                onClick={onRecordClip}
-                className="rounded-md border border-white/8 px-3 py-1 text-xs text-slate-300"
-              >
-                record clip
-              </button>
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-between rounded-md border border-white/5 bg-black/50 px-3 py-2 text-[11px] text-slate-500">
+          <span className="font-mono tracking-wider">100mm</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <span className="h-1 w-6 rounded-full bg-slate-700" />
+              <span className="h-1 w-5 rounded-full bg-[#79d165]/60" />
+              <span className="h-1 w-4 rounded-full bg-slate-700" />
             </div>
+            <span className="font-mono">1.0×</span>
+            <button
+              onClick={onRecordClip}
+              className="pointer-events-auto rounded px-2 py-0.5 text-[10px] text-slate-400 hover:bg-white/5 border border-white/8"
+            >
+              record
+            </button>
           </div>
         </div>
-        {playback ? (
-          <div className="absolute left-8 top-24 max-w-sm rounded-md border border-white/8 bg-black/45 px-3 py-1.5 text-xs text-slate-300">
-            <div>{playback.motion_profile} · {playback.duration_s.toFixed(1)} s</div>
-            <div className="mt-1 text-[11px] text-slate-400">
-              {playback.provenance_summary}
-            </div>
+
+        {playback && (
+          <div className="absolute left-3 top-12 rounded border border-white/6 bg-black/60 px-2 py-1 text-[10px] text-slate-400">
+            {playback.motion_profile} · {playback.duration_s.toFixed(1)}s
           </div>
-        ) : null}
+        )}
       </div>
     </section>
   );
@@ -763,62 +756,45 @@ function InspectorPanel({
   const exportTargets = exportsResponse?.items ?? [];
 
   return (
-    <aside className="autobot-panel flex min-h-[760px] flex-col px-5 py-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="autobot-label">Candidate</p>
-          <h3 className="mt-2 text-[28px] font-semibold tracking-[-0.04em] text-slate-100">
-            {candidate ? `Serial ${countDof(candidate)}-DoF ${candidate.embodiment_class}` : "Awaiting candidate"}
+    <aside className="flex min-h-[680px] flex-col rounded-lg border border-white/6 bg-black/30 px-3 py-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-wider text-slate-500">Candidate</p>
+          <h3 className="mt-1 text-base font-semibold text-slate-100 truncate">
+            {candidate ? `${countDof(candidate)}-DoF ${candidate.embodiment_class}` : "Awaiting"}
           </h3>
-          <p className="mt-2 max-w-[32ch] text-sm text-slate-400">
-            {candidate?.rationale ?? "Waiting for candidate rationale."}
+          <p className="mt-1 text-[11px] text-slate-400 line-clamp-2">
+            {candidate?.rationale ?? "Waiting for rationale."}
           </p>
         </div>
-        <span className="autobot-label text-slate-500">{selectedCandidateId ? `candidate ${selectedCandidateId}` : "candidate"}</span>
+        <span className="text-[10px] text-slate-500 shrink-0">{selectedCandidateId ?? "—"}</span>
       </div>
 
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={() => onTabChange("spec")}
-          className={`rounded-md border px-3 py-1.5 text-sm ${
-            inspectorTab === "spec"
-              ? "border-[#79d165]/35 bg-[#79d165]/10 text-[#a7e49f]"
-              : "border-white/8 bg-white/3 text-slate-400"
-          }`}
-        >
-          Spec
-        </button>
-        <button
-          onClick={() => onTabChange("export")}
-          className={`rounded-md border px-3 py-1.5 text-sm ${
-            inspectorTab === "export"
-              ? "border-[#79d165]/35 bg-[#79d165]/10 text-[#a7e49f]"
-              : "border-white/8 bg-white/3 text-slate-400"
-          }`}
-        >
-          Export
-        </button>
-        <button
-          onClick={() => onTabChange("components")}
-          className={`rounded-md border px-3 py-1.5 text-sm ${
-            inspectorTab === "components"
-              ? "border-[#79d165]/35 bg-[#79d165]/10 text-[#a7e49f]"
-              : "border-white/8 bg-white/3 text-slate-400"
-          }`}
-        >
-          Components
-        </button>
+      <div className="mt-3 flex gap-1">
+        {(["spec", "export", "components"] as InspectorTab[]).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => onTabChange(tab)}
+            className={`rounded px-2 py-1 text-[11px] ${
+              inspectorTab === tab
+                ? "bg-[#79d165]/15 text-[#a7e49f]"
+                : "text-slate-400 hover:bg-white/5"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-1">
         {VIEW_MODES.map((mode) => (
           <button
             key={mode.id}
             onClick={() => onModeChange(mode.id)}
-            className={`rounded-md border px-3 py-2 text-sm transition ${
+            className={`rounded px-2 py-1.5 text-[11px] transition ${
               detailMode === mode.id
-                ? "border-[#d9b15f]/45 bg-[#d9b15f]/12 text-[#efcb87]"
-                : "border-white/8 bg-white/3 text-slate-400 hover:bg-white/6 hover:text-slate-200"
+                ? "bg-[#d9b15f]/15 text-[#efcb87]"
+                : "text-slate-400 hover:bg-white/5"
             }`}
           >
             {mode.label}
@@ -852,17 +828,17 @@ function InspectorPanel({
       ) : null}
 
       {inspectorTab === "spec" ? (
-      <div className="mt-5">
-        <p className="autobot-label">Task alignment</p>
-        <div className="mt-3 space-y-3">
+      <div className="mt-3">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500">Alignment</p>
+        <div className="mt-2 space-y-2">
           {alignmentRows.map((row) => (
             <div key={row.label}>
-              <div className="flex items-center justify-between gap-3 text-sm">
+              <div className="flex items-center justify-between gap-2 text-[11px]">
                 <span className="text-slate-400">{row.label}</span>
-                <span className="font-medium text-slate-100">{row.value}</span>
+                <span className="font-medium text-slate-200">{row.value}</span>
               </div>
-              <div className="autobot-kpi-bar mt-2">
-                <span style={{ width: `${Math.min(100, Math.max(8, row.progress * 100))}%` }} />
+              <div className="mt-1 h-1 rounded-full bg-white/5 overflow-hidden">
+                <div className="h-full bg-[#79d165]/50 rounded-full" style={{ width: `${Math.min(100, Math.max(8, row.progress * 100))}%` }} />
               </div>
             </div>
           ))}
@@ -871,25 +847,23 @@ function InspectorPanel({
       ) : null}
 
       {inspectorTab === "export" ? (
-      <div className="mt-5">
-        <p className="autobot-label">Export targets</p>
-        <div className="mt-3 space-y-2">
+      <div className="mt-3">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500">Export targets</p>
+        <div className="mt-2 space-y-1">
           {exportTargets.map((target) => (
             <div
               key={target.label}
-              className="flex items-center justify-between rounded-[10px] border border-white/7 bg-white/3 px-3 py-2"
+              className="flex items-center justify-between rounded px-2 py-1.5 hover:bg-white/3"
             >
-              <div className="min-w-0">
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold text-slate-100">{target.label}</span>
-                  <span className="text-sm text-slate-500">{target.subtitle}</span>
-                </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[11px] font-medium text-slate-200">{target.label}</span>
+                <span className="text-[10px] text-slate-500">{target.subtitle}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-medium ${target.status === "ready" ? "text-[#8ee082]" : "text-slate-500"}`}>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[10px] ${target.status === "ready" ? "text-[#8ee082]" : "text-slate-500"}`}>
                   {target.status}
                 </span>
-                <Download className="size-4 text-slate-500" />
+                <Download className="size-3 text-slate-500" />
               </div>
             </div>
           ))}
@@ -898,57 +872,57 @@ function InspectorPanel({
       ) : null}
 
       {inspectorTab === "components" ? (
-      <div className="mt-5 space-y-3">
-        <p className="autobot-label">Focused component</p>
+      <div className="mt-3">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500">Focused</p>
         {hoveredComponent ? (
-          <div className="rounded-[12px] border border-[#79d165]/20 bg-[#79d165]/[0.06] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h4 className="text-base font-semibold text-slate-100">{hoveredComponent.display_name}</h4>
-                <p className="mt-1 text-sm text-slate-400">{hoveredComponent.focus_summary}</p>
+          <div className="mt-2 rounded border border-[#79d165]/15 bg-[#79d165]/5 p-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-medium text-slate-100 truncate">{hoveredComponent.display_name}</h4>
+                <p className="mt-0.5 text-[10px] text-slate-400 line-clamp-2">{hoveredComponent.focus_summary}</p>
               </div>
-              <span className="rounded-md border border-[#79d165]/30 px-2 py-1 text-[11px] uppercase tracking-[0.2em] text-[#9ce391]">
+              <span className="rounded px-1.5 py-0.5 text-[9px] uppercase tracking-wider bg-[#79d165]/10 text-[#9ce391] shrink-0">
                 {componentKindLabel(hoveredComponent.component_kind)}
               </span>
             </div>
-            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <dl className="mt-2 grid grid-cols-2 gap-1 text-[10px]">
               <div>
                 <dt className="text-slate-500">Structure</dt>
-                <dd className="mt-1 font-mono text-slate-200">{hoveredComponent.structure_id}</dd>
+                <dd className="font-mono text-slate-300">{hoveredComponent.structure_id}</dd>
               </div>
               <div>
                 <dt className="text-slate-500">Material</dt>
-                <dd className="mt-1 text-slate-200">{hoveredComponent.material_label}</dd>
+                <dd className="text-slate-300">{hoveredComponent.material_label}</dd>
               </div>
               <div className="col-span-2">
                 <dt className="text-slate-500">Envelope</dt>
-                <dd className="mt-1 font-mono text-slate-200">
+                <dd className="font-mono text-slate-300">
                   {hoveredComponent.bounds_m.map((value) => value.toFixed(3)).join(" × ")} m
                 </dd>
               </div>
             </dl>
           </div>
         ) : (
-          <div className="rounded-[12px] border border-white/7 bg-white/3 p-4 text-sm text-slate-400">
-            Hover a structure in the live morphology canvas to inspect its material, envelope, and role.
+          <div className="mt-2 rounded border border-white/5 bg-white/3 p-2 text-[10px] text-slate-400">
+            Hover a component to inspect.
           </div>
         )}
       </div>
       ) : null}
 
-      <div className="mt-auto space-y-4 pt-6">
-        <div className="grid grid-cols-3 gap-2">
+      <div className="mt-auto space-y-2 pt-3">
+        <div className="grid grid-cols-3 gap-1">
           {(["A", "B", "C"] as CandidateId[]).map((candidateId) => (
             <button
               key={candidateId}
               onClick={() => onSelectCandidate(candidateId)}
-              className={`rounded-md border px-3 py-2 text-sm transition ${
+              className={`rounded px-2 py-1.5 text-[11px] transition ${
                 selectedCandidateId === candidateId
-                  ? "border-[#79d165]/45 bg-[#79d165]/12 text-[#a7e49f]"
-                  : "border-white/8 bg-white/3 text-slate-400 hover:bg-white/6 hover:text-slate-200"
+                  ? "bg-[#79d165]/15 text-[#a7e49f]"
+                  : "text-slate-400 hover:bg-white/5"
               }`}
             >
-              Model {candidateId}
+              {candidateId}
             </button>
           ))}
         </div>
@@ -956,17 +930,17 @@ function InspectorPanel({
         <Button
           onClick={onContinue}
           disabled={continuing || !candidate}
-          className="h-11 w-full justify-between bg-[#72cf63] px-4 text-[#08110b] hover:bg-[#87dc79]"
+          className="h-8 w-full justify-between bg-[#72cf63] px-3 text-[11px] text-[#08110b] hover:bg-[#87dc79]"
         >
           {continuing ? (
             <>
               <span>Committing</span>
-              <LoaderCircle className="size-4 animate-spin" />
+              <LoaderCircle className="size-3 animate-spin" />
             </>
           ) : (
             <>
               <span>Commit v3</span>
-              <ArrowRight className="size-4" />
+              <ArrowRight className="size-3" />
             </>
           )}
         </Button>
@@ -1099,6 +1073,8 @@ export default function HomePage() {
   const [sendingHitlTest, setSendingHitlTest] = useState(false);
   const [taskInstruction, setTaskInstruction] = useState("");
   const [hoveredComponent, setHoveredComponent] = useState<EngineeringSceneNode | null>(null);
+  const [isViewerFullscreen, setIsViewerFullscreen] = useState(false);
+  const [expandedCheckpoints, setExpandedCheckpoints] = useState<Set<string>>(new Set());
 
   const selectedDesignId = selectedCandidateId && designs ? designs.design_ids[selectedCandidateId] : null;
   const selectedSpec = selectedCandidateId ? specByCandidateId[selectedCandidateId] ?? null : null;
@@ -1533,8 +1509,8 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)_360px]">
-                    <TaskRail
+                  <div className={`grid gap-3 ${isViewerFullscreen ? "" : "xl:grid-cols-[280px_minmax(0,1fr)_320px]"}`}>
+                    {!isViewerFullscreen && <TaskRail
                       prompt={activePrompt}
                       tasks={workspaceTasks}
                       activeCount={workspaceTasks.filter((task) => task.status === "active" || task.status === "done").length}
@@ -1561,7 +1537,7 @@ export default function HomePage() {
                       onSendHitlTest={handleSendHitlTest}
                       savingHitl={savingHitl}
                       sendingHitlTest={sendingHitlTest}
-                    />
+                    />}
 
                     <WorkspaceCanvas
                       candidate={selectedCandidate}
@@ -1580,9 +1556,18 @@ export default function HomePage() {
                           setInspectorTab("components");
                         }
                       }}
+                      isViewerFullscreen={isViewerFullscreen}
+                      onToggleFullscreen={() => setIsViewerFullscreen((f) => !f)}
+                      expandedCheckpoints={expandedCheckpoints}
+                      onToggleCheckpoint={(id) => setExpandedCheckpoints((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(id)) next.delete(id);
+                        else next.add(id);
+                        return next;
+                      })}
                     />
 
-                    <InspectorPanel
+                    {!isViewerFullscreen && <InspectorPanel
                       candidate={selectedCandidate}
                       telemetry={selectedTelemetry}
                       bom={selectedBom}
@@ -1597,46 +1582,39 @@ export default function HomePage() {
                       onSelectCandidate={selectCandidate}
                       exportsResponse={selectedExports}
                       hoveredComponent={hoveredComponent}
-                    />
+                    />}
                   </div>
 
-                  <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-                    <div className="autobot-panel-soft px-4 py-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="min-w-0">
-                          <p className="autobot-label">Selected candidate summary</p>
-                          <p className="mt-2 text-sm text-slate-300">
-                            {selectedCandidate ? topologyLabel(selectedCandidate) : "candidate pending"} ·
-                            {" "}cost {telemetryCostChip(selectedTelemetry)} ·
-                            {" "}mass {selectedTelemetry?.estimated_mass_kg.toFixed(1) ?? "0.0"} kg
-                          </p>
+                  {!isViewerFullscreen && (
+                    <div className="mt-3 grid gap-2 lg:grid-cols-[minmax(0,1fr)_260px]">
+                      <div className="rounded border border-white/5 bg-black/20 px-3 py-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-500">Summary</p>
+                            <p className="mt-1 text-[11px] text-slate-300">
+                              {selectedCandidate ? topologyLabel(selectedCandidate) : "pending"} · {telemetryCostChip(selectedTelemetry)} · {selectedTelemetry?.estimated_mass_kg.toFixed(1) ?? "0"} kg
+                            </p>
+                          </div>
+                          <span className={`rounded px-1.5 py-0.5 text-[9px] ${loadingBomCandidateId ? "bg-white/5 text-slate-500" : "bg-green-500/10 text-green-400"}`}>
+                            {loadingBomCandidateId ? "loading" : "cached"}
+                          </span>
                         </div>
-                        {loadingBomCandidateId ? (
-                          <span className="autobot-status" data-tone="muted">
-                            loading BOM
-                          </span>
-                        ) : (
-                          <span className="autobot-status" data-tone="success">
-                            BOM cached
-                          </span>
-                        )}
                       </div>
-                    </div>
 
-                    <div className="autobot-panel-soft flex items-center justify-between gap-3 px-4 py-3">
-                      <div className="flex items-center gap-2 text-sm text-slate-400">
-                        <ShieldCheck className="size-4 text-[#79d165]" />
-                        export bundle staging
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Cable className="size-4 text-slate-500" />
-                        <Package2 className="size-4 text-slate-500" />
-                        <ClipboardCheck className="size-4 text-slate-500" />
-                        <Component className="size-4 text-slate-500" />
-                        <Orbit className="size-4 text-slate-500" />
+                      <div className="rounded border border-white/5 bg-black/20 px-3 py-2 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                          <ShieldCheck className="size-3 text-[#79d165]" />
+                          exports
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Cable className="size-3 text-slate-600" />
+                          <Package2 className="size-3 text-slate-600" />
+                          <ClipboardCheck className="size-3 text-slate-600" />
+                          <Component className="size-3 text-slate-600" />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </motion.section>
               )}
             </AnimatePresence>

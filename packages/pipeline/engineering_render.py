@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import math
 import struct
@@ -21,6 +22,8 @@ class GeometryIntent:
     needs_stabilizer_tail: bool
     lean_factor: float
     torso_drop_m: float
+    head_profile: str
+    head_sensor_density: int
 
 
 _COLOR_MAP: dict[str, list[float]] = {
@@ -34,6 +37,9 @@ _COLOR_MAP: dict[str, list[float]] = {
     "optic_emitter": [0.44, 0.95, 0.84, 1.0],
     "harness_webbing": [0.18, 0.22, 0.18, 1.0],
     "brushed_alloy": [0.69, 0.72, 0.78, 1.0],
+    "shadow_polymer": [0.1, 0.12, 0.15, 1.0],
+    "vision_glass": [0.07, 0.1, 0.13, 1.0],
+    "sensor_bezel": [0.2, 0.23, 0.28, 1.0],
 }
 
 _MATERIAL_LABELS: dict[str, str] = {
@@ -47,6 +53,9 @@ _MATERIAL_LABELS: dict[str, str] = {
     "optic_emitter": "optic emitter",
     "harness_webbing": "woven harness webbing",
     "brushed_alloy": "brushed alloy",
+    "shadow_polymer": "shadow polymer shell",
+    "vision_glass": "vision glass",
+    "sensor_bezel": "sensor bezel",
 }
 
 
@@ -73,6 +82,13 @@ _MESH_LIBRARY: dict[str, tuple[str, str]] = {
     "sensor_emitter": ("sphere", "optic_emitter"),
     "cable_guide": ("cylinder", "harness_webbing"),
     "joint_cowl": ("cylinder", "brushed_alloy"),
+    "head_shell": ("sphere", "shadow_polymer"),
+    "head_visor": ("box", "vision_glass"),
+    "sensor_bezel": ("box", "sensor_bezel"),
+    "cheek_fairing": ("box", "shadow_polymer"),
+    "chin_frame": ("box", "brushed_alloy"),
+    "neck_yoke": ("cylinder", "brushed_alloy"),
+    "sensor_bar": ("box", "vision_glass"),
 }
 
 
@@ -94,6 +110,8 @@ def build_engineering_render(
     panel_node_count = sum(
         1 for node in nodes if node["component_kind"] in {"shell_panel", "armor_panel", "payload_module", "cable_routing"}
     )
+    head_node_count = sum(1 for node in nodes if node["structure_id"] == "head")
+    sensor_node_count = sum(1 for node in nodes if node["component_kind"] in {"sensor_mount", "camera_array"})
     pbr_extension_count = len(_material_extensions_for_nodes(nodes))
     visual_complexity_score = round(
         min(
@@ -102,6 +120,7 @@ def build_engineering_render(
             + len(nodes) / 90.0
             + material_count / 20.0
             + panel_node_count / 40.0
+            + head_node_count / 30.0
             + accessory_count / 28.0,
         ),
         3,
@@ -126,6 +145,9 @@ def build_engineering_render(
                 "task_geometry_profile": intent.profile,
                 "structure_count": len({node["structure_id"] for node in nodes}),
                 "panel_node_count": panel_node_count,
+                "head_node_count": head_node_count,
+                "sensor_node_count": sensor_node_count,
+                "head_profile": intent.head_profile,
                 "pbr_extension_count": pbr_extension_count,
                 "visual_complexity_score": visual_complexity_score,
             },
@@ -166,6 +188,11 @@ def _infer_geometry_intent(
     else:
         profile = "general"
 
+    head_profile = _select_head_profile(candidate, task_spec, profile)
+    head_sensor_density = 3 + int("camera" in candidate.sensor_package) + int("force" in candidate.sensor_package)
+    if profile.startswith("climbing"):
+        head_sensor_density += 1
+
     return GeometryIntent(
         profile=profile,
         needs_grippers=climbing or (candidate.num_arms > 0 and (task_spec.manipulation_required if task_spec else False)),
@@ -175,6 +202,8 @@ def _infer_geometry_intent(
         needs_stabilizer_tail=slippery,
         lean_factor=1.18 if climbing else (0.82 if crawling else 1.0),
         torso_drop_m=0.1 if crawling else (0.05 if slippery else 0.0),
+        head_profile=head_profile,
+        head_sensor_density=min(6, head_sensor_density),
     )
 
 
@@ -208,15 +237,7 @@ def _build_engineering_scene(
             [torso_radius_x * 2.1, torso_height * 0.12, torso_radius_z * 1.55],
         )
     )
-    nodes.append(
-        _node(
-            "torso_head",
-            "sensor_mount",
-            "head_dome",
-            [0.0, torso_center[1] + torso_height * 0.72, torso_radius_z * 0.05],
-            [torso_radius_x * 0.86, torso_radius_x * 0.86, torso_radius_x * 0.86],
-        )
-    )
+    nodes.extend(_head_nodes(candidate, intent, torso_center, torso_height, torso_radius_x, torso_radius_z))
     nodes.extend(
         [
             _node(
@@ -249,26 +270,6 @@ def _build_engineering_scene(
             ),
         ]
     )
-    if "camera" in candidate.sensor_package:
-        nodes.append(
-            _node(
-                "sensor_pod_front",
-                "sensor_mount",
-                "sensor_pod",
-                [0.0, torso_center[1] + torso_height * 0.62, torso_radius_z * 0.62],
-                [0.06, 0.06, 0.06],
-            )
-        )
-        nodes.append(
-            _node(
-                "sensor_emitter_front",
-                "sensor_mount",
-                "sensor_emitter",
-                [0.0, torso_center[1] + torso_height * 0.62, torso_radius_z * 0.72],
-                [0.03, 0.03, 0.03],
-            )
-        )
-
     shoulder_span = max(0.32, torso_radius_x * 3.6)
     shoulder_y = torso_center[1] + torso_height * 0.32
     arm_length = max(0.24, candidate.arm_length_m * 0.56) if candidate.num_arms else 0.0
@@ -459,6 +460,209 @@ def _build_engineering_scene(
     return nodes, joints
 
 
+def _head_nodes(
+    candidate: RobotDesignCandidate,
+    intent: GeometryIntent,
+    torso_center: list[float],
+    torso_height: float,
+    torso_radius_x: float,
+    torso_radius_z: float,
+) -> list[dict[str, Any]]:
+    head_center = [0.0, torso_center[1] + torso_height * 0.72, torso_radius_z * 0.03]
+    head_scale = [torso_radius_x * 0.9, torso_radius_x * 0.92, torso_radius_x * 1.04]
+    visor_scale = [torso_radius_x * 1.08, torso_radius_x * 0.28, 0.03]
+    nodes: list[dict[str, Any]] = [
+        _node(
+            "head_neck_yoke",
+            "sensor_mount",
+            "neck_yoke",
+            [0.0, head_center[1] - torso_radius_x * 0.74, 0.0],
+            [0.05, torso_radius_x * 0.7, 0.05],
+        ),
+        _node(
+            "head_main_shell",
+            "sensor_mount",
+            "head_shell",
+            head_center,
+            head_scale,
+        ),
+        _node(
+            "head_visor",
+            "camera_array",
+            "head_visor",
+            [0.0, head_center[1] + torso_radius_x * 0.02, head_center[2] + torso_radius_z * 0.74],
+            visor_scale,
+        ),
+        _node(
+            "head_chin_frame",
+            "sensor_mount",
+            "chin_frame",
+            [0.0, head_center[1] - torso_radius_x * 0.42, head_center[2] + torso_radius_z * 0.46],
+            [torso_radius_x * 0.92, torso_radius_x * 0.16, 0.04],
+        ),
+        _node(
+            "head_cheek_left",
+            "armor_panel",
+            "cheek_fairing",
+            [-torso_radius_x * 0.58, head_center[1] - torso_radius_x * 0.04, head_center[2] + torso_radius_z * 0.36],
+            [0.04, torso_radius_x * 0.34, torso_radius_z * 0.54],
+        ),
+        _node(
+            "head_cheek_right",
+            "armor_panel",
+            "cheek_fairing",
+            [torso_radius_x * 0.58, head_center[1] - torso_radius_x * 0.04, head_center[2] + torso_radius_z * 0.36],
+            [0.04, torso_radius_x * 0.34, torso_radius_z * 0.54],
+        ),
+    ]
+
+    profile = intent.head_profile
+    if profile == "visor_sleek":
+        nodes.extend(
+            [
+                _node(
+                    "head_visor_bezel",
+                    "camera_array",
+                    "sensor_bezel",
+                    [0.0, head_center[1] + torso_radius_x * 0.02, head_center[2] + torso_radius_z * 0.67],
+                    [torso_radius_x * 1.16, torso_radius_x * 0.34, 0.04],
+                ),
+                _node(
+                    "head_camera_center",
+                    "camera_array",
+                    "sensor_emitter",
+                    [0.0, head_center[1], head_center[2] + torso_radius_z * 0.86],
+                    [0.024, 0.024, 0.024],
+                ),
+                _node(
+                    "head_camera_left",
+                    "camera_array",
+                    "sensor_emitter",
+                    [-torso_radius_x * 0.3, head_center[1] + torso_radius_x * 0.04, head_center[2] + torso_radius_z * 0.82],
+                    [0.018, 0.018, 0.018],
+                ),
+                _node(
+                    "head_camera_right",
+                    "camera_array",
+                    "sensor_emitter",
+                    [torso_radius_x * 0.3, head_center[1] + torso_radius_x * 0.04, head_center[2] + torso_radius_z * 0.82],
+                    [0.018, 0.018, 0.018],
+                ),
+            ]
+        )
+    elif profile == "sensor_cluster":
+        nodes.extend(
+            [
+                _node(
+                    "head_sensor_bar",
+                    "camera_array",
+                    "sensor_bar",
+                    [0.0, head_center[1] + torso_radius_x * 0.06, head_center[2] + torso_radius_z * 0.76],
+                    [torso_radius_x * 1.18, torso_radius_x * 0.18, 0.032],
+                ),
+                _node(
+                    "head_camera_cluster_top",
+                    "camera_array",
+                    "sensor_pod",
+                    [0.0, head_center[1] + torso_radius_x * 0.28, head_center[2] + torso_radius_z * 0.7],
+                    [0.045, 0.045, 0.045],
+                ),
+                _node(
+                    "head_camera_cluster_left",
+                    "camera_array",
+                    "sensor_emitter",
+                    [-torso_radius_x * 0.28, head_center[1] + torso_radius_x * 0.06, head_center[2] + torso_radius_z * 0.84],
+                    [0.02, 0.02, 0.02],
+                ),
+                _node(
+                    "head_camera_cluster_center",
+                    "camera_array",
+                    "sensor_emitter",
+                    [0.0, head_center[1] + torso_radius_x * 0.08, head_center[2] + torso_radius_z * 0.88],
+                    [0.022, 0.022, 0.022],
+                ),
+                _node(
+                    "head_camera_cluster_right",
+                    "camera_array",
+                    "sensor_emitter",
+                    [torso_radius_x * 0.28, head_center[1] + torso_radius_x * 0.06, head_center[2] + torso_radius_z * 0.84],
+                    [0.02, 0.02, 0.02],
+                ),
+            ]
+        )
+    else:
+        nodes.extend(
+            [
+                _node(
+                    "head_aperture_frame",
+                    "camera_array",
+                    "sensor_bezel",
+                    [0.0, head_center[1] - torso_radius_x * 0.02, head_center[2] + torso_radius_z * 0.72],
+                    [torso_radius_x * 0.88, torso_radius_x * 0.26, 0.04],
+                ),
+                _node(
+                    "head_aperture_left",
+                    "camera_array",
+                    "sensor_emitter",
+                    [-torso_radius_x * 0.16, head_center[1], head_center[2] + torso_radius_z * 0.82],
+                    [0.016, 0.016, 0.016],
+                ),
+                _node(
+                    "head_aperture_right",
+                    "camera_array",
+                    "sensor_emitter",
+                    [torso_radius_x * 0.16, head_center[1], head_center[2] + torso_radius_z * 0.82],
+                    [0.016, 0.016, 0.016],
+                ),
+                _node(
+                    "head_temple_sensor_left",
+                    "sensor_mount",
+                    "sensor_pod",
+                    [-torso_radius_x * 0.72, head_center[1] + torso_radius_x * 0.08, head_center[2] + torso_radius_z * 0.08],
+                    [0.032, 0.032, 0.032],
+                ),
+                _node(
+                    "head_temple_sensor_right",
+                    "sensor_mount",
+                    "sensor_pod",
+                    [torso_radius_x * 0.72, head_center[1] + torso_radius_x * 0.08, head_center[2] + torso_radius_z * 0.08],
+                    [0.032, 0.032, 0.032],
+                ),
+            ]
+        )
+
+    if "camera" in candidate.sensor_package:
+        nodes.append(
+            _node(
+                "head_depth_camera",
+                "camera_array",
+                "sensor_emitter",
+                [0.0, head_center[1] - torso_radius_x * 0.16, head_center[2] + torso_radius_z * 0.93],
+                [0.018, 0.018, 0.018],
+            )
+        )
+    if intent.head_sensor_density >= 5:
+        nodes.extend(
+            [
+                _node(
+                    "head_side_optic_left",
+                    "sensor_mount",
+                    "sensor_emitter",
+                    [-torso_radius_x * 0.54, head_center[1] - torso_radius_x * 0.18, head_center[2] + torso_radius_z * 0.22],
+                    [0.015, 0.015, 0.015],
+                ),
+                _node(
+                    "head_side_optic_right",
+                    "sensor_mount",
+                    "sensor_emitter",
+                    [torso_radius_x * 0.54, head_center[1] - torso_radius_x * 0.18, head_center[2] + torso_radius_z * 0.22],
+                    [0.015, 0.015, 0.015],
+                ),
+            ]
+        )
+    return nodes
+
+
 def _gripper_nodes(arm_index: int, hand: list[float], sign: float) -> list[dict[str, Any]]:
     palm = [hand[0] + sign * 0.035, hand[1] - 0.015, hand[2] + 0.02]
     palm_rotation = _quat_from_axis_angle([0.0, 0.0, 1.0], sign * 0.32)
@@ -594,7 +798,39 @@ def _focus_summary(component_kind: str, display_name: str, material_key: str) ->
         return f"{display_name} is part of the carried payload assembly and affects center-of-mass and clearance."
     if component_kind == "joint_anchor":
         return f"{display_name} is a joint anchor that concentrates articulation loads through a {material} housing."
+    if component_kind == "camera_array":
+        return f"{display_name} is part of the perception stack and packages cameras or optical emitters behind {material} shielding."
     return f"{display_name} is a {role} component built around {material} geometry."
+
+
+def _select_head_profile(
+    candidate: RobotDesignCandidate,
+    task_spec: TaskSpec | None,
+    geometry_profile: str,
+) -> str:
+    fingerprint = "|".join(
+        [
+            candidate.candidate_id,
+            candidate.embodiment_class,
+            candidate.rationale,
+            geometry_profile,
+            ",".join(sorted(candidate.sensor_package)),
+            task_spec.task_goal if task_spec else "",
+        ]
+    )
+    digest = hashlib.sha256(fingerprint.encode("utf-8")).digest()[0]
+    weighted_profiles = [
+        ("visor_sleek", 4 if "camera" in candidate.sensor_package else 2),
+        ("sensor_cluster", 4 if len(candidate.sensor_package) >= 3 else 2),
+        ("aperture_guard", 3 if geometry_profile.startswith("climbing") else 2),
+    ]
+    total_weight = sum(weight for _, weight in weighted_profiles)
+    cursor = digest % total_weight
+    for profile, weight in weighted_profiles:
+        if cursor < weight:
+            return profile
+        cursor -= weight
+    return "visor_sleek"
 
 
 def _material_extensions_for_nodes(nodes: list[dict[str, Any]]) -> set[str]:
@@ -860,6 +1096,57 @@ def _materials() -> list[dict[str, Any]]:
                 }
             },
         },
+        {
+            "name": "shadow_polymer",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": _COLOR_MAP["shadow_polymer"],
+                "metallicFactor": 0.12,
+                "roughnessFactor": 0.18,
+            },
+            "extensions": {
+                "KHR_materials_clearcoat": {
+                    "clearcoatFactor": 0.62,
+                    "clearcoatRoughnessFactor": 0.1,
+                },
+                "KHR_materials_specular": {
+                    "specularFactor": 0.66,
+                },
+            },
+        },
+        {
+            "name": "vision_glass",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": _COLOR_MAP["vision_glass"],
+                "metallicFactor": 0.08,
+                "roughnessFactor": 0.08,
+            },
+            "emissiveFactor": [0.02, 0.04, 0.06],
+            "extensions": {
+                "KHR_materials_clearcoat": {
+                    "clearcoatFactor": 0.96,
+                    "clearcoatRoughnessFactor": 0.03,
+                },
+                "KHR_materials_specular": {
+                    "specularFactor": 0.92,
+                },
+                "KHR_materials_transmission": {
+                    "transmissionFactor": 0.5,
+                },
+            },
+        },
+        {
+            "name": "sensor_bezel",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": _COLOR_MAP["sensor_bezel"],
+                "metallicFactor": 0.48,
+                "roughnessFactor": 0.26,
+            },
+            "extensions": {
+                "KHR_materials_specular": {
+                    "specularFactor": 0.71,
+                },
+            },
+        },
     ]
 
 
@@ -1015,3 +1302,45 @@ def _pack_glb(gltf: dict[str, Any], bin_blob: bytes) -> bytes:
             bin_blob,
         ]
     )
+
+
+def build_hierarchical_engineering_render(
+    candidate: RobotDesignCandidate,
+    task_spec: TaskSpec | None = None,
+) -> dict[str, Any]:
+    """Build engineering render with hierarchical component tree.
+
+    Returns both flat nodes (for GLB rendering) and hierarchical tree (for UI).
+    """
+    from packages.pipeline.component_expander import expand_candidate_to_component_graph
+
+    graph = expand_candidate_to_component_graph(candidate)
+    flat_render = build_engineering_render(candidate, task_spec)
+
+    hierarchical_nodes = graph.to_flat_node_list()
+
+    for node in hierarchical_nodes:
+        if node.get("geometry"):
+            geom = node["geometry"]
+            material_key = geom.get("material_key", "anodized_metal")
+            color = _COLOR_MAP.get(material_key, [0.5, 0.5, 0.5, 1.0])
+            material_label = _MATERIAL_LABELS.get(material_key, material_key)
+            node["color"] = color
+            node["material_key"] = material_key
+            node["material_label"] = material_label
+
+    flat_render["ui_scene"]["hierarchical_nodes"] = hierarchical_nodes
+    flat_render["ui_scene"]["component_graph"] = {
+        "id": graph.id,
+        "candidate_id": graph.candidate_id,
+        "embodiment_class": graph.embodiment_class,
+        "total_mass_kg": round(graph.total_mass_kg(), 3),
+        "total_cost_usd": round(graph.total_cost_usd(), 2),
+        "total_dof": graph.total_dof(),
+        "subsystem_count": len(graph.subsystems),
+        "assembly_count": len(graph.all_assemblies()),
+        "component_count": len(graph.all_components()),
+        "part_count": len(graph.all_parts()),
+    }
+
+    return flat_render
