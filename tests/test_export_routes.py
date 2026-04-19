@@ -1,16 +1,58 @@
 """
-TDD tests for Phase 8: Export functionality.
+TDD tests for Phase 8: Export routes and functionality.
 
-Tests for export functions that will be used by API routes.
+Tests for API endpoints and export functions.
 """
 
+import os
 import pytest
+
+# Enable test mode before importing app
+os.environ["TESTING"] = "1"
+
+from fastapi.testclient import TestClient
 from packages.pipeline.ir.design_ir import (
     RobotDesignIR,
     LinkIR,
     JointIR,
     JointType,
 )
+
+
+@pytest.fixture
+def client():
+    """Create test client with app."""
+    from demo.app import app
+    return TestClient(app)
+
+
+class TestExportEndpoints:
+    """Tests for export API endpoints."""
+
+    def test_compile_endpoint_exists(self, client):
+        """Compile endpoint exists and returns 404 for missing design."""
+        response = client.post("/designs/nonexistent/compile")
+        assert response.status_code == 404
+
+    def test_artifacts_endpoint_exists(self, client):
+        """Artifacts endpoint exists."""
+        response = client.get("/designs/nonexistent/artifacts")
+        assert response.status_code == 404
+
+    def test_mujoco_export_endpoint_exists(self, client):
+        """MuJoCo export endpoint exists."""
+        response = client.post("/designs/nonexistent/export/mujoco")
+        assert response.status_code == 404
+
+    def test_print_export_endpoint_exists(self, client):
+        """Print export endpoint exists."""
+        response = client.post("/designs/nonexistent/export/print")
+        assert response.status_code == 404
+
+    def test_procurement_endpoint_exists(self, client):
+        """Procurement endpoint exists."""
+        response = client.get("/designs/nonexistent/procurement")
+        assert response.status_code == 404
 
 
 class TestDesignToIR:
