@@ -183,14 +183,14 @@ def _coerce_json_text(text: str) -> str:
 def generate_design_candidates(
     task_spec: TaskSpec,
     *,
-    model: str = "gemini-1.5-pro",
+    model: str = "gemini-2.5-pro",
     max_retries: int = 2,
 ) -> DesignCandidatesResponse:
     """Generate 3 robot design candidates using Gemini structured output.
 
     Args:
         task_spec: The extracted task specification.
-        model: Gemini model to use (default: gemini-1.5-pro).
+        model: Gemini model to use (default: gemini-2.5-pro).
         max_retries: Number of retries on validation failure.
 
     Returns:
