@@ -1,0 +1,70 @@
+{
+  "design_id": "bde71c58-3c33-41b2-bcf3-f9f84820b28b",
+  "revision_id": "3b990687-96f3-4769-987e-eb5ea86507c8",
+  "candidate_id": "C",
+  "is_valid": false,
+  "summary": "Validation found blocking issues in task.",
+  "failure_categories": [
+    "task"
+  ],
+  "checks": [
+    {
+      "name": "structural_completeness",
+      "status": "pass",
+      "summary": "Link, limb, and torso dimensions are internally consistent.",
+      "details": [],
+      "category": "structural"
+    },
+    {
+      "name": "task_validation",
+      "status": "fail",
+      "summary": "Task fit and hardrail checks are satisfied.",
+      "details": [
+        "missing_attachment_or_grasp_strategy_for_climbing",
+        "payload_capacity_below_required_margin"
+      ],
+      "category": "task"
+    },
+    {
+      "name": "compiler_outputs",
+      "status": "pass",
+      "summary": "Compiler emitted MJCF and GLB artifacts.",
+      "details": [],
+      "category": "compiler"
+    },
+    {
+      "name": "render_quality",
+      "status": "pass",
+      "summary": "Engineering render artifact is rich enough for inspection use.",
+      "details": [],
+      "category": "render"
+    },
+    {
+      "name": "simulation_viability",
+      "status": "warning",
+      "summary": "Telemetry suggests the design is viable for screening and control iteration.",
+      "details": [],
+      "category": "simulation"
+    },
+    {
+      "name": "procurement_grounding",
+      "status": "pass",
+      "summary": "Critical components are sufficiently resolved for procurement and build planning.",
+      "details": [],
+      "category": "procurement"
+    }
+  ],
+  "render_checks": {
+    "engineering_ready": true,
+    "mesh_node_count": 38,
+    "material_count": 9,
+    "task_geometry_profile": "climbing_payload"
+  },
+  "artifact_paths": {
+    "diversity_report": "artifacts/bde71c58-3c33-41b2-bcf3-f9f84820b28b/diversity_report.json",
+    "mjcf": "artifacts/bde71c58-3c33-41b2-bcf3-f9f84820b28b/robot.mjcf",
+    "render_glb": "artifacts/bde71c58-3c33-41b2-bcf3-f9f84820b28b/render.glb",
+    "ui_scene": "artifacts/bde71c58-3c33-41b2-bcf3-f9f84820b28b/ui_scene.json"
+  },
+  "output_path": null
+}

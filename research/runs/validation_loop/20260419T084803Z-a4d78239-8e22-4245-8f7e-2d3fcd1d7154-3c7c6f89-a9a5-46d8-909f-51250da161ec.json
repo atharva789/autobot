@@ -1,0 +1,67 @@
+{
+  "design_id": "a4d78239-8e22-4245-8f7e-2d3fcd1d7154",
+  "revision_id": "3c7c6f89-a9a5-46d8-909f-51250da161ec",
+  "candidate_id": "B",
+  "is_valid": true,
+  "summary": "Validation passed with inspection-grade artifacts and grounded procurement.",
+  "failure_categories": [],
+  "checks": [
+    {
+      "name": "structural_completeness",
+      "status": "pass",
+      "summary": "Link, limb, and torso dimensions are internally consistent.",
+      "details": [],
+      "category": "structural"
+    },
+    {
+      "name": "task_validation",
+      "status": "warning",
+      "summary": "Task fit and hardrail checks are satisfied.",
+      "details": [
+        "task_fit_score=None is below preferred threshold"
+      ],
+      "category": "task"
+    },
+    {
+      "name": "compiler_outputs",
+      "status": "pass",
+      "summary": "Compiler emitted MJCF and GLB artifacts.",
+      "details": [],
+      "category": "compiler"
+    },
+    {
+      "name": "render_quality",
+      "status": "pass",
+      "summary": "Engineering render artifact is rich enough for inspection use.",
+      "details": [],
+      "category": "render"
+    },
+    {
+      "name": "simulation_viability",
+      "status": "pass",
+      "summary": "Telemetry suggests the design is viable for screening and control iteration.",
+      "details": [],
+      "category": "simulation"
+    },
+    {
+      "name": "procurement_grounding",
+      "status": "pass",
+      "summary": "Critical components are sufficiently resolved for procurement and build planning.",
+      "details": [],
+      "category": "procurement"
+    }
+  ],
+  "render_checks": {
+    "engineering_ready": true,
+    "mesh_node_count": 31,
+    "material_count": 6,
+    "task_geometry_profile": "general"
+  },
+  "artifact_paths": {
+    "diversity_report": "artifacts/a4d78239-8e22-4245-8f7e-2d3fcd1d7154/diversity_report.json",
+    "mjcf": "artifacts/a4d78239-8e22-4245-8f7e-2d3fcd1d7154/robot.mjcf",
+    "render_glb": "artifacts/a4d78239-8e22-4245-8f7e-2d3fcd1d7154/render.glb",
+    "ui_scene": "artifacts/a4d78239-8e22-4245-8f7e-2d3fcd1d7154/ui_scene.json"
+  },
+  "output_path": null
+}

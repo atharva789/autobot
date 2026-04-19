@@ -1,0 +1,67 @@
+{
+  "design_id": "2183b5a0-d12b-4a44-97f5-c9bfc2e7a21a",
+  "revision_id": "597c6e5c-1870-4694-a701-a8f233050b94",
+  "candidate_id": "B",
+  "is_valid": true,
+  "summary": "Validation passed with inspection-grade artifacts and grounded procurement.",
+  "failure_categories": [],
+  "checks": [
+    {
+      "name": "structural_completeness",
+      "status": "pass",
+      "summary": "Link, limb, and torso dimensions are internally consistent.",
+      "details": [],
+      "category": "structural"
+    },
+    {
+      "name": "task_validation",
+      "status": "pass",
+      "summary": "Task fit and hardrail checks are satisfied.",
+      "details": [],
+      "category": "task"
+    },
+    {
+      "name": "compiler_outputs",
+      "status": "pass",
+      "summary": "Compiler emitted MJCF and GLB artifacts.",
+      "details": [],
+      "category": "compiler"
+    },
+    {
+      "name": "render_quality",
+      "status": "pass",
+      "summary": "Engineering render artifact is rich enough for inspection use.",
+      "details": [],
+      "category": "render"
+    },
+    {
+      "name": "simulation_viability",
+      "status": "pass",
+      "summary": "Telemetry suggests the design is viable for screening and control iteration.",
+      "details": [],
+      "category": "simulation"
+    },
+    {
+      "name": "procurement_grounding",
+      "status": "warning",
+      "summary": "Critical components are sufficiently resolved for procurement and build planning.",
+      "details": [
+        "missing_item:Custom actuator required: CUSTOM_REQUIRED"
+      ],
+      "category": "procurement"
+    }
+  ],
+  "render_checks": {
+    "engineering_ready": true,
+    "mesh_node_count": 56,
+    "material_count": 10,
+    "task_geometry_profile": "general"
+  },
+  "artifact_paths": {
+    "diversity_report": "artifacts/2183b5a0-d12b-4a44-97f5-c9bfc2e7a21a/diversity_report.json",
+    "mjcf": "artifacts/2183b5a0-d12b-4a44-97f5-c9bfc2e7a21a/robot.mjcf",
+    "render_glb": "artifacts/2183b5a0-d12b-4a44-97f5-c9bfc2e7a21a/render.glb",
+    "ui_scene": "artifacts/2183b5a0-d12b-4a44-97f5-c9bfc2e7a21a/ui_scene.json"
+  },
+  "output_path": null
+}

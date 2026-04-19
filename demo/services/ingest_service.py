@@ -4,12 +4,14 @@ import json
 import os
 import re
 import subprocess
-import urllib.request
 import uuid
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
+
+from packages.pipeline.droid_fallback import DroidFallbackIndex, DroidFallbackQuery
 
 _ER16_PROMPT = """You are preparing a human reference-video search plan for robot learning.
 Given a robot task description, extract the physical task and generate YouTube queries that look for
@@ -20,7 +22,11 @@ Return ONLY valid JSON using the requested schema.
 Rules for search_queries:
 - Never search for robots, reinforcement learning, simulation, policies, or code.
 - Search for a real person or human performing the analogous physical task.
-- Use concrete object and action words from the user's request.
+- Use concrete action words from the user's request.
+- If the object is too niche for good search recall, broaden it to a more common physical analog while preserving body mechanics.
+- Query 1 should be the most literal human analog of the task.
+- Query 2 should be a broader, higher-recall human-motion analog of the same task.
+- Query 3 should optimize for camera quality and full-body visibility.
 - Prefer side view, full-body visibility, and fixed or mostly static camera when helpful.
 - Return exactly 3 distinct search queries.
 
@@ -38,6 +44,8 @@ Selection criteria:
 - Strongly prefer videos with a fixed or mostly static camera, visible full body, and minimal cuts.
 - Reject videos that are robots, simulations, animations, compilations, reaction videos, or unrelated.
 - Reject videos where the relevant action is not shown clearly.
+- You are reviewing the actual candidate videos, not just thumbnails. Use the video content as the primary source of truth.
+- If several candidates are partially correct, prefer the one with the clearest body visibility and least camera motion.
 - If every candidate is bad, set proceed=false and propose 3 better YouTube queries.
 
 Return ONLY valid JSON using the requested schema."""
@@ -47,6 +55,9 @@ _GVHMR_MODAL_FUNCTION_NAME = os.environ.get("GVHMR_MODAL_FUNCTION_NAME", "run_pr
 
 _MIN_VIDEO_SECONDS = 8
 _MAX_VIDEO_SECONDS = 180
+_SEARCH_PROFILE_LIMIT = 3
+def _droid_fallback_index_path() -> str:
+    return os.environ.get("DROID_FALLBACK_INDEX_PATH", "").strip()
 
 
 def _parse_iso8601_duration(duration: str) -> int:
@@ -57,19 +68,6 @@ def _parse_iso8601_duration(duration: str) -> int:
     if not m:
         return 0
     return int(m.group(1) or 0) * 3600 + int(m.group(2) or 0) * 60 + int(m.group(3) or 0)
-
-
-def _fetch_thumbnail_bytes(video_id: str) -> bytes | None:
-    """Fetch YouTube thumbnail bytes. Falls back from maxres → hq."""
-    for quality in ("maxresdefault", "hqdefault"):
-        url = f"https://img.youtube.com/vi/{video_id}/{quality}.jpg"
-        try:
-            with urllib.request.urlopen(url, timeout=5) as resp:  # noqa: S310
-                if resp.status == 200:
-                    return resp.read()
-        except Exception:  # noqa: BLE001
-            continue
-    return None
 
 
 class IngestPlan(BaseModel):
@@ -88,6 +86,7 @@ class SearchCandidate(BaseModel):
     url: str
     duration_seconds: int = 0
     view_count: int = 0
+    search_profile: str = "default"
 
 
 class CandidateReview(BaseModel):
@@ -241,7 +240,16 @@ class IngestService:
             error_context="ingest planning",
         )
 
-    def _youtube_search(self, query: str, max_results: int = 5):
+    def _youtube_search(
+        self,
+        query: str,
+        max_results: int = 10,
+        *,
+        order: str = "relevance",
+        video_duration: str = "short",
+        video_definition: str = "high",
+        video_caption: str | None = None,
+    ):
         try:
             from googleapiclient.discovery import build
         except ImportError as exc:
@@ -255,10 +263,39 @@ class IngestService:
             part="id,snippet",
             type="video",
             maxResults=max_results,
+            order=order,
             relevanceLanguage="en",
             safeSearch="moderate",
             videoEmbeddable="true",
+            videoDuration=video_duration,
+            videoDefinition=video_definition,
+            videoCaption=video_caption if video_caption else None,
         )
+
+    def _search_profiles(self) -> list[dict[str, str | None]]:
+        return [
+            {
+                "name": "captioned_relevance",
+                "order": "relevance",
+                "video_duration": "short",
+                "video_definition": "high",
+                "video_caption": "closedCaption",
+            },
+            {
+                "name": "high_def_relevance",
+                "order": "relevance",
+                "video_duration": "short",
+                "video_definition": "high",
+                "video_caption": None,
+            },
+            {
+                "name": "popular_short",
+                "order": "viewCount",
+                "video_duration": "short",
+                "video_definition": "high",
+                "video_caption": None,
+            },
+        ]
 
     def _fetch_video_details(self, video_ids: list[str]) -> dict[str, dict]:
         """Batch-fetch duration and view count for given video IDs."""
@@ -289,15 +326,42 @@ class IngestService:
     def search_youtube_candidates(
         self,
         query: str,
-        max_results: int = 5,
+        max_results: int = 10,
+        *,
+        search_options: dict[str, str | None] | None = None,
     ) -> list[dict[str, Any]]:
         cleaned_query = query.strip()
         if not cleaned_query:
             raise ValueError("YouTube search query must not be empty.")
+        search_options = search_options or {}
+        profile_name = str(search_options.get("name") or "default")
 
         try:
-            result = self._youtube_search(cleaned_query, max_results=max_results).execute()
+            result = self._youtube_search(
+                cleaned_query,
+                max_results=max_results,
+                order=str(search_options.get("order") or "relevance"),
+                video_duration=str(search_options.get("video_duration") or "short"),
+                video_definition=str(search_options.get("video_definition") or "high"),
+                video_caption=(
+                    str(search_options["video_caption"])
+                    if search_options.get("video_caption")
+                    else None
+                ),
+            ).execute()
         except Exception as exc:
+            err_str = str(exc)
+            if "invalid_grant" in err_str or "Bad Request" in err_str:
+                raise RuntimeError(
+                    f"YouTube API authentication failed. The YOUTUBE_API_KEY may be "
+                    f"invalid or expired. Please verify your YouTube Data API key in "
+                    f"the Google Cloud Console. Error: {exc}"
+                ) from exc
+            if "quotaExceeded" in err_str:
+                raise RuntimeError(
+                    f"YouTube API quota exceeded. Try again tomorrow or use a different "
+                    f"API key. Error: {exc}"
+                ) from exc
             raise RuntimeError(
                 f"YouTube search failed for query '{cleaned_query}': {exc}"
             ) from exc
@@ -319,6 +383,7 @@ class IngestService:
                 channel_title=snippet.get("channelTitle", ""),
                 query=cleaned_query,
                 url=f"https://www.youtube.com/watch?v={video_id}",
+                search_profile=profile_name,
             )
             candidates.append(candidate.model_dump())
 
@@ -354,29 +419,33 @@ class IngestService:
         self,
         queries: list[str],
         *,
-        per_query: int = 4,
-        shortlist_size: int = 3,
+        per_query: int = 10,
+        shortlist_size: int = 8,
     ) -> list[SearchCandidate]:
         seen_ids: set[str] = set()
         errors: list[str] = []
         query_buckets: list[list[SearchCandidate]] = []
-        pool_size = shortlist_size * 2  # over-collect to absorb duration filtering
+        pool_size = min(shortlist_size * 2, 12)
 
         for raw_query in queries:
             query = raw_query.strip() if isinstance(raw_query, str) else ""
             if not query:
                 continue
-            try:
-                raw_candidates = [
-                    SearchCandidate.model_validate(candidate)
-                    for candidate in self.search_youtube_candidates(
-                        query,
-                        max_results=per_query,
-                    )
-                ]
-            except (LookupError, RuntimeError, ValueError) as exc:
-                errors.append(str(exc))
-                continue
+            raw_candidates: list[SearchCandidate] = []
+            for search_profile in self._search_profiles()[:_SEARCH_PROFILE_LIMIT]:
+                try:
+                    profile_candidates = [
+                        SearchCandidate.model_validate(candidate)
+                        for candidate in self.search_youtube_candidates(
+                            query,
+                            max_results=per_query,
+                            search_options=search_profile,
+                        )
+                    ]
+                except (LookupError, RuntimeError, ValueError) as exc:
+                    errors.append(str(exc))
+                    continue
+                raw_candidates.extend(profile_candidates)
 
             preferred = [
                 candidate
@@ -413,18 +482,30 @@ class IngestService:
             details = {}
 
         shortlisted: list[SearchCandidate] = []
+        unknown_duration_candidates: list[SearchCandidate] = []
         for candidate in pool:
             d = details.get(candidate.video_id, {})
             dur = d.get("duration_seconds", 0)
             vc = d.get("view_count", 0)
-            if dur > 0 and (dur < _MIN_VIDEO_SECONDS or dur > _MAX_VIDEO_SECONDS):
+            enriched = candidate.model_copy(update={"duration_seconds": dur, "view_count": vc})
+            if dur <= 0:
+                unknown_duration_candidates.append(enriched)
                 continue
-            shortlisted.append(candidate.model_copy(update={"duration_seconds": dur, "view_count": vc}))
+            if dur < _MIN_VIDEO_SECONDS or dur > _MAX_VIDEO_SECONDS:
+                continue
+            shortlisted.append(enriched)
             if len(shortlisted) >= shortlist_size:
                 break
 
-        # Fall back to unenriched pool if duration filtering removed everything
-        return shortlisted if shortlisted else pool[:shortlist_size]
+        if shortlisted:
+            return shortlisted
+
+        if unknown_duration_candidates:
+            return unknown_duration_candidates[:shortlist_size]
+
+        raise LookupError(
+            "All collected YouTube candidates were outside the preferred duration range."
+        )
 
     def _review_video_candidates(
         self,
@@ -459,17 +540,19 @@ class IngestService:
                         f"channel_title: {candidate.channel_title}\n"
                         f"duration: {duration_str}\n"
                         f"view_count: {view_str}\n"
+                        f"search_profile: {candidate.search_profile}\n"
                         f"description: {candidate.description[:500]}"
                     )
                 )
             )
-            thumb = _fetch_thumbnail_bytes(candidate.video_id)
-            if thumb is not None:
-                parts.append(
-                    types.Part(
-                        inline_data=types.Blob(data=thumb, mime_type="image/jpeg")
+            parts.append(
+                types.Part(
+                    file_data=types.FileData(
+                        file_uri=candidate.url,
+                        mime_type="video/*",
                     )
                 )
+            )
 
         contents = types.Content(parts=parts)
         return self._generate_structured_json(
@@ -555,6 +638,64 @@ class IngestService:
             f"Last rationale: {review_summary or 'no rationale provided'}. "
             f"Last candidate ids: {candidate_ids or 'none'}."
         )
+
+    def _build_droid_query(self, task_prompt: str, plan: dict[str, Any]) -> DroidFallbackQuery:
+        task_goal = str(plan.get("task_goal") or task_prompt).strip()
+        search_terms = [
+            term
+            for term in plan.get("search_queries", [])
+            if isinstance(term, str) and term.strip()
+        ]
+        task_terms = [word for word in re.findall(r"[a-z0-9]+", task_goal.lower()) if len(word) > 2]
+        search_tokens = [
+            token
+            for term in search_terms[:3]
+            for token in re.findall(r"[a-z0-9]+", term.lower())
+            if len(token) > 2
+        ]
+        required_terms = list(dict.fromkeys(
+            [term for term in task_terms if term not in {"robot", "design"}] + search_tokens
+        ))
+        return DroidFallbackQuery(
+            query_text=" ".join(
+                [
+                    task_prompt.strip(),
+                    task_goal,
+                    " ".join(search_terms[:3]),
+                ]
+            ).strip(),
+            required_task_terms=required_terms[:4],
+            preferred_camera_terms=["fixed camera", "side view", "full body"],
+            max_results=3,
+        )
+
+    def select_droid_reference(
+        self,
+        task_prompt: str,
+        plan: dict[str, Any],
+    ) -> dict[str, Any]:
+        index_path = _droid_fallback_index_path()
+        if not index_path:
+            raise RuntimeError(
+                "DROID fallback index path is not configured. Set "
+                "DROID_FALLBACK_INDEX_PATH to a JSONL episode index."
+            )
+        path = Path(index_path)
+        if not path.exists():
+            raise RuntimeError(
+                f"DROID fallback index not found at {path}. Provide a JSONL file "
+                "with episode records."
+            )
+        query = self._build_droid_query(task_prompt, plan)
+        index = DroidFallbackIndex.load_jsonl(path)
+        result = index.retrieve(query)
+        return {
+            "source_type": "droid",
+            "query_text": query.query_text,
+            "required_task_terms": query.required_task_terms,
+            "preferred_camera_terms": query.preferred_camera_terms,
+            "reference": asdict(result),
+        }
 
     def download_clip(self, video_id: str, dest_dir: Path) -> Path:
         url = f"https://www.youtube.com/watch?v={video_id}"

@@ -12,13 +12,14 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
 from demo.supabase_client import supa
+from demo.workspace_store import workspace_store
 from demo.services.evolution_service import EvolutionService
 from demo.services.orchestrator import CLIOrchestrator
 from demo.services.modal_dispatch import ModalDispatch
 from packages.pipeline.types import EvolutionConfig
 
 router = APIRouter(prefix="/evolutions", tags=["evolutions"])
-_evo_svc = EvolutionService(supa=supa)
+_evo_svc = EvolutionService(store=workspace_store)
 _dispatch = ModalDispatch()
 logger = logging.getLogger(__name__)
 
@@ -54,25 +55,21 @@ def create_evolution(req: CreateEvolutionRequest) -> dict:
                     (workdir / f).write_text(src.read_text())
         orch = CLIOrchestrator(workdir=workdir)
         stage = "load_ingest_plan"
-        ingest = (
-            supa.table("ingest_jobs")
-            .select("er16_plan_json")
-            .eq("id", req.ingest_job_id)
-            .single()
-            .execute()
-        )
-        plan = json.loads(ingest.data["er16_plan_json"])
+        ingest = workspace_store.get_ingest_job(req.ingest_job_id)
+        if ingest is None:
+            raise HTTPException(status_code=404, detail="Ingest job not found")
+        plan = json.loads(ingest["er16_plan_json"])
         stage = "draft_program_md"
         draft, generator = orch.draft_program_md(er16_plan=plan)
         draft_id = str(uuid.uuid4())
         stage = "persist_draft"
-        supa.table("program_md_drafts").insert({
+        workspace_store.save_program_draft({
             "id": draft_id,
             "evolution_id": evo_id,
             "generator": generator,
             "draft_content": draft,
             "approved": False,
-        }).execute()
+        })
         return {"evolution_id": evo_id, "draft_id": draft_id, "draft_content": draft}
     except Exception as exc:
         logger.exception("Evolution creation failed at stage=%s", stage)
@@ -89,9 +86,10 @@ def approve_program(
     workdir = ARTIFACTS_DIR / evo_id
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "program.md").write_text(req.content)
-    supa.table("program_md_drafts").update(
-        {"approved": True, "user_edited_content": req.content}
-    ).eq("evolution_id", evo_id).execute()
+    workspace_store.update_program_draft_by_evolution(
+        evo_id,
+        {"approved": True, "user_edited_content": req.content},
+    )
     _evo_svc.update_status(evo_id, "running")
     bg.add_task(_run_evolution_loop, evo_id)
     return {"status": "running"}
@@ -111,7 +109,10 @@ def mark_best(evo_id: str, iter_id: str) -> dict:
 
 @router.get("/{evo_id}")
 def get_evolution(evo_id: str) -> dict:
-    return _evo_svc.get(evo_id)
+    evolution = _evo_svc.get(evo_id)
+    if evolution is None:
+        raise HTTPException(status_code=404, detail="Evolution not found")
+    return evolution
 
 
 def _run_evolution_loop(evo_id: str) -> None:

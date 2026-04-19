@@ -46,10 +46,12 @@ def create_app(
     from demo.routes.evolutions import router as evolutions_router
     from demo.routes.designs import router as designs_router
     from demo.routes.exports import router as exports_router
+    from demo.routes.hitl import router as hitl_router
     app.include_router(ingest_router)
     app.include_router(evolutions_router)
     app.include_router(designs_router)
     app.include_router(exports_router)
+    app.include_router(hitl_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -100,4 +102,3 @@ def create_app(
 
 
 app = create_app()
-
