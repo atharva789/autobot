@@ -6,36 +6,62 @@ import { MorphologyViewer } from "@/components/MorphologyViewer";
 import { EvolutionHistory } from "@/components/EvolutionHistory";
 import { IterationDrawer } from "@/components/IterationDrawer";
 import { api } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
 import type { Evolution, Iteration } from "@/lib/types";
 
 export default function EvolutionPage() {
   const { evoId } = useParams<{ evoId: string }>();
   const [evo, setEvo] = useState<Evolution | null>(null);
+  const [iterations, setIterations] = useState<Iteration[]>([]);
   const [current, setCurrent] = useState<Iteration | null>(null);
   const [drawerIter, setDrawerIter] = useState<Iteration | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
-    api.evolutions.get(evoId).then(setEvo);
-    const iv = setInterval(() => {
-      api.evolutions.get(evoId).then((e) => {
-        setEvo(e);
-        if (e.status === "done" || e.status === "stopped") clearInterval(iv);
+    let cancelled = false;
+    let iv: ReturnType<typeof setInterval> | null = null;
+    const load = async () => {
+      const [nextEvo, nextIterations] = await Promise.all([
+        api.evolutions.get(evoId),
+        api.evolutions.listIterations(evoId),
+      ]);
+      if (cancelled) {
+        return;
+      }
+      setEvo(nextEvo);
+      setIterations(nextIterations.items);
+      if (["done", "stopped", "failed"].includes(nextEvo.status) && iv) {
+        clearInterval(iv);
+        iv = null;
+      }
+    };
+
+    void load();
+    iv = setInterval(() => {
+      load().catch((err: unknown) => {
+        console.error("Evolution polling failed:", err instanceof Error ? err.message : err);
       });
-    }, 5000);
-    return () => clearInterval(iv);
+    }, 3000);
+    return () => {
+      cancelled = true;
+      if (iv) {
+        clearInterval(iv);
+      }
+    };
   }, [evoId]);
 
   useEffect(() => {
-    if (!evo?.best_iteration_id) return;
-    supabase
-      .from("iterations")
-      .select("*")
-      .eq("id", evo.best_iteration_id)
-      .single()
-      .then(({ data }) => { if (data) setCurrent(data as Iteration); });
-  }, [evo?.best_iteration_id]);
+    if (iterations.length === 0) {
+      setCurrent(null);
+      return;
+    }
+    const preferred =
+      (evo?.best_iteration_id
+        ? iterations.find((iter) => iter.id === evo.best_iteration_id)
+        : null) ??
+      iterations[iterations.length - 1] ??
+      null;
+    setCurrent(preferred);
+  }, [evo?.best_iteration_id, iterations]);
 
   async function handleStop() {
     try {
@@ -107,7 +133,7 @@ export default function EvolutionPage() {
       <div className="bg-zinc-900 rounded-lg p-4">
         <p className="text-xs text-zinc-500 uppercase tracking-wide mb-3">Evolution history</p>
         <EvolutionHistory
-          evolutionId={evoId}
+          iterations={iterations}
           bestIterationId={evo?.best_iteration_id ?? null}
           onSelect={(iter) => { setDrawerIter(iter); setDrawerOpen(true); }}
           onMarkBest={handleMarkBest}

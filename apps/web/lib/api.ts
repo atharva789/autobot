@@ -2,6 +2,7 @@ import type {
   IngestJob,
   EvolutionCreated,
   Evolution,
+  Iteration,
   GenerateDesignsResponse,
   BOMOutput,
   DesignSpecResponse,
@@ -68,6 +69,8 @@ export const api = {
     markBest: (evoId: string, iterId: string) =>
       req(`/evolutions/${evoId}/mark-best/${iterId}`, { method: "POST" }),
     get: (evoId: string): Promise<Evolution> => req(`/evolutions/${evoId}`),
+    listIterations: (evoId: string): Promise<{ evolution_id: string; items: Iteration[] }> =>
+      req(`/evolutions/${evoId}/iterations`),
   },
   designs: {
     generate: (ingestJobId: string): Promise<GenerateDesignsResponse> =>

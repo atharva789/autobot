@@ -327,6 +327,40 @@ def test_run_evolution_loop_marks_failed_when_all_trials_fail(tmp_path):
     assert "Trial failed: dispatch offline" in iterations[0]["reasoning_log"]
 
 
+def test_get_evolution_returns_program_md_and_iterations_from_workspace_store(tmp_path):
+    local_store = WorkspaceStore(tmp_path / "evolution-read.sqlite3")
+    local_store.create_evolution("run-1", evo_id="evo-read")
+    local_store.update_evolution("evo-read", {"status": "running", "best_iteration_id": "iter-1"})
+    local_store.save_program_draft(
+        {
+            "id": "draft-1",
+            "evolution_id": "evo-read",
+            "generator": "fallback",
+            "draft_content": "# Program: climb wall",
+            "approved": True,
+        }
+    )
+    local_store.record_iteration(
+        {
+            "id": "iter-1",
+            "evolution_id": "evo-read",
+            "iter_num": 0,
+            "fitness_score": 0.77,
+            "reasoning_log": "first pass",
+        }
+    )
+
+    with patch("demo.routes.evolutions.workspace_store", local_store), \
+         patch.object(evolutions_module._evo_svc, "store", local_store):
+        evolution_response = client.get("/evolutions/evo-read")
+        iterations_response = client.get("/evolutions/evo-read/iterations")
+
+    assert evolution_response.status_code == 200
+    assert evolution_response.json()["program_md"] == "# Program: climb wall"
+    assert iterations_response.status_code == 200
+    assert iterations_response.json()["items"][0]["id"] == "iter-1"
+
+
 def _sample_candidates_response() -> DesignCandidatesResponse:
     return DesignCandidatesResponse(
         task_interpretation="Robot should carry payload on stairs.",
