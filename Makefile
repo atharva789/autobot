@@ -1,7 +1,7 @@
-.PHONY: dev test smoke-api smoke-morph smoke-gnn smoke-seed e2e-smoke
+.PHONY: dev test smoke-api smoke-seed e2e-smoke
 
 dev:
-	uvicorn demo.app:app --reload &
+	uvicorn apps.api.app:app --reload &
 	cd apps/web && npm run dev
 
 test:
@@ -9,12 +9,6 @@ test:
 
 smoke-api:
 	python -m pytest tests/test_api.py tests/test_evolutions.py tests/test_ingest.py -q
-
-smoke-morph:
-	python -m pytest tests/test_morphology.py -q
-
-smoke-gnn:
-	python -m pytest tests/test_gnn.py -q
 
 smoke-seed:
 	python -m pytest tests/test_seed.py -q

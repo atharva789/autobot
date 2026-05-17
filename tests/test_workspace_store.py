@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from demo.workspace_store import WorkspaceStore
+from apps.api.workspace_store import WorkspaceStore
 
 
 def test_workspace_store_ingest_design_and_evolution_crud(tmp_path: Path):

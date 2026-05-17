@@ -4,5 +4,5 @@ os.environ.setdefault("SUPABASE_SERVICE_KEY", "fake")
 
 
 def test_client_imports():
-    from demo.supabase_client import supa
+    from apps.api.supabase_client import supa
     assert supa is not None

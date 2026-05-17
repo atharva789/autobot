@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from demo.service import DemoService
-from demo.store import DemoStore
+from apps.api.service import DemoService
+from apps.api.store import DemoStore
 
 
 def _seed_store(store: DemoStore) -> None:
