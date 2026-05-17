@@ -117,7 +117,24 @@ def get_evolution(evo_id: str) -> dict:
     evolution = _evo_svc.get(evo_id)
     if evolution is None:
         raise HTTPException(status_code=404, detail="Evolution not found")
+    draft = workspace_store.get_program_draft_by_evolution(evo_id)
+    if draft:
+        evolution = {
+            **evolution,
+            "program_md": draft.get("user_edited_content") or draft.get("draft_content"),
+        }
     return evolution
+
+
+@router.get("/{evo_id}/iterations")
+def list_evolution_iterations(evo_id: str) -> dict:
+    evolution = _evo_svc.get(evo_id)
+    if evolution is None:
+        raise HTTPException(status_code=404, detail="Evolution not found")
+    return {
+        "evolution_id": evo_id,
+        "items": workspace_store.list_iterations(evo_id),
+    }
 
 
 def _run_evolution_loop(evo_id: str) -> None:

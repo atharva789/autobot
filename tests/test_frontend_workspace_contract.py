@@ -71,3 +71,29 @@ def test_workspace_exposes_photon_setup_copy():
     assert "phone number" in source
     assert "send review poll" in source
     assert "consent" in source
+
+
+def test_checkpoint_banner_uses_accessible_disclosure_not_nested_button():
+    source = PAGE_FILE.read_text()
+
+    assert 'role="button"' in source
+    assert 'aria-expanded={expanded}' in source
+    assert "<button\n                onClick={(e) => { e.stopPropagation(); onDecision(\"approved\"); }}" in source
+    assert "<button\n        onClick={onToggle}" not in source
+
+
+def test_evolution_page_reads_iterations_from_backend_not_supabase():
+    source = (REPO_ROOT / "apps" / "web" / "app" / "evolutions" / "[evoId]" / "page.tsx").read_text()
+    history_source = (REPO_ROOT / "apps" / "web" / "components" / "EvolutionHistory.tsx").read_text()
+
+    assert "api.evolutions.listIterations" in source
+    assert "supabase" not in source
+    assert "supabase" not in history_source
+    assert "iterations={iterations}" in source
+
+
+def test_program_page_does_not_decode_search_param_twice():
+    source = (REPO_ROOT / "apps" / "web" / "app" / "evolutions" / "[evoId]" / "program" / "page.tsx").read_text()
+
+    assert 'searchParams.get("draft") ?? ""' in source
+    assert "decodeURIComponent" not in source

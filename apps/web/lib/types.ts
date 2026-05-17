@@ -42,7 +42,7 @@ export interface Iteration {
 export interface Evolution {
   id: string;
   run_id: string;
-  status: "pending" | "running" | "stopped" | "done";
+  status: "pending" | "running" | "stopped" | "done" | "failed";
   best_iteration_id: string | null;
   total_cost_usd: number;
   program_md: string | null;

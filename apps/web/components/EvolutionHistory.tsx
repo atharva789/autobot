@@ -1,43 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import type { Iteration } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  evolutionId: string;
+  iterations: Iteration[];
   bestIterationId: string | null;
   onSelect: (iter: Iteration) => void;
   onMarkBest: (iterId: string) => void;
 }
 
-export function EvolutionHistory({ evolutionId, bestIterationId, onSelect, onMarkBest }: Props) {
-  const [iterations, setIterations] = useState<Iteration[]>([]);
-
-  useEffect(() => {
-    supabase
-      .from("iterations")
-      .select("*")
-      .eq("evolution_id", evolutionId)
-      .order("iter_num")
-      .then(({ data, error }) => {
-        if (error) { console.error("EvolutionHistory fetch error:", error.message); return; }
-        if (data) setIterations(data as Iteration[]);
-      });
-
-    const channel = supabase
-      .channel(`iterations:${evolutionId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "iterations", filter: `evolution_id=eq.${evolutionId}` },
-        (payload) => setIterations((prev) => [...prev, payload.new as Iteration])
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [evolutionId]);
-
+export function EvolutionHistory({ iterations, bestIterationId, onSelect, onMarkBest }: Props) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2">
       {iterations.map((iter) => {

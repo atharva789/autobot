@@ -5,13 +5,10 @@ import os
 import re
 import subprocess
 import uuid
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
-
-from packages.pipeline.droid_fallback import DroidFallbackIndex, DroidFallbackQuery
 
 _ER16_PROMPT = """You are preparing a human reference-video search plan for robot learning.
 Given a robot task description, extract the physical task and generate YouTube queries that look for
@@ -56,8 +53,6 @@ _GVHMR_MODAL_FUNCTION_NAME = os.environ.get("GVHMR_MODAL_FUNCTION_NAME", "run_pr
 _MIN_VIDEO_SECONDS = 8
 _MAX_VIDEO_SECONDS = 180
 _SEARCH_PROFILE_LIMIT = 3
-def _droid_fallback_index_path() -> str:
-    return os.environ.get("DROID_FALLBACK_INDEX_PATH", "").strip()
 
 
 def _parse_iso8601_duration(duration: str) -> int:
@@ -639,63 +634,15 @@ class IngestService:
             f"Last candidate ids: {candidate_ids or 'none'}."
         )
 
-    def _build_droid_query(self, task_prompt: str, plan: dict[str, Any]) -> DroidFallbackQuery:
-        task_goal = str(plan.get("task_goal") or task_prompt).strip()
-        search_terms = [
-            term
-            for term in plan.get("search_queries", [])
-            if isinstance(term, str) and term.strip()
-        ]
-        task_terms = [word for word in re.findall(r"[a-z0-9]+", task_goal.lower()) if len(word) > 2]
-        search_tokens = [
-            token
-            for term in search_terms[:3]
-            for token in re.findall(r"[a-z0-9]+", term.lower())
-            if len(token) > 2
-        ]
-        required_terms = list(dict.fromkeys(
-            [term for term in task_terms if term not in {"robot", "design"}] + search_tokens
-        ))
-        return DroidFallbackQuery(
-            query_text=" ".join(
-                [
-                    task_prompt.strip(),
-                    task_goal,
-                    " ".join(search_terms[:3]),
-                ]
-            ).strip(),
-            required_task_terms=required_terms[:4],
-            preferred_camera_terms=["fixed camera", "side view", "full body"],
-            max_results=3,
-        )
-
     def select_droid_reference(
         self,
         task_prompt: str,
         plan: dict[str, Any],
     ) -> dict[str, Any]:
-        index_path = _droid_fallback_index_path()
-        if not index_path:
-            raise RuntimeError(
-                "DROID fallback index path is not configured. Set "
-                "DROID_FALLBACK_INDEX_PATH to a JSONL episode index."
-            )
-        path = Path(index_path)
-        if not path.exists():
-            raise RuntimeError(
-                f"DROID fallback index not found at {path}. Provide a JSONL file "
-                "with episode records."
-            )
-        query = self._build_droid_query(task_prompt, plan)
-        index = DroidFallbackIndex.load_jsonl(path)
-        result = index.retrieve(query)
-        return {
-            "source_type": "droid",
-            "query_text": query.query_text,
-            "required_task_terms": query.required_task_terms,
-            "preferred_camera_terms": query.preferred_camera_terms,
-            "reference": asdict(result),
-        }
+        raise RuntimeError(
+            "DROID fallback was removed alongside the legacy task-conditioned "
+            "pipeline. Wire a new reference selector into the agent loop instead."
+        )
 
     def download_clip(self, video_id: str, dest_dir: Path) -> Path:
         url = f"https://www.youtube.com/watch?v={video_id}"

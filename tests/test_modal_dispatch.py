@@ -12,7 +12,8 @@ def test_dispatch_returns_trial_result():
         "controller_ckpt_url": "https://y", "trajectory_npz_url": "https://z",
         "reasoning_md": "tried longer arms",
     }
-    dispatch._remote_fn = MagicMock(return_value=mock_result)
+    dispatch._remote_fn = MagicMock()
+    dispatch._remote_fn.remote.return_value = mock_result
     result = dispatch.run_trial(
         evolution_id="evo-1", iter_num=3,
         train_py_source="x=1", morph_factory_source="y=2",
@@ -20,3 +21,15 @@ def test_dispatch_returns_trial_result():
     )
     assert isinstance(result, TrialResult)
     assert result.fitness_score == pytest.approx(0.672)
+
+
+def test_dispatch_looks_up_deployed_modal_function(monkeypatch):
+    mock_function = object()
+    mock_modal = MagicMock()
+    mock_modal.Function.from_name.return_value = mock_function
+
+    with patch.dict("sys.modules", {"modal": mock_modal}):
+        dispatch = ModalDispatch()
+
+    assert dispatch._remote_fn is mock_function
+    mock_modal.Function.from_name.assert_called_once_with("autoresearch-trial", "run_trial")

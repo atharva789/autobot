@@ -1,6 +1,14 @@
-"""Structured schemas for task-conditioned robot design pipeline.
+"""Render-facing schema kept alive after the grammar-graph migration.
 
-Replaces VAE-based random sampling with Gemini structured output.
+The hard-coded task-categorization layer (task specs, capability graphs,
+embodiment taxonomies, climbing / indoor / outdoor strategies, Q-vector
+generation, BOM, telemetry, validation reports) moved to
+:mod:`packages.pipeline.grammar_graph`. What remains here is the flat
+parameter bundle the existing engineering renderer consumes. The agent
+loop is responsible for projecting a ``GrammarGraph`` onto a
+``RobotDesignCandidate`` before invoking the renderer; ``embodiment_class``
+is a free-form summary label the agent loop derives from the derivation
+tree, not a gatekept enum.
 """
 from __future__ import annotations
 
@@ -9,144 +17,14 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
-class TaskSpec(BaseModel):
-    """Extracted task specification from user prompt."""
-
-    task_goal: str
-    environment: Literal["indoor", "outdoor", "mixed"] = "mixed"
-    locomotion_type: Literal["walking", "rolling", "crawling", "flying", "stationary"] = "walking"
-    manipulation_required: bool = False
-    payload_kg: float = 0.0
-    success_criteria: str = ""
-    search_queries: list[str] = Field(default_factory=list)
-    affordances: list[str] = Field(default_factory=list)
-
-
-class TaskCapabilityGraph(BaseModel):
-    """Normalized task capability requirements derived from the prompt."""
-
-    task_family: str
-    required_capabilities: list[str] = Field(default_factory=list)
-    preferred_embodiments: list[str] = Field(default_factory=list)
-    disallowed_patterns: list[str] = Field(default_factory=list)
-    terrain_tags: list[str] = Field(default_factory=list)
-    payload_strategy: str | None = None
-    summary: str
-
-
-class DesignNoveltySignature(BaseModel):
-    """Compact geometry-aware signature used for anti-collapse diversity ranking."""
-
-    topology_key: str
-    actuation_key: str
-    geometry_profile: str
-    primitive_keys: list[str] = Field(default_factory=list)
-    accessory_profile: list[str] = Field(default_factory=list)
-    material_count: int = 0
-
-
-class CandidateSimilarity(BaseModel):
-    """Similarity report between a candidate and another candidate or prior design."""
-
-    candidate_id: str
-    other_candidate_id: str
-    source: Literal["batch", "history"]
-    similarity: float = Field(ge=0.0, le=1.0)
-    reasons: list[str] = Field(default_factory=list)
-    prompt_distance: float | None = Field(default=None, ge=0.0, le=1.0)
-
-
-class CollapseDetectionReport(BaseModel):
-    """Saved report explaining duplicate-family or history-collapse detection."""
-
-    prompt_fingerprint: str
-    duplicate_pairs: list[CandidateSimilarity] = Field(default_factory=list)
-    history_matches: list[CandidateSimilarity] = Field(default_factory=list)
-    summary: str = ""
-
-
-ValidationFailureCategory = Literal[
-    "structural",
-    "task",
-    "compiler",
-    "render",
-    "simulation",
-    "procurement",
-]
-
-
-class ValidationCheckResult(BaseModel):
-    """One validation stage result for a candidate revision."""
-
-    name: str
-    status: Literal["pass", "warning", "fail"]
-    summary: str
-    details: list[str] = Field(default_factory=list)
-    category: ValidationFailureCategory
-
-
-class DesignValidationReport(BaseModel):
-    """Typed validation report persisted for every preferred/visible design revision."""
-
-    design_id: str
-    revision_id: str
-    candidate_id: Literal["A", "B", "C"]
-    is_valid: bool
-    summary: str
-    failure_categories: list[ValidationFailureCategory] = Field(default_factory=list)
-    checks: list[ValidationCheckResult] = Field(default_factory=list)
-    render_checks: dict[str, int | float | str | bool] = Field(default_factory=dict)
-    artifact_paths: dict[str, str] = Field(default_factory=dict)
-    output_path: str | None = None
-
-
-EMBODIMENT_CLASSES = (
-    # Legged locomotion
-    "biped",
-    "quadruped",
-    "hexapod",
-    "tripod",
-    # Wheeled/tracked locomotion
-    "wheeled",
-    "tracked",
-    "omnidirectional",
-    # Hybrid locomotion
-    "wheeled_manipulator",
-    "legged_wheeled",
-    "climbing_hybrid",
-    # Specialized morphologies
-    "snake",
-    "inchworm",
-    "spherical",
-    "tensegrity",
-    # Manipulation-focused
-    "fixed_arm",
-    "mobile_arm",
-    "dual_arm",
-    # Modular/novel
-    "modular",
-    "soft_continuum",
-    # Legacy compatibility
-    "arm",
-    "hybrid",
-)
-
-EmbodimentClass = Literal[
-    "biped", "quadruped", "hexapod", "tripod",
-    "wheeled", "tracked", "omnidirectional",
-    "wheeled_manipulator", "legged_wheeled", "climbing_hybrid",
-    "snake", "inchworm", "spherical", "tensegrity",
-    "fixed_arm", "mobile_arm", "dual_arm",
-    "modular", "soft_continuum",
-    "arm", "hybrid",
-]
-
-
 class RobotDesignCandidate(BaseModel):
-    """A single robot design candidate generated by Gemini."""
+    """Flat parameter bundle consumed by the engineering renderer.
+
+    The agent loop populates this from a ``GrammarGraph`` derivation.
+    """
 
     candidate_id: Literal["A", "B", "C"]
-    embodiment_class: EmbodimentClass
+    embodiment_class: str
     num_legs: int = Field(ge=0, le=8)
     num_arms: int = Field(ge=0, le=4)
     has_torso: bool
@@ -166,140 +44,6 @@ class RobotDesignCandidate(BaseModel):
     friction: float = Field(ge=0.1, le=2.0, default=0.8)
     rationale: str
     confidence: float = Field(ge=0.0, le=1.0)
-    task_fit_score: float | None = Field(default=None, ge=0.0, le=1.0)
-    task_fit_evidence: list[str] = Field(default_factory=list)
-    risk_flags: list[str] = Field(default_factory=list)
-    hardrail_passed: bool | None = None
-    hardrail_rejection_reasons: list[str] = Field(default_factory=list)
-    novelty_score: float | None = Field(default=None, ge=0.0, le=1.0)
-    diversity_penalty: float | None = Field(default=None, ge=0.0, le=1.0)
-    novelty_signature: DesignNoveltySignature | None = None
 
 
-class DesignCandidatesResponse(BaseModel):
-    """Response containing 3 robot design candidates."""
-
-    task_interpretation: str
-    task_capability_graph: TaskCapabilityGraph | None = None
-    candidates: list[RobotDesignCandidate] = Field(min_length=3, max_length=3)
-    model_preferred_id: Literal["A", "B", "C"]
-    selection_rationale: str
-    collapse_report: CollapseDetectionReport | None = None
-
-
-class StructuralComponent(BaseModel):
-    """A structural component for BOM generation."""
-
-    part_name: str
-    material: Literal["aluminum_6061", "steel_304", "carbon_fiber", "abs_plastic"]
-    length_mm: float
-    width_mm: float
-    thickness_mm: float
-    mcmaster_pn: str | None = None
-    custom_cad_required: bool = False
-
-
-class ActuatorComponent(BaseModel):
-    """An actuator component for BOM generation."""
-
-    joint_name: str
-    servo_model: str
-    torque_nm: float
-    rpm: float
-    vendor: Literal["robotis", "feetech", "odrive", "custom"]
-    sku: str | None = None
-    unit_price_usd: float | None = None
-
-
-class ElectronicsComponent(BaseModel):
-    """An electronics component for BOM generation."""
-
-    part_name: str
-    component_type: Literal["driver", "mcu", "power", "sensor", "connector"]
-    vendor: str
-    sku: str | None = None
-    unit_price_usd: float | None = None
-
-
-class FastenerComponent(BaseModel):
-    """A fastener component for BOM generation."""
-
-    fastener_type: Literal["bolt", "nut", "washer", "screw", "standoff"]
-    size: str
-    quantity: int
-    mcmaster_pn: str | None = None
-
-
-class ComponentizedMorphology(BaseModel):
-    """Full componentized robot morphology for URDF and BOM generation."""
-
-    design: RobotDesignCandidate
-    structural_components: list[StructuralComponent] = Field(default_factory=list)
-    actuators: list[ActuatorComponent] = Field(default_factory=list)
-    electronics: list[ElectronicsComponent] = Field(default_factory=list)
-    fasteners: list[FastenerComponent] = Field(default_factory=list)
-
-
-class BOMItem(BaseModel):
-    """A single item in the bill of materials."""
-
-    part_name: str
-    quantity: int
-    vendor: str
-    sku: str | None = None
-    unit_price_usd: float | None = None
-    availability: Literal["in_stock", "limited", "backorder", "unknown"] = "unknown"
-    requires_review: bool = False
-
-
-class BOMOutput(BaseModel):
-    """Complete bill of materials for a robot design candidate."""
-
-    candidate_id: Literal["A", "B", "C"]
-    structural_items: list[BOMItem] = Field(default_factory=list)
-    actuator_items: list[BOMItem] = Field(default_factory=list)
-    electronics_items: list[BOMItem] = Field(default_factory=list)
-    fastener_items: list[BOMItem] = Field(default_factory=list)
-    total_cost_usd: float | None = None
-    procurement_confidence: float = Field(ge=0.0, le=1.0)
-    missing_items: list[str] = Field(default_factory=list)
-
-
-class ScreeningResult(BaseModel):
-    """Result from lightweight MuJoCo MJX screening."""
-
-    candidate_id: Literal["A", "B", "C"]
-    tracking_error: float
-    stability_score: float
-    collision_count: int
-    retargetability_score: float
-    weighted_fitness: float
-
-
-class FallbackRanking(BaseModel):
-    """Deterministic ranking when training/screening is unavailable."""
-
-    candidate_id: Literal["A", "B", "C"]
-    kinematic_feasibility: float
-    static_stability: float
-    bom_confidence: float
-    retargetability: float
-    total_score: float
-
-
-class CandidateTelemetry(BaseModel):
-    """Derived telemetry for HITL prompts and UI inspection."""
-
-    candidate_id: Literal["A", "B", "C"]
-    estimated_total_cost_usd: float | None = None
-    estimated_mass_kg: float
-    payload_capacity_kg: float
-    payload_margin_kg: float
-    estimated_reach_m: float
-    actuator_torque_nm: float
-    estimated_backlash_deg: float
-    estimated_bandwidth_hz: float
-    procurement_confidence: float = Field(ge=0.0, le=1.0)
-    design_quality_score: float = Field(ge=0.0, le=1.0)
-    risk_flags: list[str] = Field(default_factory=list)
-    summary: str
+__all__ = ["RobotDesignCandidate"]
