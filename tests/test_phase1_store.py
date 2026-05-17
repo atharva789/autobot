@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from demo.store import DemoStore
+from apps.api.store import DemoStore
 
 
 def test_store_creates_schema_and_seeds_clips(tmp_path: Path) -> None:

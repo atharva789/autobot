@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from demo.services.evolution_service import EvolutionService
-from demo.workspace_store import WorkspaceStore
+from apps.api.services.evolution_service import EvolutionService
+from apps.api.workspace_store import WorkspaceStore
 
 
 def test_create_evolution_returns_id_and_persists(tmp_path: Path):

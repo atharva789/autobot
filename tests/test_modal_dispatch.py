@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from demo.services.modal_dispatch import ModalDispatch
+from apps.api.services.modal_dispatch import ModalDispatch
 from packages.pipeline.types import TrialResult
 
 

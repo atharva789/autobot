@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from demo.app import create_app
+from apps.api.app import create_app
 
 
 def _client(tmp_path: Path) -> TestClient:

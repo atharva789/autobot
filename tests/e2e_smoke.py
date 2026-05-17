@@ -33,7 +33,7 @@ def main() -> None:
         raise SystemExit(1)
 
     # 2. Ingest (mocked ER 1.6 + YouTube)
-    from demo.services.ingest_service import IngestService
+    from apps.api.services.ingest_service import IngestService
     svc = IngestService(
         gemini_api_key=os.environ.get("GEMINI_API_KEY", "fake"),
         youtube_api_key=os.environ.get("YOUTUBE_API_KEY", "fake"),

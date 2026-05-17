@@ -22,7 +22,7 @@ from packages.pipeline.ir.design_ir import (
 @pytest.fixture
 def client():
     """Create test client with app."""
-    from demo.app import app
+    from apps.api.app import app
     return TestClient(app)
 
 
@@ -60,7 +60,7 @@ class TestDesignToIR:
 
     def test_design_to_ir_basic(self):
         """Can convert basic design to IR."""
-        from demo.routes.exports import _design_to_ir
+        from apps.api.routes.exports import _design_to_ir
 
         design = {
             "name": "test_robot",
@@ -86,7 +86,7 @@ class TestDesignToIR:
 
     def test_design_to_ir_empty(self):
         """Can convert empty design."""
-        from demo.routes.exports import _design_to_ir
+        from apps.api.routes.exports import _design_to_ir
 
         design = {"name": "empty_robot"}
         ir = _design_to_ir(design)

@@ -1,4 +1,4 @@
-from demo.services.orchestrator import GeminiOrchestrator
+from apps.api.services.orchestrator import GeminiOrchestrator
 
 
 def test_edit_files_uses_gemini(tmp_path, monkeypatch):
@@ -12,7 +12,7 @@ def test_edit_files_uses_gemini(tmp_path, monkeypatch):
         seen["timeout_s"] = timeout_s
         return "edited"
 
-    monkeypatch.setattr("demo.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
+    monkeypatch.setattr("apps.api.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
 
     result = orch.edit_files(prompt="change x to 2", editable=["train.py"])
 
@@ -33,7 +33,7 @@ def test_draft_program_md_returns_gemini_generator(tmp_path, monkeypatch):
         seen["timeout_s"] = timeout_s
         return "drafted program"
 
-    monkeypatch.setattr("demo.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
+    monkeypatch.setattr("apps.api.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
 
     drafted, generator = orch.draft_program_md({"task_goal": "walk"})
 
@@ -49,7 +49,7 @@ def test_draft_program_md_falls_back_when_gemini_is_unavailable(tmp_path, monkey
     def fake_gemini_prompt(prompt, system_prompt, timeout_s=120):
         raise RuntimeError("temporary provider outage")
 
-    monkeypatch.setattr("demo.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
+    monkeypatch.setattr("apps.api.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
 
     drafted, generator = orch.draft_program_md({"task_goal": "climb a wall", "search_queries": ["wall climb side view"]})
 
@@ -66,7 +66,7 @@ def test_edit_files_falls_back_to_noop_when_gemini_is_unavailable(tmp_path, monk
     def fake_gemini_prompt(prompt, system_prompt, timeout_s=120):
         raise RuntimeError("temporary provider outage")
 
-    monkeypatch.setattr("demo.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
+    monkeypatch.setattr("apps.api.services.orchestrator._run_gemini_prompt", fake_gemini_prompt)
 
     result = orch.edit_files(prompt="change x to 2", editable=["train.py"])
 

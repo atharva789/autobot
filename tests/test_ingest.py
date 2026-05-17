@@ -2,7 +2,7 @@ import os
 import builtins
 import pytest
 from unittest.mock import patch, MagicMock
-from demo.services.ingest_service import (
+from apps.api.services.ingest_service import (
     IngestService,
     SearchCandidate,
     resolve_gemini_api_key,

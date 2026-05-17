@@ -1,4 +1,5 @@
 __pycache__/
+*.egg-info/
 tmp_outputs/
 tmp_clips/*.mp4
 tmp_clips/*.mov
