@@ -9,7 +9,7 @@ from array import array
 from dataclasses import dataclass
 from typing import Any
 
-from packages.pipeline.schemas import RobotDesignCandidate, TaskSpec
+from packages.pipeline.schemas import RobotDesignCandidate
 
 
 @dataclass(frozen=True)
@@ -94,9 +94,8 @@ _MESH_LIBRARY: dict[str, tuple[str, str]] = {
 
 def build_engineering_render(
     candidate: RobotDesignCandidate,
-    task_spec: TaskSpec | None = None,
 ) -> dict[str, Any]:
-    intent = _infer_geometry_intent(candidate, task_spec)
+    intent = _infer_geometry_intent(candidate)
     nodes, joints = _build_engineering_scene(candidate, intent)
     glb_bytes = _build_glb(nodes)
     accessory_count = sum(
@@ -157,18 +156,8 @@ def build_engineering_render(
 
 def _infer_geometry_intent(
     candidate: RobotDesignCandidate,
-    task_spec: TaskSpec | None,
 ) -> GeometryIntent:
-    text_parts = [candidate.rationale.lower(), candidate.embodiment_class.lower()]
-    if task_spec is not None:
-        text_parts.extend(
-            [
-                task_spec.task_goal.lower(),
-                task_spec.success_criteria.lower(),
-                " ".join(task_spec.search_queries).lower(),
-            ]
-        )
-    task_text = " ".join(text_parts)
+    task_text = " ".join([candidate.rationale.lower(), candidate.embodiment_class.lower()])
 
     climbing = any(term in task_text for term in ("climb", "wall", "vertical", "rope"))
     slippery = any(term in task_text for term in ("slippery", "slope", "descent", "downhill", "traction"))
@@ -188,14 +177,14 @@ def _infer_geometry_intent(
     else:
         profile = "general"
 
-    head_profile = _select_head_profile(candidate, task_spec, profile)
+    head_profile = _select_head_profile(candidate, profile)
     head_sensor_density = 3 + int("camera" in candidate.sensor_package) + int("force" in candidate.sensor_package)
     if profile.startswith("climbing"):
         head_sensor_density += 1
 
     return GeometryIntent(
         profile=profile,
-        needs_grippers=climbing or (candidate.num_arms > 0 and (task_spec.manipulation_required if task_spec else False)),
+        needs_grippers=climbing or candidate.num_arms > 0,
         needs_payload_pack=payload,
         needs_traction_spikes=climbing or slippery,
         needs_belly_skid=crawling,
@@ -805,7 +794,6 @@ def _focus_summary(component_kind: str, display_name: str, material_key: str) ->
 
 def _select_head_profile(
     candidate: RobotDesignCandidate,
-    task_spec: TaskSpec | None,
     geometry_profile: str,
 ) -> str:
     fingerprint = "|".join(
@@ -815,7 +803,6 @@ def _select_head_profile(
             candidate.rationale,
             geometry_profile,
             ",".join(sorted(candidate.sensor_package)),
-            task_spec.task_goal if task_spec else "",
         ]
     )
     digest = hashlib.sha256(fingerprint.encode("utf-8")).digest()[0]
@@ -1304,43 +1291,3 @@ def _pack_glb(gltf: dict[str, Any], bin_blob: bytes) -> bytes:
     )
 
 
-def build_hierarchical_engineering_render(
-    candidate: RobotDesignCandidate,
-    task_spec: TaskSpec | None = None,
-) -> dict[str, Any]:
-    """Build engineering render with hierarchical component tree.
-
-    Returns both flat nodes (for GLB rendering) and hierarchical tree (for UI).
-    """
-    from packages.pipeline.component_expander import expand_candidate_to_component_graph
-
-    graph = expand_candidate_to_component_graph(candidate)
-    flat_render = build_engineering_render(candidate, task_spec)
-
-    hierarchical_nodes = graph.to_flat_node_list()
-
-    for node in hierarchical_nodes:
-        if node.get("geometry"):
-            geom = node["geometry"]
-            material_key = geom.get("material_key", "anodized_metal")
-            color = _COLOR_MAP.get(material_key, [0.5, 0.5, 0.5, 1.0])
-            material_label = _MATERIAL_LABELS.get(material_key, material_key)
-            node["color"] = color
-            node["material_key"] = material_key
-            node["material_label"] = material_label
-
-    flat_render["ui_scene"]["hierarchical_nodes"] = hierarchical_nodes
-    flat_render["ui_scene"]["component_graph"] = {
-        "id": graph.id,
-        "candidate_id": graph.candidate_id,
-        "embodiment_class": graph.embodiment_class,
-        "total_mass_kg": round(graph.total_mass_kg(), 3),
-        "total_cost_usd": round(graph.total_cost_usd(), 2),
-        "total_dof": graph.total_dof(),
-        "subsystem_count": len(graph.subsystems),
-        "assembly_count": len(graph.all_assemblies()),
-        "component_count": len(graph.all_components()),
-        "part_count": len(graph.all_parts()),
-    }
-
-    return flat_render
