@@ -10,6 +10,8 @@ import { VideoGrid } from "@/components/VideoGrid";
 import { api } from "@/lib/api";
 import type { Er16Plan, EvolutionCreated, GenerateDesignsResponse } from "@/lib/types";
 
+const DEFAULT_POPULATION = 6;
+
 interface VideoItem {
   id: string;
   title: string;
@@ -28,8 +30,9 @@ function IngestPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [designsResponse, setDesignsResponse] = useState<GenerateDesignsResponse | null>(null);
   const [generatingDesigns, setGeneratingDesigns] = useState(false);
+  const [population, setPopulation] = useState(DEFAULT_POPULATION);
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
-  const [selectedCandidateId, setSelectedCandidateId] = useState<"A" | "B" | "C" | null>(null);
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [selectedVideoId, setSelectedVideoId] = useState<string>(videoId);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [videosLoading, setVideosLoading] = useState(true);
@@ -61,7 +64,7 @@ function IngestPageContent() {
     setGeneratingDesigns(true);
     setError(null);
     try {
-      const response = await api.designs.generate(jobId);
+      const response = await api.designs.generate(jobId, population);
       setDesignsResponse(response);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to generate designs.");
@@ -70,7 +73,7 @@ function IngestPageContent() {
     }
   }
 
-  function handleDesignSelect(designId: string, candidateId: "A" | "B" | "C") {
+  function handleDesignSelect(designId: string, candidateId: string) {
     setSelectedDesignId(designId);
     setSelectedCandidateId(candidateId);
   }
@@ -186,27 +189,40 @@ function IngestPageContent() {
       {/* Generate Designs Button */}
       {!designsResponse && (
         <section className="mb-8 animate-cascade-in cascade-delay-4">
-          <div className="tile-glow rounded-2xl p-6 flex items-center justify-between">
+          <div className="tile-glow rounded-2xl p-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-zinc-200">Ready to generate designs?</h2>
               <p className="text-zinc-500 text-sm mt-1">
-                AI will create 3 robot design candidates based on your task
+                AI will create {population} robot design candidates based on your task
               </p>
             </div>
-            <Button
-              onClick={handleGenerateDesigns}
-              disabled={generatingDesigns || !plan}
-              className="h-12 px-6 bg-white text-zinc-900 hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500"
-            >
-              {generatingDesigns ? (
-                <span className="flex items-center gap-3">
-                  <Spinner size="sm" />
-                  Generating...
-                </span>
-              ) : (
-                "Generate Robot Designs"
-              )}
-            </Button>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <label className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-400">
+                Population
+                <input
+                  type="number"
+                  min={1}
+                  max={64}
+                  value={population}
+                  onChange={(event) => setPopulation(Math.max(1, Number(event.target.value) || DEFAULT_POPULATION))}
+                  className="w-16 bg-transparent text-right font-mono text-zinc-100 outline-none"
+                />
+              </label>
+              <Button
+                onClick={handleGenerateDesigns}
+                disabled={generatingDesigns || !plan}
+                className="h-12 px-6 bg-white text-zinc-900 hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500"
+              >
+                {generatingDesigns ? (
+                  <span className="flex items-center gap-3">
+                    <Spinner size="sm" />
+                    Generating...
+                  </span>
+                ) : (
+                  "Generate Robot Designs"
+                )}
+              </Button>
+            </div>
           </div>
           {error && (
             <p className="text-red-400 text-sm mt-4 animate-cascade-in">{error}</p>
@@ -222,13 +238,46 @@ function IngestPageContent() {
             Generating Robot Designs...
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[0, 1, 2].map((i) => (
+            {Array.from({ length: population }).map((_, i) => (
               <SkeletonCard
                 key={i}
                 className={`animate-cascade-in`}
                 style={{ animationDelay: `${i * 0.1}s` } as React.CSSProperties}
               />
             ))}
+          </div>
+        </section>
+      )}
+
+      {(generatingDesigns || designsResponse?.grammar_hitl) && (
+        <section className="mb-8 animate-cascade-in">
+          <div className="tile-glow rounded-2xl p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-200">Grammar HITL</h2>
+                <p className="text-zinc-500 text-sm mt-1">
+                  {designsResponse?.grammar_hitl?.inferred_morphology ?? "normalizing"} · {Object.keys(designsResponse?.grammar_hitl?.structural_rules ?? {}).length} structural rules
+                </p>
+              </div>
+              <span className={`rounded px-2 py-1 text-xs ${designsResponse?.grammar_hitl?.compile_safe ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-500/10 text-amber-300"}`}>
+                {designsResponse?.grammar_hitl?.compile_safe ? "compile safe" : "building"}
+              </span>
+            </div>
+            <div className="mt-4 grid gap-2 md:grid-cols-2">
+              {(designsResponse?.grammar_hitl?.checklist.criteria ?? [
+                { description: "Normalize query", isSuccessful: false },
+                { description: "Sample grammar examples", isSuccessful: false },
+                { description: "Build structural rules", isSuccessful: false },
+                { description: "Compile rule graph", isSuccessful: false },
+              ]).map((criterion) => (
+                <div key={criterion.description} className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${criterion.isSuccessful ? "bg-emerald-400" : "bg-amber-400"}`} />
+                    <span className="text-sm text-zinc-300">{criterion.description}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}

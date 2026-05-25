@@ -1,0 +1,29 @@
+Design a rich grammar schema for the RoboGrammar system that supports MULTIPLE production rules per nonterminal symbol.
+
+## Context
+
+The current grammar system in packages/pipeline/grammar_graph.py uses dict[str, list[str]] (structural_rules) where each key is a nonterminal LHS and the value is a single RHS production sequence. This limits each nonterminal to exactly ONE production rule.
+
+Read packages/pipeline/grammar_graph.py and packages/research/agent_loops/grammar_loop.py to understand the current system.
+
+## Requirements
+
+1. Design a new schema (Python dataclass/Pydantic model) that allows MULTIPLE production rules per nonterminal
+2. Each production rule should support:
+   - A list of RHS symbols (current behavior)
+   - Optional attributes per node (angle, mass, orientation, scale)
+   - Optional probability weights for stochastic selection
+   - Tags/labels for rule provenance (which robot family it came from)
+3. The schema must be backwards-compatible: old dict[str, list[str]] rules must be loadable
+4. Include a migration function: convert_legacy_rules(old: dict[str, list[str]]) -> NewSchema
+5. Include a new compile function that validates the rich schema against the GrammarNodes vocabulary
+6. Write the complete schema to packages/pipeline/rich_grammar_schema.py
+7. Write comprehensive tests to tests/test_rich_grammar_schema.py
+
+## Constraints
+- Must preserve the current CompileResult(compile_safe, invalid_nodes) interface
+- Must work with the existing Supabase-backed GrammarNodes and StructuralRules tables
+- Use frozen dataclasses or Pydantic models (immutability preferred)
+- Follow PEP 8, type annotations on all signatures
+
+Write the schema file and tests. Do NOT modify existing files.

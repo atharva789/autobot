@@ -1,0 +1,18 @@
+{
+  "created_at": "2026-05-25T07:09:32.444525+00:00",
+  "dataset": "robogrammar-structural-rules-evals",
+  "example_offset": 0,
+  "examples": 100,
+  "interrupted_at": "2026-05-25T07:38:41.549614+00:00",
+  "interrupted_signal": 2,
+  "loops": {
+    "grammar": {
+      "interrupted_at": "2026-05-25T07:38:41.549614+00:00",
+      "started_at": "2026-05-25T07:09:32.444705+00:00",
+      "status": "interrupted"
+    }
+  },
+  "max_attempts": 2,
+  "model": "claude-sonnet-4-5",
+  "provider": "claude-code"
+}

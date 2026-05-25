@@ -1,0 +1,23 @@
+{
+  "attempts_first_page": {
+    "count": 0,
+    "max": null,
+    "mean": null,
+    "min": null
+  },
+  "compile_statuses_first_page": {
+    "compile_safe": 81,
+    "compile_unsafe": 19
+  },
+  "errors_first_page": 0,
+  "langsmith_trace_ids_present_first_page": 97,
+  "mean_compiler_validity_first_page": 0.8351,
+  "mean_task_alignment_first_page": 0.7357,
+  "project_name": "robogrammar-compile-result-state.2026-05-25-grammar-claude-code-a74f00ff",
+  "root_runs_first_page": 100,
+  "run_statuses_first_page": {
+    "pending": 3,
+    "success": 97
+  },
+  "sample_scope": "first 100 root Target runs returned by LangSmith list_runs; local log completed 102/701"
+}

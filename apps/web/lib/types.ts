@@ -49,7 +49,8 @@ export interface Evolution {
 }
 
 export interface RobotDesignCandidate {
-  candidate_id: "A" | "B" | "C";
+  candidate_id: string;
+  population_index?: number;
   embodiment_class: string;
   num_legs: number;
   num_arms: number;
@@ -69,8 +70,43 @@ export interface RobotDesignCandidate {
   confidence: number;
 }
 
+export interface TaskIntent {
+  task_goal: string;
+  environment?: string | null;
+  terrain?: string[];
+  obstacles?: string[];
+  contact_requirements?: string[];
+  payload_requirements?: string[];
+  manipulation_requirements?: string[];
+  spatial_constraints?: string[];
+  stability_requirements?: string[];
+  sensing_requirements?: string[];
+  hard_constraints?: string[];
+  failure_modes_to_avoid?: string[];
+  success_criteria?: string[];
+}
+
+export interface GrammarHitlCriteria {
+  description: string;
+  isSuccessful: boolean;
+  critiques: string[];
+}
+
+export interface GrammarHitl {
+  spec: TaskIntent | null;
+  inferred_morphology?: string | null;
+  checklist: {
+    criteria: GrammarHitlCriteria[];
+  };
+  structural_rules: Record<string, string[]>;
+  population: number;
+  compile_safe: boolean;
+  awaiting_human: boolean;
+  messages: string[];
+}
+
 export interface CandidateTelemetry {
-  candidate_id: "A" | "B" | "C";
+  candidate_id: string;
   estimated_total_cost_usd: number | null;
   estimated_mass_kg: number;
   payload_capacity_kg: number;
@@ -116,7 +152,7 @@ export interface EngineeringScene {
 }
 
 export interface FallbackRanking {
-  candidate_id: "A" | "B" | "C";
+  candidate_id: string;
   kinematic_feasibility: number;
   static_stability: number;
   bom_confidence: number;
@@ -125,16 +161,17 @@ export interface FallbackRanking {
 }
 
 export interface GenerateDesignsResponse {
-  design_ids: Record<"A" | "B" | "C", string>;
+  design_ids: Record<string, string>;
   candidates: RobotDesignCandidate[];
-  model_preferred_id: "A" | "B" | "C";
+  model_preferred_id: string;
+  population: number;
   fallback_rankings: FallbackRanking[];
   selection_rationale: string;
-  candidate_telemetry: Record<"A" | "B" | "C", CandidateTelemetry>;
+  candidate_telemetry: Record<string, CandidateTelemetry>;
   render_payloads: Record<
-    "A" | "B" | "C",
+    string,
     {
-      candidate_id: "A" | "B" | "C";
+      candidate_id: string;
       topology_label: string;
       view_modes: Array<"concept" | "engineering" | "joints" | "components">;
       engineering_ready: boolean;
@@ -144,18 +181,19 @@ export interface GenerateDesignsResponse {
       joint_count: number;
     }
   >;
+  grammar_hitl?: GrammarHitl;
 }
 
 export interface DesignSpecResponse {
   design_id: string;
-  candidate_id: "A" | "B" | "C";
+  candidate_id: string;
   revision_id: string;
   revision_number: number;
   design: RobotDesignCandidate;
   telemetry: CandidateTelemetry;
   bom: BOMOutput | null;
   render: {
-    candidate_id: "A" | "B" | "C";
+    candidate_id: string;
     topology_label: string;
     view_modes: Array<"concept" | "engineering" | "joints" | "components">;
     engineering_ready: boolean;
@@ -214,7 +252,7 @@ export interface ValidationCheckResult {
 export interface DesignValidationReport {
   design_id: string;
   revision_id: string;
-  candidate_id: "A" | "B" | "C";
+  candidate_id: string;
   is_valid: boolean;
   summary: string;
   failure_categories: Array<"structural" | "task" | "compiler" | "render" | "simulation" | "procurement">;
@@ -227,7 +265,7 @@ export interface DesignValidationReport {
 export interface RecordClipResponse {
   task_run: DesignTaskRun;
   playback: {
-    candidate_id: "A" | "B" | "C";
+    candidate_id: string;
     task_goal: string;
     motion_profile: string;
     duration_s: number;
@@ -273,7 +311,7 @@ export interface BOMItem {
 }
 
 export interface BOMOutput {
-  candidate_id: "A" | "B" | "C";
+  candidate_id: string;
   structural_items: BOMItem[];
   actuator_items: BOMItem[];
   electronics_items: BOMItem[];
@@ -310,7 +348,7 @@ export interface HierarchicalNode {
 
 export interface ComponentGraphSummary {
   id: string;
-  candidate_id: "A" | "B" | "C";
+  candidate_id: string;
   embodiment_class: string;
   total_mass_kg: number;
   total_cost_usd: number;

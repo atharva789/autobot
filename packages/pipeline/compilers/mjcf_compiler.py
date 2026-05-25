@@ -15,20 +15,15 @@ from __future__ import annotations
 
 from packages.pipeline.ir.design_ir import (
     RobotDesignIR,
-    LinkIR,
     JointIR,
     JointType,
     Geometry,
 )
 
 
-def compile_to_mjcf(ir: RobotDesignIR, indent: int = 2) -> str:
+def compile_to_mjcf(ir: RobotDesignIR) -> str:
     """
     Compile a RobotDesignIR to MuJoCo MJCF XML.
-
-    Args:
-        ir: The canonical robot design IR
-        indent: Number of spaces for indentation
 
     Returns:
         MJCF XML string ready for MuJoCo
@@ -45,6 +40,7 @@ def compile_to_mjcf(ir: RobotDesignIR, indent: int = 2) -> str:
         _defaults(),
         _assets(ir),
         _worldbody(ir),
+        _contact_exclusions(ir),
         _actuators(ir),
         _sensors(ir),
         _footer(),
@@ -54,14 +50,15 @@ def compile_to_mjcf(ir: RobotDesignIR, indent: int = 2) -> str:
 
 
 def _header(ir: RobotDesignIR) -> str:
-    return f'<mujoco model="{ir.name}">'
+    return f"""<mujoco model="{ir.name}">
+  <compiler angle="radian"/>"""
 
 
 def _defaults() -> str:
-    return """  <option timestep="0.002" gravity="0 0 -9.81"/>
+    return """  <option timestep="0.004167" gravity="0 0 -9.81"/>
   <default>
     <joint damping="0.5" stiffness="0"/>
-    <geom friction="0.6 0.005 0.0001" condim="3"/>
+    <geom friction="0.9 0.005 0.0001" condim="3"/>
   </default>"""
 
 
@@ -111,19 +108,34 @@ def _worldbody(ir: RobotDesignIR) -> str:
     return "\n".join(lines)
 
 
-def _link_tree(ir: RobotDesignIR, link_name: str, indent: str) -> list[str]:
-    """Recursively build link tree."""
+def _link_tree(
+    ir: RobotDesignIR,
+    link_name: str,
+    indent: str,
+    incoming_joint: JointIR | None = None,
+) -> list[str]:
+    """Recursively build link tree. Joint is placed inside the child body."""
     lines = []
     link = ir.get_link(link_name)
     if not link:
         return lines
 
+    root = ir.root_link()
     lines.append(f'{indent}<body name="{link.name}">')
+
+    if root and link.name == root.name:
+        lines.append(f'{indent}  <freejoint name="root_free"/>')
+
+    if incoming_joint:
+        lines.extend(_joint_element(incoming_joint, indent + "  "))
 
     # Inertial
     if link.inertial:
         i = link.inertial
-        lines.append(f'{indent}  <inertial pos="{i.origin.x:.4f} {i.origin.y:.4f} {i.origin.z:.4f}" mass="{i.mass:.4f}"/>')
+        lines.append(
+            f'{indent}  <inertial pos="{i.origin.x:.4f} {i.origin.y:.4f} {i.origin.z:.4f}" '
+            f'mass="{i.mass:.4f}" diaginertia="{i.ixx:.6f} {i.iyy:.6f} {i.izz:.6f}"/>'
+        )
 
     # Visual/collision geometry
     if link.visual:
@@ -132,42 +144,46 @@ def _link_tree(ir: RobotDesignIR, link_name: str, indent: str) -> list[str]:
     elif link.collision:
         lines.append(_geometry_to_mjcf(link.collision.geometry, f"{indent}  "))
 
-    # Child joints and links
+    # Recurse into children: joint goes inside the child body
     for joint in ir.joints:
         if joint.parent_link == link_name:
-            lines.extend(_joint_and_child(ir, joint, indent + "  "))
+            lines.extend(_link_tree(ir, joint.child_link, indent + "  ", incoming_joint=joint))
 
     lines.append(f"{indent}</body>")
     return lines
 
 
-def _joint_and_child(ir: RobotDesignIR, joint: JointIR, indent: str) -> list[str]:
-    """Generate joint element and recurse to child."""
-    lines = []
-
-    # Joint type mapping
+def _joint_element(joint: JointIR, indent: str) -> list[str]:
+    """Generate joint XML element for placement inside its child body."""
     jtype = {
         JointType.REVOLUTE: "hinge",
         JointType.CONTINUOUS: "hinge",
         JointType.PRISMATIC: "slide",
-        JointType.FIXED: None,  # No joint element for fixed
+        JointType.FIXED: None,
         JointType.BALL: "ball",
     }.get(joint.joint_type, "hinge")
 
-    if jtype:
-        axis = f"{joint.axis.x:.2f} {joint.axis.y:.2f} {joint.axis.z:.2f}"
-        pos = f"{joint.origin.x:.4f} {joint.origin.y:.4f} {joint.origin.z:.4f}"
+    if not jtype:
+        return []
 
-        limit_str = ""
-        if joint.limits and joint.joint_type == JointType.REVOLUTE:
-            limit_str = f' range="{joint.limits.lower:.3f} {joint.limits.upper:.3f}"'
+    axis = f"{joint.axis.x:.2f} {joint.axis.y:.2f} {joint.axis.z:.2f}"
+    pos = f"{joint.origin.x:.4f} {joint.origin.y:.4f} {joint.origin.z:.4f}"
 
-        lines.append(f'{indent}<joint name="{joint.name}" type="{jtype}" pos="{pos}" axis="{axis}"{limit_str}/>')
+    limit_str = ""
+    if joint.limits and joint.joint_type == JointType.REVOLUTE:
+        limit_str = f' range="{joint.limits.lower:.3f} {joint.limits.upper:.3f}"'
 
-    # Recurse to child
-    lines.extend(_link_tree(ir, joint.child_link, indent))
+    return [f'{indent}<joint name="{joint.name}" type="{jtype}" pos="{pos}" axis="{axis}"{limit_str}/>']
 
-    return lines
+
+def _contact_exclusions(ir: RobotDesignIR) -> str:
+    if not ir.joints:
+        return ""
+    lines = ["  <contact>"]
+    for joint in ir.joints:
+        lines.append(f'    <exclude body1="{joint.parent_link}" body2="{joint.child_link}"/>')
+    lines.append("  </contact>")
+    return "\n".join(lines)
 
 
 def _actuators(ir: RobotDesignIR) -> str:
@@ -177,9 +193,25 @@ def _actuators(ir: RobotDesignIR) -> str:
 
     lines = ["  <actuator>"]
     for joint in actuated_joints:
-        if joint.actuator:
-            gear = joint.actuator.gear_ratio
-            lines.append(f'    <motor name="motor_{joint.name}" joint="{joint.name}" gear="{gear:.1f}" ctrllimited="true" ctrlrange="-1 1"/>')
+        if not joint.actuator:
+            continue
+        torque = joint.actuator.max_torque
+        if joint.limits:
+            ctrl_lo, ctrl_hi = joint.limits.lower, joint.limits.upper
+        else:
+            ctrl_lo, ctrl_hi = -1.047, 1.047
+        if joint.actuator.actuator_type == "position":
+            lines.append(
+                f'    <position name="act_{joint.name}" joint="{joint.name}" '
+                f'kp="50" forcerange="-{torque:.1f} {torque:.1f}" '
+                f'ctrlrange="{ctrl_lo:.3f} {ctrl_hi:.3f}"/>'
+            )
+        else:
+            lines.append(
+                f'    <motor name="act_{joint.name}" joint="{joint.name}" '
+                f'gear="1" ctrllimited="true" forcerange="-{torque:.1f} {torque:.1f}" '
+                f'ctrlrange="-1 1"/>'
+            )
     lines.append("  </actuator>")
     return "\n".join(lines)
 

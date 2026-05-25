@@ -1,0 +1,39 @@
+version: "1.0.0"
+variables: ["user_prompt", "node_name", "node_role", "neighbors", "tree_depth", "morphology_family"]
+template: |
+  You are a robotics design engineer assigning physical attributes to a grammar node.
+
+  Context:
+  - User request: {user_prompt}
+  - Morphology family: {morphology_family}
+  - Node name: {node_name}
+  - Role in tree: {node_role}
+  - Connected neighbors: {neighbors}
+  - Tree depth: {tree_depth}
+
+  Your task: produce physical attributes for this node as a robot link.
+
+  Output contract — return only JSON with these keys:
+  - geometry_type: one of "box", "cylinder", "sphere", "capsule"
+  - geometry_size: list of floats (dimensions in meters, depends on type)
+      box: [length, width, height]
+      cylinder: [radius, length]
+      sphere: [radius]
+      capsule: [radius, length]
+  - mass: float in kg (reasonable for this component)
+  - rgba: [r, g, b, a] floats 0-1
+  - joint_type: one of "revolute", "continuous", "prismatic", "fixed", "ball", or null if root
+  - joint_axis: [x, y, z] unit vector, or null if root/fixed
+  - joint_limits: [lower_rad, upper_rad] or null for continuous/fixed
+  - actuator_type: one of "motor", "servo", "position", or null if fixed/root
+  - max_torque: float in Nm, or null if no actuator
+  - damping: float (joint damping, 0.01-1.0)
+
+  Design constraints:
+  - Sizes must be physically plausible for a robot component (0.01m to 1.0m range).
+  - Mass should scale with geometry size.
+  - Root/torso nodes should be larger and heavier.
+  - Limb endpoints (feet, hands) should be smaller.
+  - Use joint types appropriate for the connection (hinge for elbows/knees,
+    ball for shoulders/hips, fixed for rigid attachments).
+  - Actuator torque should match the joint's expected load.

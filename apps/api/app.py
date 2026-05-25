@@ -36,7 +36,15 @@ def create_app(
     from fastapi.middleware.cors import CORSMiddleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+        allow_origins=[
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:3001",
+            "http://127.0.0.1:3001",
+            "https://autobot.localhost",
+            "https://autobot.net",
+        ],
+        allow_origin_regex=r"https?://(([a-zA-Z0-9-]+\.)*localhost(:\d+)?|([a-zA-Z0-9-]+\.)*127\.0\.0\.1(:\d+)?|autobot\.net(:\d+)?)",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -44,9 +52,11 @@ def create_app(
 
     from apps.api.routes.ingest import router as ingest_router
     from apps.api.routes.evolutions import router as evolutions_router
+    from apps.api.routes.designs import router as designs_router
     from apps.api.routes.exports import router as exports_router
     app.include_router(ingest_router)
     app.include_router(evolutions_router)
+    app.include_router(designs_router)
     app.include_router(exports_router)
 
     @app.get("/health")

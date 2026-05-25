@@ -7,8 +7,11 @@ tmp_clips/*.avi
 .env
 *.pyc
 .DS_Store
+.vscode/
 node_modules/
 .next/
 .env.local
 
 investor-materials/
+packages/research/.runs/
+evals/results/*.log

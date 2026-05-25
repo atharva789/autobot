@@ -199,22 +199,87 @@ def get_procurement(design_id: str) -> ProcurementResponse:
         return ProcurementResponse(design_id=design_id)
 
 
+_LINK_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
+    "body":       {"length": 0.15, "radius": 0.03, "mass": 0.5},
+    "limb_upper": {"length": 0.15, "radius": 0.02, "mass": 0.3},
+    "limb_lower": {"length": 0.10, "radius": 0.02, "mass": 0.2},
+    "end_eff":    {"length": 0.03, "radius": 0.03, "mass": 0.1},
+    "wheel":      {"length": 0.05, "radius": 0.04, "mass": 0.15},
+}
+
+_NAME_PATTERNS: dict[str, str] = {
+    "torso": "body", "trunk": "body", "base": "body", "body": "body", "spine": "body",
+    "upper": "limb_upper", "shoulder": "limb_upper", "thigh": "limb_upper", "hip": "limb_upper",
+    "lower": "limb_lower", "elbow": "limb_lower", "knee": "limb_lower", "shin": "limb_lower",
+    "foot": "end_eff", "hand": "end_eff", "gripper": "end_eff", "end": "end_eff",
+    "wheel": "wheel",
+}
+
+
+def _infer_link_type(name: str, explicit_type: str | None) -> str:
+    if explicit_type and explicit_type in _LINK_TYPE_DEFAULTS:
+        return explicit_type
+    lower = name.lower()
+    for pattern, link_type in _NAME_PATTERNS.items():
+        if pattern in lower:
+            return link_type
+    return "body"
+
+
+def _capsule_inertia(mass: float, radius: float, half_length: float) -> tuple[float, float, float]:
+    """Compute principal inertia moments for a capsule (cylinder approximation)."""
+    ixx = mass * (3 * radius**2 + (2 * half_length)**2) / 12.0
+    iyy = ixx
+    izz = mass * radius**2 / 2.0
+    return ixx, iyy, izz
+
+
 def _design_to_ir(design: dict) -> "RobotDesignIR":
-    """Convert stored design dict to RobotDesignIR."""
+    """Convert stored design dict to RobotDesignIR with physical attributes."""
     from packages.pipeline.ir.design_ir import (
         RobotDesignIR,
         LinkIR,
         JointIR,
         JointType,
+        JointLimits,
         ActuatorSlot,
+        Inertial,
+        Geometry,
+        Visual,
+        Collision,
+        Vector3,
     )
 
-    # Extract morphology data
     morphology = design.get("morphology", {})
     links_data = morphology.get("links", [{"name": "base"}])
     joints_data = morphology.get("joints", [])
 
-    links = [LinkIR(name=ld.get("name", f"link_{i}")) for i, ld in enumerate(links_data)]
+    links = []
+    for i, ld in enumerate(links_data):
+        name = ld.get("name", f"link_{i}")
+        link_type = _infer_link_type(name, ld.get("type"))
+        defaults = _LINK_TYPE_DEFAULTS[link_type]
+
+        length = ld.get("length", defaults["length"])
+        radius = ld.get("radius", defaults["radius"])
+        mass = ld.get("mass", defaults["mass"])
+        half_len = length / 2.0
+
+        if link_type == "end_eff":
+            geom = Geometry(type="sphere", size=(radius,))
+        elif link_type == "wheel":
+            geom = Geometry(type="cylinder", size=(radius, length))
+        else:
+            geom = Geometry(type="capsule", size=(radius, length))
+
+        ixx, iyy, izz = _capsule_inertia(mass, radius, half_len)
+
+        links.append(LinkIR(
+            name=name,
+            inertial=Inertial(mass=mass, ixx=ixx, iyy=iyy, izz=izz),
+            visual=Visual(geometry=geom),
+            collision=Collision(geometry=geom),
+        ))
 
     joints = []
     for jd in joints_data:
@@ -224,14 +289,29 @@ def _design_to_ir(design: dict) -> "RobotDesignIR":
         except KeyError:
             joint_type = JointType.REVOLUTE
 
-        joints.append(
-            JointIR(
-                name=jd.get("name", "joint"),
-                joint_type=joint_type,
-                parent_link=jd.get("parent", links[0].name if links else "base"),
-                child_link=jd.get("child", links[-1].name if links else "arm"),
-            )
-        )
+        theta_r = jd.get("theta_r", 1.047)
+        max_torque = jd.get("max_torque", 1.0)
+
+        axis_data = jd.get("axis", [0.0, 1.0, 0.0])
+        origin_data = jd.get("origin", [0.0, 0.0, 0.0])
+
+        joints.append(JointIR(
+            name=jd.get("name", f"joint_{len(joints)}"),
+            joint_type=joint_type,
+            parent_link=jd.get("parent", links[0].name if links else "base"),
+            child_link=jd.get("child", links[-1].name if links else "link"),
+            axis=Vector3(x=axis_data[0], y=axis_data[1], z=axis_data[2]),
+            origin=Vector3(x=origin_data[0], y=origin_data[1], z=origin_data[2]),
+            limits=JointLimits(
+                lower=-theta_r,
+                upper=theta_r,
+                effort=max_torque,
+            ),
+            actuator=ActuatorSlot(
+                actuator_type="position",
+                max_torque=max_torque,
+            ),
+        ))
 
     return RobotDesignIR(
         name=design.get("name", "unnamed_robot"),

@@ -78,6 +78,24 @@ def test_generate_designs_migration_sql():
     assert "ingest_job_id TEXT" in sql
     assert "design_json JSONB" in sql
     assert "is_model_preferred BOOLEAN" in sql
+    assert "candidate_id IN ('A', 'B', 'C')" not in sql
+
+
+def test_generate_prompt_queries_migration_sql():
+    """Test SQL generation for prompt/query persistence."""
+    from apps.api.migrations import PROMPT_QUERIES_TABLE_SCHEMA, generate_prompt_queries_table_sql
+
+    sql = generate_prompt_queries_table_sql()
+
+    assert "CREATE TABLE IF NOT EXISTS \"PromptQueries\"" in sql
+    assert "event_type TEXT NOT NULL" in sql
+    assert "prompt TEXT" in sql
+    assert "query_text TEXT" in sql
+    assert "normalized_query_json JSONB" in sql
+    assert "langsmith_trace_id TEXT" in sql
+    assert "ALTER TABLE \"PromptQueries\" ENABLE ROW LEVEL SECURITY" in sql
+    assert "Service role has full access to PromptQueries" in sql
+    assert "metadata_json" in PROMPT_QUERIES_TABLE_SCHEMA
 
 
 def test_generate_evolutions_alter_sql():

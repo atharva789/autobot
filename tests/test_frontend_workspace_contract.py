@@ -8,37 +8,40 @@ PAGE_FILE = REPO_ROOT / "apps" / "web" / "app" / "page.tsx"
 GLOBAL_CSS = REPO_ROOT / "apps" / "web" / "app" / "globals.css"
 
 
-def test_workspace_uses_autobot_shell_and_not_old_morphology_copy():
+def test_root_page_uses_simplified_robogrammar_generator():
     source = PAGE_FILE.read_text()
 
-    assert "AutoBot" in source
-    assert "Tasks" in source
-    assert "Export targets" in source
-    assert "Commit v3" in source
-    assert "Approve" in source
+    assert "RoboGrammar Morphology Generator" in source
+    assert "Generate Morphologies" in source
+    assert "MorphologySketch" in source
+    assert "GrammarPanel" in source
+    assert "Structural Rules" in source
+    assert "Evaluator Checklist" in source
+    assert "Tasks" not in source
+    assert "Export targets" not in source
+    assert "Commit v3" not in source
     assert "Morphology Studio" not in source
     assert "Commitment zone" not in source
     assert "Synthesis stream" not in source
 
 
-def test_workspace_reads_runtime_state_from_backend_routes():
+def test_root_page_only_uses_current_ingest_and_generate_routes():
     source = PAGE_FILE.read_text()
 
-    assert "api.designs.getSpec" in source
-    assert "api.designs.getCheckpoints" in source
-    assert "api.designs.getTasks" in source
-    assert "api.designs.getExports" in source
-    assert "api.designs.decideCheckpoint" in source
-    assert "api.designs.runTask" in source
-    assert "api.designs.recordClip" in source
-    assert "api.designs.revise" in source
-    assert "EventSource" in source
-    assert "/events?follow=true" in source
-    assert "api.hitl.getSetup" in source
-    assert "api.hitl.saveSetup" in source
+    assert "api.ingest.start" in source
+    assert "api.designs.generate" in source
+    assert "api.designs.getSpec" not in source
+    assert "api.designs.getCheckpoints" not in source
+    assert "api.designs.getTasks" not in source
+    assert "api.designs.getExports" not in source
+    assert "api.designs.decideCheckpoint" not in source
+    assert "api.designs.runTask" not in source
+    assert "api.designs.recordClip" not in source
+    assert "api.designs.revise" not in source
+    assert "EventSource" not in source
+    assert "api.hitl.getSetup" not in source
+    assert "api.hitl.saveSetup" not in source
     assert "readOnly" not in source
-    assert "Thread key" in source
-    assert "1/{tasks.length}" not in source
 
 
 def test_workspace_theme_uses_squared_ide_tokens():
@@ -50,36 +53,38 @@ def test_workspace_theme_uses_squared_ide_tokens():
     assert ".autobot-panel" in css
 
 
-def test_workspace_and_viewer_support_engineering_mode_and_degraded_fallback():
+def test_root_page_renders_simple_svg_morphology_from_candidate_shape():
     page_source = PAGE_FILE.read_text()
     viewer_source = (REPO_ROOT / "apps" / "web" / "components" / "MorphologyViewer.tsx").read_text()
 
-    assert "engineering" in page_source
-    assert 'useState<DetailViewMode>("engineering")' in page_source
-    assert "renderGlb={render?.render_glb ?? null}" in page_source
-    assert "uiScene={render?.ui_scene ?? null}" in page_source
+    assert "<svg viewBox" in page_source
+    assert "candidate.num_legs" in page_source
+    assert "candidate.num_arms" in page_source
+    assert "candidate.spine_dof" in page_source
+    assert "renderGlb={render?.render_glb ?? null}" not in page_source
+    assert "uiScene={render?.ui_scene ?? null}" not in page_source
     assert "engineering mode unavailable" in viewer_source.lower()
     assert "GLTFLoader" in viewer_source
-    assert "hoveredComponent" in page_source
-    assert "onHoverComponent" in viewer_source
-    assert "\"components\"" in page_source
+    assert "hoveredComponent" not in page_source
 
 
-def test_workspace_exposes_photon_setup_copy():
-    source = PAGE_FILE.read_text().lower()
-
-    assert "phone number" in source
-    assert "send review poll" in source
-    assert "consent" in source
-
-
-def test_checkpoint_banner_uses_accessible_disclosure_not_nested_button():
+def test_root_page_has_no_legacy_photon_or_checkpoint_controls():
     source = PAGE_FILE.read_text()
+    lowered = source.lower()
 
-    assert 'role="button"' in source
-    assert 'aria-expanded={expanded}' in source
-    assert "<button\n                onClick={(e) => { e.stopPropagation(); onDecision(\"approved\"); }}" in source
-    assert "<button\n        onClick={onToggle}" not in source
+    assert "phone number" not in lowered
+    assert "send review poll" not in lowered
+    assert "consent" not in lowered
+    assert "Approve" not in source
+    assert 'role="button"' not in source
+    assert 'aria-expanded={expanded}' not in source
+
+
+def test_api_cors_allows_127_frontend_origin():
+    source = (REPO_ROOT / "apps" / "api" / "app.py").read_text()
+
+    assert "http://127.0.0.1:3000" in source
+    assert "allow_origin_regex" in source
 
 
 def test_evolution_page_reads_iterations_from_backend_not_supabase():

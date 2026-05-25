@@ -17,7 +17,7 @@ import {
 function DesignReviewCapturePageContent() {
   const searchParams = useSearchParams();
   const selectedVideo = searchParams.get("video") ?? designReviewVideos[0].id;
-  const selectedDesign = searchParams.get("design") as "A" | "B" | "C" | null;
+  const selectedDesign = searchParams.get("design");
 
   return (
     <main className="min-h-screen bg-zinc-950 bg-dotted p-8 text-zinc-100">

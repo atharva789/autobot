@@ -7,6 +7,7 @@ import uuid
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from apps.api.prompt_persistence import log_prompt_query
 from apps.api.services.ingest_service import IngestService, resolve_gemini_api_key
 from apps.api.workspace_store import workspace_store
 
@@ -38,6 +39,13 @@ class IngestRequest(BaseModel):
 def start_ingest(req: IngestRequest) -> dict:
     job_id = str(uuid.uuid4())
     stage = "analyze_prompt"
+    log_prompt_query(
+        event_type="ingest_prompt_received",
+        prompt=req.prompt,
+        query_text=req.prompt,
+        ingest_job_id=job_id,
+        metadata={"route": "/ingest", "stage": stage},
+    )
     try:
         plan = _svc.analyze_prompt(req.prompt)
         stage = "validate_plan"
@@ -142,6 +150,18 @@ def start_ingest(req: IngestRequest) -> dict:
         "candidate_reviews_json": candidate_reviews,
         "reference_payload_json": reference_payload,
     })
+    log_prompt_query(
+        event_type="ingest_query_selected",
+        prompt=req.prompt,
+        query_text=selected_query,
+        ingest_job_id=job_id,
+        metadata={
+            "route": "/ingest",
+            "status": status,
+            "reference_source_type": reference_source_type,
+            "selection_rationale": selection_rationale,
+        },
+    )
     return {
         "job_id": job_id,
         "status": status,

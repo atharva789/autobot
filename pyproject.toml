@@ -13,11 +13,22 @@ dependencies = [
   "fastapi>=0.110",
   "uvicorn[standard]>=0.29",
   "pydantic>=2.0",
-  "supabase>=2.4",
+  # PyPI package for the supabase-py client used by `from supabase import create_client`.
+  "supabase>=2.30.0",
+  "langchain>=1.0",
+  "langchain-openai>=1.0",
+  "langgraph>=0.2.0",
+  "langsmith>=0.3.18",
   "google-genai>=1.0.0",
   "google-api-python-client>=2.120",
   "yt-dlp>=2024.4",
   "modal>=0.62",
+  "transformers>=4.51.0,<6",
+  "accelerate>=1.0",
+  "huggingface-hub[cli]>=0.30",
+  "safetensors>=0.4",
+  "openai>=1.0",
+  "agentlightning>=0.3.0",
   "torch>=2.2",
   "torch-geometric>=2.5",
   "mujoco>=3.1",
@@ -26,10 +37,15 @@ dependencies = [
   "pinocchio>=3.1",
   "python-dotenv>=1.0",
   "httpx>=0.27",
+  "click>=8.1",
+  "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "httpx>=0.27"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "httpx>=0.27", "nbformat>=5.10"]
+
+[project.scripts]
+research = "packages.research.cli:cli"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
