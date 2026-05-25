@@ -5,12 +5,15 @@ Tests for the design -> compile -> validate -> simulate -> rank pipeline.
 """
 
 import pytest
+from conftest import make_physical_link
 from packages.pipeline.ir.design_ir import (
     RobotDesignIR,
     LinkIR,
     JointIR,
     JointType,
+    JointLimits,
     ActuatorSlot,
+    Vector3,
 )
 
 
@@ -98,6 +101,25 @@ class TestValidator:
         assert len(result.errors) == 0
 
 
+def _physical_ir(name: str = "test_robot") -> RobotDesignIR:
+    """Build a minimal physically valid IR for MuJoCo screening tests."""
+    return RobotDesignIR(
+        name=name,
+        links=[make_physical_link("base"), make_physical_link("arm")],
+        joints=[
+            JointIR(
+                name="j1",
+                joint_type=JointType.REVOLUTE,
+                parent_link="base",
+                child_link="arm",
+                axis=Vector3(x=0.0, y=1.0, z=0.0),
+                limits=JointLimits(lower=-1.047, upper=1.047, effort=1.0),
+                actuator=ActuatorSlot(actuator_type="position", max_torque=1.0),
+            )
+        ],
+    )
+
+
 class TestMuJoCoScreening:
     """Tests for MuJoCo screening service."""
 
@@ -105,60 +127,21 @@ class TestMuJoCoScreening:
         """Screening compiles to MJCF first."""
         from packages.pipeline.simulation.mujoco_screening import screen_design
 
-        ir = RobotDesignIR(
-            name="screen_robot",
-            links=[LinkIR(name="base"), LinkIR(name="arm")],
-            joints=[
-                JointIR(
-                    name="j1",
-                    joint_type=JointType.REVOLUTE,
-                    parent_link="base",
-                    child_link="arm",
-                )
-            ],
-        )
-        result = screen_design(ir)
-
+        result = screen_design(_physical_ir("screen_robot"))
         assert result.mjcf_compiled is True
 
     def test_screening_checks_stability(self):
         """Screening includes static stability check."""
         from packages.pipeline.simulation.mujoco_screening import screen_design
 
-        ir = RobotDesignIR(
-            name="stable_robot",
-            links=[LinkIR(name="base"), LinkIR(name="arm")],
-            joints=[
-                JointIR(
-                    name="j1",
-                    joint_type=JointType.REVOLUTE,
-                    parent_link="base",
-                    child_link="arm",
-                )
-            ],
-        )
-        result = screen_design(ir)
-
+        result = screen_design(_physical_ir("stable_robot"))
         assert hasattr(result, "stability_score")
 
     def test_screening_returns_score(self):
         """Screening returns overall score."""
         from packages.pipeline.simulation.mujoco_screening import screen_design
 
-        ir = RobotDesignIR(
-            name="scored_robot",
-            links=[LinkIR(name="base"), LinkIR(name="arm")],
-            joints=[
-                JointIR(
-                    name="j1",
-                    joint_type=JointType.REVOLUTE,
-                    parent_link="base",
-                    child_link="arm",
-                )
-            ],
-        )
-        result = screen_design(ir)
-
+        result = screen_design(_physical_ir("scored_robot"))
         assert 0.0 <= result.overall_score <= 1.0
 
 
@@ -200,21 +183,8 @@ class TestSimulationOrchestrator:
         """Orchestrator processes single candidate."""
         from packages.pipeline.simulation.orchestrator import SimulationOrchestrator
 
-        ir = RobotDesignIR(
-            name="orchestrated_robot",
-            links=[LinkIR(name="base"), LinkIR(name="arm")],
-            joints=[
-                JointIR(
-                    name="j1",
-                    joint_type=JointType.REVOLUTE,
-                    parent_link="base",
-                    child_link="arm",
-                )
-            ],
-        )
-
         orchestrator = SimulationOrchestrator()
-        result = orchestrator.process([ir])
+        result = orchestrator.process([_physical_ir("orchestrated_robot")])
 
         assert len(result.candidates) == 1
         assert result.candidates[0].screening_result is not None
@@ -223,21 +193,7 @@ class TestSimulationOrchestrator:
         """Orchestrator processes and ranks multiple candidates."""
         from packages.pipeline.simulation.orchestrator import SimulationOrchestrator
 
-        designs = [
-            RobotDesignIR(
-                name=f"robot_{i}",
-                links=[LinkIR(name="base"), LinkIR(name="arm")],
-                joints=[
-                    JointIR(
-                        name="j1",
-                        joint_type=JointType.REVOLUTE,
-                        parent_link="base",
-                        child_link="arm",
-                    )
-                ],
-            )
-            for i in range(3)
-        ]
+        designs = [_physical_ir(f"robot_{i}") for i in range(3)]
 
         orchestrator = SimulationOrchestrator()
         result = orchestrator.process(designs)
@@ -249,14 +205,8 @@ class TestSimulationOrchestrator:
         """Orchestrator returns compiled artifacts."""
         from packages.pipeline.simulation.orchestrator import SimulationOrchestrator
 
-        ir = RobotDesignIR(
-            name="artifact_robot",
-            links=[LinkIR(name="base")],
-            joints=[],
-        )
-
         orchestrator = SimulationOrchestrator()
-        result = orchestrator.process([ir])
+        result = orchestrator.process([_physical_ir("artifact_robot")])
 
         assert result.artifacts is not None
         assert "mjcf" in result.artifacts

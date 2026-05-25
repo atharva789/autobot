@@ -1,0 +1,100 @@
+Upload the RoboGrammar eval dataset to LangSmith as a cloud dataset.
+
+## Context
+
+The eval dataset lives at `evals/grammar_evals.json`. It contains 701 entries that test a grammar-based robot morphology agent loop. Each entry is a `(prompt, expected_rules, tag)` triple that evaluates whether the LLM can produce valid RoboGrammar structural rules from natural language prompts.
+
+### Dataset location and files
+
+- `evals/grammar_evals.json` — The dataset (701 JSON entries)
+- `evals/eval_schema.py` — Frozen dataclass `EvalEntry` + `Tag` enum (16 categories)
+- `evals/grammar_vocab_snapshot.json` — Grammar vocabulary: 129 nodes (49 nonterminal + 80 terminal)
+- `evals/verify_dataset.py` — Verification script (run `python3 -m evals.verify_dataset` to check)
+
+### Entry schema
+
+Each JSON entry has these fields:
+```
+{
+  "id": "valid_001",                    // unique identifier
+  "prompt": "Design a humanoid robot...",  // natural language input to the agent
+  "expected_rules": {                   // dict[str, list[str]] — structural rules
+    "S": ["TORSO", "PELVIS", "HEAD", "ARM_PAIR", "LEG_PAIR"],
+    "ARM": ["shoulder_joint", "arm_link", "elbow_joint", "hand"]
+  },
+  "tag": "valid_baseline",             // category (see below)
+  "subtag": "humanoid",                // subcategory
+  "expected_compile_safe": true,        // whether compile_structural_rules() passes
+  "expected_invalid_nodes": [],         // nodes NOT in GrammarNodes vocabulary
+  "expected_behavior": "produce",       // "produce" | "reject" | "flag_infeasible"
+  "difficulty": "easy",                 // "easy" | "medium" | "hard"
+  "notes": "Standard humanoid morphology...",
+  "source_family": "humanoid"           // robot family provenance
+}
+```
+
+### 16 tag categories
+
+| Tag | Count | Tests |
+|-----|-------|-------|
+| valid_baseline | 110 | Standard valid designs across 11 robot families |
+| valid_complex | 30 | Complex but valid multi-level nesting |
+| hallucination_misspell | 110 | Typos in node names (swap/drop/add/sub) |
+| hallucination_invent | 82 | Invented nodes not in vocabulary |
+| hallucination_orphan | 30 | Orphan nonterminals with no canonical rules |
+| recursion_no_base | 20 | Recursive rules without termination |
+| recursion_self_only | 24 | Pure self-reference (A -> A) |
+| recursion_overuse | 20 | Nested/mutual recursion |
+| abstraction_mismatch | 50 | Anatomy/engineering terms instead of grammar symbols |
+| infeasible_topology | 40 | Structurally impossible designs (legs with no body) |
+| infeasible_load | 30 | Load-bearing failures (tiny legs, huge torso) |
+| family_confusion | 30 | Incompatible cross-family chimeras |
+| ambiguous_morphology | 30 | Vague prompts with no clear morphology |
+| missing_nodes | 30 | Plausible but out-of-vocabulary nodes |
+| partial_rules | 40 | Dangling nonterminal references (incomplete rules) |
+| constraint_violation | 25 | Excessive component counts (15 segments, 14 legs) |
+
+### Behavior distribution
+- produce: 170 (agent should generate valid rules)
+- reject: 376 (compiler should catch invalid nodes)
+- flag_infeasible: 155 (evaluator should flag physical impossibility)
+
+## LangSmith configuration
+
+Environment variables are in `.env`:
+- `LANGSMITH_API_KEY` — API key for authentication
+- `LANGSMITH_ENDPOINT` — https://api.smith.langchain.com
+- `LANGSMITH_PROJECT` — "autonomous-robot-codesign"
+
+The `langsmith` package is already installed (see pyproject.toml).
+
+## Task
+
+Write and run a script `evals/upload_to_langsmith.py` that:
+
+1. Loads `evals/grammar_evals.json`
+2. Loads environment variables from `.env` (use `dotenv`)
+3. Creates (or retrieves if it already exists) a LangSmith dataset named `"robogrammar-structural-rules-evals"`
+4. Uploads each entry as an example with:
+   - **inputs**: `{"prompt": entry["prompt"]}`
+   - **outputs**: `{"expected_rules": entry["expected_rules"], "expected_compile_safe": entry["expected_compile_safe"], "expected_behavior": entry["expected_behavior"]}`
+   - **metadata**: `{"tag": entry["tag"], "subtag": entry["subtag"], "difficulty": entry["difficulty"], "source_family": entry["source_family"], "notes": entry["notes"], "expected_invalid_nodes": entry["expected_invalid_nodes"], "id": entry["id"]}`
+5. Prints progress every 100 entries
+6. Prints final count and dataset URL
+
+Use the `langsmith.Client` API:
+```python
+from langsmith import Client
+client = Client()
+dataset = client.create_dataset(dataset_name="robogrammar-structural-rules-evals", description="...")
+client.create_examples(inputs=[...], outputs=[...], metadata=[...], dataset_id=dataset.id)
+```
+
+Prefer `create_examples` (batch) over individual `create_example` calls for speed.
+
+## Constraints
+
+- Do NOT modify any existing files
+- Load the API key from `.env`, do NOT hardcode it
+- Handle the case where the dataset already exists (use `read_dataset` as fallback)
+- Run the script after writing it to confirm upload succeeds

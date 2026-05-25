@@ -35,7 +35,8 @@ def build_mjcf(p: MorphologyParams) -> str:
 def _header(p: MorphologyParams) -> str:
     return (
         f'<mujoco model="automorph">\n'
-        f'  <option timestep="0.002" gravity="0 0 -9.81"/>\n'
+        f'  <compiler angle="degree"/>\n'
+        f'  <option timestep="0.004167" gravity="0 0 -9.81"/>\n'
         f'  <default>\n'
         f'    <joint damping="{p.joint_damping}" stiffness="{p.joint_stiffness}"/>\n'
         f'    <geom friction="{p.friction} 0.005 0.0001"/>\n'
@@ -128,18 +129,19 @@ def _actuators(p: MorphologyParams) -> str:
         if p.num_arms > 0:
             for ax in ("x", "y", "z"):
                 lines.append(
-                    f'    <motor name="{side}_shoulder_{ax}" joint="{side}_shoulder_{ax}"'
-                    f' gear="100" ctrllimited="true" ctrlrange="-1 1"/>'
+                    f'    <position name="{side}_shoulder_{ax}" joint="{side}_shoulder_{ax}"'
+                    f' kp="50" forcerange="-1 1" ctrlrange="-90 90"/>'
                 )
             if p.arm_dof >= 5:
                 lines.append(
-                    f'    <motor name="{side}_elbow" joint="{side}_elbow"'
-                    f' gear="80" ctrllimited="true" ctrlrange="-1 1"/>'
+                    f'    <position name="{side}_elbow" joint="{side}_elbow"'
+                    f' kp="50" forcerange="-1 1" ctrlrange="-140 0"/>'
                 )
         for jt in ("hip_x", "hip_y", "hip_z", "knee"):
+            jt_range = "-150 0" if jt == "knee" else "-120 120"
             lines.append(
-                f'    <motor name="{side}_{jt}" joint="{side}_{jt}"'
-                f' gear="120" ctrllimited="true" ctrlrange="-1 1"/>'
+                f'    <position name="{side}_{jt}" joint="{side}_{jt}"'
+                f' kp="50" forcerange="-1 1" ctrlrange="{jt_range}"/>'
             )
 
     lines.append("  </actuator>")

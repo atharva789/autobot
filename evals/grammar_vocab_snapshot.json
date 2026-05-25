@@ -1,0 +1,1412 @@
+{
+  "nodes": [
+    {
+      "short_form_name": "hand",
+      "node_type": "terminal",
+      "long_name": "Hand",
+      "morphology_family": "humanoid",
+      "description": "Manipulation end-effector terminal."
+    },
+    {
+      "short_form_name": "PELVIS",
+      "node_type": "nonterminal",
+      "long_name": "Pelvis",
+      "morphology_family": "humanoid",
+      "description": "Humanoid pelvis anchor for lower-body leg attachment."
+    },
+    {
+      "short_form_name": "ARM",
+      "node_type": "nonterminal",
+      "long_name": "Arm",
+      "morphology_family": "humanoid",
+      "description": "Abstract arm chain placeholder expanded into shoulder, elbow, wrist, and end effector components."
+    },
+    {
+      "short_form_name": "END_EFFECTOR",
+      "node_type": "nonterminal",
+      "long_name": "End Effector",
+      "morphology_family": "humanoid",
+      "description": "Abstract manipulation or contact end structure."
+    },
+    {
+      "short_form_name": "TORSO",
+      "node_type": "nonterminal",
+      "long_name": "Torso",
+      "morphology_family": "humanoid",
+      "description": "Humanoid torso anchor for upper-body structure."
+    },
+    {
+      "short_form_name": "ARM_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Arm Pair",
+      "morphology_family": "humanoid",
+      "description": "Bilateral mirrored pair of arms for manipulation-capable morphologies."
+    },
+    {
+      "short_form_name": "DIGITIGRADE_LEG_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Digitigrade Leg Pair",
+      "morphology_family": "humanoid",
+      "description": "Bilateral pair of animal-like digitigrade legs."
+    },
+    {
+      "short_form_name": "DIGITIGRADE_LEG",
+      "node_type": "nonterminal",
+      "long_name": "Digitigrade Leg",
+      "morphology_family": "humanoid",
+      "description": "Reverse-knee high-compliance leg placeholder."
+    },
+    {
+      "short_form_name": "HEEL",
+      "node_type": "nonterminal",
+      "long_name": "Heel",
+      "morphology_family": "humanoid",
+      "description": "Intermediate heel placeholder in digitigrade leg topology."
+    },
+    {
+      "short_form_name": "TOE",
+      "node_type": "nonterminal",
+      "long_name": "Toe",
+      "morphology_family": "humanoid",
+      "description": "Distal toe placeholder in digitigrade leg topology."
+    },
+    {
+      "short_form_name": "SPRING_LEG_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Spring Leg Pair",
+      "morphology_family": "biped",
+      "description": "Bilateral pair of compliant hopping legs."
+    },
+    {
+      "short_form_name": "SPRING_LEG",
+      "node_type": "nonterminal",
+      "long_name": "Spring Leg",
+      "morphology_family": "biped",
+      "description": "Spring-biased leg placeholder for hopping."
+    },
+    {
+      "short_form_name": "FOOT",
+      "node_type": "nonterminal",
+      "long_name": "Foot",
+      "morphology_family": "biped",
+      "description": "Abstract ground-contact terminal placeholder."
+    },
+    {
+      "short_form_name": "BODY_CHAIN",
+      "node_type": "nonterminal",
+      "long_name": "Body Chain",
+      "morphology_family": "quadruped",
+      "description": "Recursive axial body chain placeholder for repeated body segments."
+    },
+    {
+      "short_form_name": "HIP_STACK",
+      "node_type": "nonterminal",
+      "long_name": "Hip Stack",
+      "morphology_family": "quadruped",
+      "description": "Abstract multi-axis hip joint stack."
+    },
+    {
+      "short_form_name": "SPINE",
+      "node_type": "nonterminal",
+      "long_name": "Spine",
+      "morphology_family": "quadruped",
+      "description": "Reinforced or articulated spine placeholder."
+    },
+    {
+      "short_form_name": "BODY_SEG",
+      "node_type": "nonterminal",
+      "long_name": "Body Seg",
+      "morphology_family": "quadruped",
+      "description": "Abstract body segment placeholder in a multi-segment robot body."
+    },
+    {
+      "short_form_name": "LOAD_BAY",
+      "node_type": "nonterminal",
+      "long_name": "Load Bay",
+      "morphology_family": "quadruped",
+      "description": "Payload or cargo-bearing body anchor."
+    },
+    {
+      "short_form_name": "THORAX_CHAIN",
+      "node_type": "nonterminal",
+      "long_name": "Thorax Chain",
+      "morphology_family": "hexapod",
+      "description": "Insect-like chain of thorax segments."
+    },
+    {
+      "short_form_name": "THORAX_SEG",
+      "node_type": "nonterminal",
+      "long_name": "Thorax Seg",
+      "morphology_family": "hexapod",
+      "description": "Abstract thorax segment that can receive leg pairs."
+    },
+    {
+      "short_form_name": "SEG_CHAIN",
+      "node_type": "nonterminal",
+      "long_name": "Seg Chain",
+      "morphology_family": "centipede",
+      "description": "Recursive many-segment body chain placeholder."
+    },
+    {
+      "short_form_name": "SEG",
+      "node_type": "nonterminal",
+      "long_name": "Seg",
+      "morphology_family": "centipede",
+      "description": "Abstract repeated body segment in many-legged morphologies."
+    },
+    {
+      "short_form_name": "SHORT_LEG",
+      "node_type": "nonterminal",
+      "long_name": "Short Leg",
+      "morphology_family": "centipede",
+      "description": "Short repeated leg placeholder for many-legged robots."
+    },
+    {
+      "short_form_name": "SIDEWINDER_CHAIN",
+      "node_type": "nonterminal",
+      "long_name": "Sidewinder Chain",
+      "morphology_family": "snake",
+      "description": "Recursive alternating yaw-pitch chain for sidewinding locomotion."
+    },
+    {
+      "short_form_name": "YAW_SEG",
+      "node_type": "nonterminal",
+      "long_name": "Yaw Seg",
+      "morphology_family": "snake",
+      "description": "Abstract yaw-articulated axial segment."
+    },
+    {
+      "short_form_name": "PITCH_SEG",
+      "node_type": "nonterminal",
+      "long_name": "Pitch Seg",
+      "morphology_family": "snake",
+      "description": "Abstract pitch-articulated axial segment."
+    },
+    {
+      "short_form_name": "WING_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Wing Pair",
+      "morphology_family": "bird",
+      "description": "Bilateral mirrored pair of wing appendages."
+    },
+    {
+      "short_form_name": "WING",
+      "node_type": "nonterminal",
+      "long_name": "Wing",
+      "morphology_family": "bird",
+      "description": "Abstract wing appendage placeholder."
+    },
+    {
+      "short_form_name": "NECK",
+      "node_type": "nonterminal",
+      "long_name": "Neck",
+      "morphology_family": "bird",
+      "description": "Abstract grammar placeholder in Winged biped bird grammar that can be expanded by production rules."
+    },
+    {
+      "short_form_name": "HEAD",
+      "node_type": "nonterminal",
+      "long_name": "Head",
+      "morphology_family": "bird",
+      "description": "Abstract head or sensor-bearing end structure."
+    },
+    {
+      "short_form_name": "FOLDED_WING_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Folded Wing Pair",
+      "morphology_family": "bird",
+      "description": "Compact bilateral wing pair for perching or hopping morphologies."
+    },
+    {
+      "short_form_name": "PERCHING_LEG",
+      "node_type": "nonterminal",
+      "long_name": "Perching Leg",
+      "morphology_family": "bird",
+      "description": "Bird-like leg placeholder with grasping foot structure."
+    },
+    {
+      "short_form_name": "TALON",
+      "node_type": "nonterminal",
+      "long_name": "Talon",
+      "morphology_family": "bird",
+      "description": "Abstract grasping bird-foot terminal."
+    },
+    {
+      "short_form_name": "SPRAWLED_LEG_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Sprawled Leg Pair",
+      "morphology_family": "lizard",
+      "description": "Bilateral sprawled leg pair for low lizard-like posture."
+    },
+    {
+      "short_form_name": "SPRAWLED_LEG",
+      "node_type": "nonterminal",
+      "long_name": "Sprawled Leg",
+      "morphology_family": "lizard",
+      "description": "Sprawled limb placeholder with abducted hip geometry."
+    },
+    {
+      "short_form_name": "TRUNK",
+      "node_type": "nonterminal",
+      "long_name": "Trunk",
+      "morphology_family": "lizard",
+      "description": "Low central body anchor for sprawled lizard-like morphologies."
+    },
+    {
+      "short_form_name": "TAIL",
+      "node_type": "nonterminal",
+      "long_name": "Tail",
+      "morphology_family": "lizard",
+      "description": "Abstract tail structure for stabilization, steering, or axial continuation."
+    },
+    {
+      "short_form_name": "CLIMBING_LEG_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Climbing Leg Pair",
+      "morphology_family": "lizard",
+      "description": "Bilateral climbing leg pair."
+    },
+    {
+      "short_form_name": "CLIMBING_LEG",
+      "node_type": "nonterminal",
+      "long_name": "Climbing Leg",
+      "morphology_family": "lizard",
+      "description": "Climbing limb placeholder that can terminate in adhesive contact."
+    },
+    {
+      "short_form_name": "ADHESIVE_FOOT",
+      "node_type": "nonterminal",
+      "long_name": "Adhesive Foot",
+      "morphology_family": "lizard",
+      "description": "Abstract climbing foot with adhesive contact."
+    },
+    {
+      "short_form_name": "SPINE_CHAIN",
+      "node_type": "nonterminal",
+      "long_name": "Spine Chain",
+      "morphology_family": "lizard",
+      "description": "Recursive articulated spine placeholder for body-wave locomotion."
+    },
+    {
+      "short_form_name": "SHORT_LEG_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Short Leg Pair",
+      "morphology_family": "lizard",
+      "description": "Abstract grammar placeholder in Salamander undulating grammar that can be expanded by production rules."
+    },
+    {
+      "short_form_name": "S",
+      "node_type": "nonterminal",
+      "long_name": "Start Symbol",
+      "morphology_family": "arachnid",
+      "description": "Start symbol for deriving a complete robot graph."
+    },
+    {
+      "short_form_name": "BODY",
+      "node_type": "nonterminal",
+      "long_name": "Body",
+      "morphology_family": "arachnid",
+      "description": "Abstract body root or body module that can receive limbs, appendages, or other body structure."
+    },
+    {
+      "short_form_name": "LEG_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Leg Pair",
+      "morphology_family": "arachnid",
+      "description": "Bilateral mirrored pair of legs represented as one abstract branch."
+    },
+    {
+      "short_form_name": "LEG",
+      "node_type": "nonterminal",
+      "long_name": "Leg",
+      "morphology_family": "arachnid",
+      "description": "Abstract leg chain placeholder expanded into joints, links, and a contact terminal."
+    },
+    {
+      "short_form_name": "TARSUS",
+      "node_type": "nonterminal",
+      "long_name": "Tarsus",
+      "morphology_family": "arachnid",
+      "description": "Abstract distal insect or arachnid foot segment."
+    },
+    {
+      "short_form_name": "APPENDAGE_PAIR",
+      "node_type": "nonterminal",
+      "long_name": "Appendage Pair",
+      "morphology_family": "hybrid",
+      "description": "Bilateral mirrored appendage pair."
+    },
+    {
+      "short_form_name": "APPENDAGE",
+      "node_type": "nonterminal",
+      "long_name": "Appendage",
+      "morphology_family": "hybrid",
+      "description": "Abstract appendage chain that can terminate in different contact structures."
+    },
+    {
+      "short_form_name": "TERMINAL_CONTACT",
+      "node_type": "nonterminal",
+      "long_name": "Terminal Contact",
+      "morphology_family": "hybrid",
+      "description": "Selectable terminal contact placeholder, such as a foot or wheel."
+    },
+    {
+      "short_form_name": "pelvis_link",
+      "node_type": "terminal",
+      "long_name": "Pelvis Link",
+      "morphology_family": "humanoid",
+      "description": "Rigid pelvis link component."
+    },
+    {
+      "short_form_name": "camera_head",
+      "node_type": "terminal",
+      "long_name": "Camera Head",
+      "morphology_family": "humanoid",
+      "description": "Sensor head terminal component."
+    },
+    {
+      "short_form_name": "elbow_joint",
+      "node_type": "terminal",
+      "long_name": "Elbow Joint",
+      "morphology_family": "humanoid",
+      "description": "Actuated elbow joint component."
+    },
+    {
+      "short_form_name": "wrist_joint",
+      "node_type": "terminal",
+      "long_name": "Wrist Joint",
+      "morphology_family": "humanoid",
+      "description": "Actuated wrist joint component."
+    },
+    {
+      "short_form_name": "torso_link",
+      "node_type": "terminal",
+      "long_name": "Torso Link",
+      "morphology_family": "humanoid",
+      "description": "Rigid torso link component."
+    },
+    {
+      "short_form_name": "arm_link",
+      "node_type": "terminal",
+      "long_name": "Arm Link",
+      "morphology_family": "humanoid",
+      "description": "Rigid arm link component."
+    },
+    {
+      "short_form_name": "hip_pitch",
+      "node_type": "terminal",
+      "long_name": "Hip Pitch",
+      "morphology_family": "humanoid",
+      "description": "Pitch-axis hip joint component."
+    },
+    {
+      "short_form_name": "thigh_link",
+      "node_type": "terminal",
+      "long_name": "Thigh Link",
+      "morphology_family": "humanoid",
+      "description": "Thigh link component."
+    },
+    {
+      "short_form_name": "reverse_knee",
+      "node_type": "terminal",
+      "long_name": "Reverse Knee",
+      "morphology_family": "humanoid",
+      "description": "Reverse-knee joint component for digitigrade legs."
+    },
+    {
+      "short_form_name": "heel_link",
+      "node_type": "terminal",
+      "long_name": "Heel Link",
+      "morphology_family": "humanoid",
+      "description": "Rigid heel link component."
+    },
+    {
+      "short_form_name": "toe_pad",
+      "node_type": "terminal",
+      "long_name": "Toe Pad",
+      "morphology_family": "humanoid",
+      "description": "Distal toe ground-contact pad."
+    },
+    {
+      "short_form_name": "upper_leg",
+      "node_type": "terminal",
+      "long_name": "Upper Leg",
+      "morphology_family": "biped",
+      "description": "Upper leg link component."
+    },
+    {
+      "short_form_name": "knee_joint",
+      "node_type": "terminal",
+      "long_name": "Knee Joint",
+      "morphology_family": "biped",
+      "description": "Actuated knee joint component."
+    },
+    {
+      "short_form_name": "lower_leg",
+      "node_type": "terminal",
+      "long_name": "Lower Leg",
+      "morphology_family": "biped",
+      "description": "Lower leg link component."
+    },
+    {
+      "short_form_name": "foot_pad",
+      "node_type": "terminal",
+      "long_name": "Foot Pad",
+      "morphology_family": "biped",
+      "description": "Passive ground-contact foot pad."
+    },
+    {
+      "short_form_name": "body_link",
+      "node_type": "terminal",
+      "long_name": "Body Link",
+      "morphology_family": "biped",
+      "description": "Rigid body link component."
+    },
+    {
+      "short_form_name": "spring_thigh",
+      "node_type": "terminal",
+      "long_name": "Spring Thigh",
+      "morphology_family": "biped",
+      "description": "Compliant thigh link for hopping."
+    },
+    {
+      "short_form_name": "compliant_knee",
+      "node_type": "terminal",
+      "long_name": "Compliant Knee",
+      "morphology_family": "biped",
+      "description": "Compliant knee joint component."
+    },
+    {
+      "short_form_name": "spring_shank",
+      "node_type": "terminal",
+      "long_name": "Spring Shank",
+      "morphology_family": "biped",
+      "description": "Compliant shank link for hopping."
+    },
+    {
+      "short_form_name": "wide_foot",
+      "node_type": "terminal",
+      "long_name": "Wide Foot",
+      "morphology_family": "biped",
+      "description": "Wide stabilizing foot terminal."
+    },
+    {
+      "short_form_name": "body_connector",
+      "node_type": "terminal",
+      "long_name": "Body Connector",
+      "morphology_family": "quadruped",
+      "description": "Connector between body segments."
+    },
+    {
+      "short_form_name": "hip_yaw",
+      "node_type": "terminal",
+      "long_name": "Hip Yaw",
+      "morphology_family": "quadruped",
+      "description": "Yaw-axis hip joint component."
+    },
+    {
+      "short_form_name": "hip_roll",
+      "node_type": "terminal",
+      "long_name": "Hip Roll",
+      "morphology_family": "quadruped",
+      "description": "Roll-axis hip joint component."
+    },
+    {
+      "short_form_name": "sensor_mast",
+      "node_type": "terminal",
+      "long_name": "Sensor Mast",
+      "morphology_family": "quadruped",
+      "description": "Raised sensor mast terminal component."
+    },
+    {
+      "short_form_name": "reinforced_torso",
+      "node_type": "terminal",
+      "long_name": "Reinforced Torso",
+      "morphology_family": "quadruped",
+      "description": "Rigid reinforced torso component for payload support."
+    },
+    {
+      "short_form_name": "spine_joint",
+      "node_type": "terminal",
+      "long_name": "Spine Joint",
+      "morphology_family": "quadruped",
+      "description": "Articulated spine connector component."
+    },
+    {
+      "short_form_name": "cargo_plate",
+      "node_type": "terminal",
+      "long_name": "Cargo Plate",
+      "morphology_family": "quadruped",
+      "description": "Payload mounting plate component."
+    },
+    {
+      "short_form_name": "shank_link",
+      "node_type": "terminal",
+      "long_name": "Shank Link",
+      "morphology_family": "quadruped",
+      "description": "Shank link component."
+    },
+    {
+      "short_form_name": "thorax_link",
+      "node_type": "terminal",
+      "long_name": "Thorax Link",
+      "morphology_family": "hexapod",
+      "description": "Rigid insect-like thorax link component."
+    },
+    {
+      "short_form_name": "tibia_link",
+      "node_type": "terminal",
+      "long_name": "Tibia Link",
+      "morphology_family": "hexapod",
+      "description": "Insect tibia link component."
+    },
+    {
+      "short_form_name": "tarsus_pad",
+      "node_type": "terminal",
+      "long_name": "Tarsus Pad",
+      "morphology_family": "hexapod",
+      "description": "Insect-like distal tarsus contact pad."
+    },
+    {
+      "short_form_name": "body_segment",
+      "node_type": "terminal",
+      "long_name": "Body Segment",
+      "morphology_family": "centipede",
+      "description": "Rigid repeated body segment component."
+    },
+    {
+      "short_form_name": "flex_joint",
+      "node_type": "terminal",
+      "long_name": "Flex Joint",
+      "morphology_family": "centipede",
+      "description": "Flexible connector joint between body segments."
+    },
+    {
+      "short_form_name": "micro_hip",
+      "node_type": "terminal",
+      "long_name": "Micro Hip",
+      "morphology_family": "centipede",
+      "description": "Small hip joint for many-legged morphologies."
+    },
+    {
+      "short_form_name": "short_link",
+      "node_type": "terminal",
+      "long_name": "Short Link",
+      "morphology_family": "centipede",
+      "description": "Short limb link for many-legged morphologies."
+    },
+    {
+      "short_form_name": "micro_knee",
+      "node_type": "terminal",
+      "long_name": "Micro Knee",
+      "morphology_family": "centipede",
+      "description": "Small knee joint for many-legged morphologies."
+    },
+    {
+      "short_form_name": "foot_tip",
+      "node_type": "terminal",
+      "long_name": "Foot Tip",
+      "morphology_family": "centipede",
+      "description": "Small distal foot contact tip."
+    },
+    {
+      "short_form_name": "vertebra_link",
+      "node_type": "terminal",
+      "long_name": "Vertebra Link",
+      "morphology_family": "snake",
+      "description": "Rigid axial vertebra link component."
+    },
+    {
+      "short_form_name": "yaw_joint",
+      "node_type": "terminal",
+      "long_name": "Yaw Joint",
+      "morphology_family": "snake",
+      "description": "Yaw-axis axial joint component."
+    },
+    {
+      "short_form_name": "pitch_joint",
+      "node_type": "terminal",
+      "long_name": "Pitch Joint",
+      "morphology_family": "snake",
+      "description": "Pitch-axis axial joint component."
+    },
+    {
+      "short_form_name": "tail_tip",
+      "node_type": "terminal",
+      "long_name": "Tail Tip",
+      "morphology_family": "snake",
+      "description": "Distal tail terminal component."
+    },
+    {
+      "short_form_name": "belly_contact",
+      "node_type": "terminal",
+      "long_name": "Belly Contact",
+      "morphology_family": "snake",
+      "description": "Passive belly contact surface component."
+    },
+    {
+      "short_form_name": "belly_ridge",
+      "node_type": "terminal",
+      "long_name": "Belly Ridge",
+      "morphology_family": "snake",
+      "description": "Directional belly ridge contact component."
+    },
+    {
+      "short_form_name": "keel_torso",
+      "node_type": "terminal",
+      "long_name": "Keel Torso",
+      "morphology_family": "bird",
+      "description": "Bird-like keel torso component."
+    },
+    {
+      "short_form_name": "shoulder_joint",
+      "node_type": "terminal",
+      "long_name": "Shoulder Joint",
+      "morphology_family": "bird",
+      "description": "Actuated shoulder joint component."
+    },
+    {
+      "short_form_name": "wing_link",
+      "node_type": "terminal",
+      "long_name": "Wing Link",
+      "morphology_family": "bird",
+      "description": "Rigid wing link component."
+    },
+    {
+      "short_form_name": "feather_panel",
+      "node_type": "terminal",
+      "long_name": "Feather Panel",
+      "morphology_family": "bird",
+      "description": "Lightweight wing surface panel."
+    },
+    {
+      "short_form_name": "leg_link",
+      "node_type": "terminal",
+      "long_name": "Leg Link",
+      "morphology_family": "bird",
+      "description": "Generic leg link component."
+    },
+    {
+      "short_form_name": "ankle_joint",
+      "node_type": "terminal",
+      "long_name": "Ankle Joint",
+      "morphology_family": "bird",
+      "description": "Actuated ankle joint component."
+    },
+    {
+      "short_form_name": "talon_foot",
+      "node_type": "terminal",
+      "long_name": "Talon Foot",
+      "morphology_family": "bird",
+      "description": "Bird-like talon ground-contact foot."
+    },
+    {
+      "short_form_name": "neck_joint",
+      "node_type": "terminal",
+      "long_name": "Neck Joint",
+      "morphology_family": "bird",
+      "description": "Neck articulation component."
+    },
+    {
+      "short_form_name": "beak_sensor",
+      "node_type": "terminal",
+      "long_name": "Beak Sensor",
+      "morphology_family": "bird",
+      "description": "Bird-like head sensor terminal."
+    },
+    {
+      "short_form_name": "compact_torso",
+      "node_type": "terminal",
+      "long_name": "Compact Torso",
+      "morphology_family": "bird",
+      "description": "Compact torso link component."
+    },
+    {
+      "short_form_name": "folded_wing",
+      "node_type": "terminal",
+      "long_name": "Folded Wing",
+      "morphology_family": "bird",
+      "description": "Compact folded wing component."
+    },
+    {
+      "short_form_name": "shin_link",
+      "node_type": "terminal",
+      "long_name": "Shin Link",
+      "morphology_family": "bird",
+      "description": "Terminal robot component symbol in Perching bird grammar representing shin link."
+    },
+    {
+      "short_form_name": "opposable_talon",
+      "node_type": "terminal",
+      "long_name": "Opposable Talon",
+      "morphology_family": "bird",
+      "description": "Opposable talon component for grasping or perching."
+    },
+    {
+      "short_form_name": "low_trunk",
+      "node_type": "terminal",
+      "long_name": "Low Trunk",
+      "morphology_family": "lizard",
+      "description": "Low central trunk link component."
+    },
+    {
+      "short_form_name": "tail_yaw",
+      "node_type": "terminal",
+      "long_name": "Tail Yaw",
+      "morphology_family": "lizard",
+      "description": "Yaw-axis tail joint component."
+    },
+    {
+      "short_form_name": "upper_limb",
+      "node_type": "terminal",
+      "long_name": "Upper Limb",
+      "morphology_family": "lizard",
+      "description": "Upper sprawled limb link component."
+    },
+    {
+      "short_form_name": "lower_limb",
+      "node_type": "terminal",
+      "long_name": "Lower Limb",
+      "morphology_family": "lizard",
+      "description": "Lower sprawled limb link component."
+    },
+    {
+      "short_form_name": "claw_foot",
+      "node_type": "terminal",
+      "long_name": "Claw Foot",
+      "morphology_family": "lizard",
+      "description": "Clawed contact foot terminal."
+    },
+    {
+      "short_form_name": "flat_trunk",
+      "node_type": "terminal",
+      "long_name": "Flat Trunk",
+      "morphology_family": "lizard",
+      "description": "Flat body trunk component for climbing or sprawled posture."
+    },
+    {
+      "short_form_name": "tail_link",
+      "node_type": "terminal",
+      "long_name": "Tail Link",
+      "morphology_family": "lizard",
+      "description": "Rigid tail link component."
+    },
+    {
+      "short_form_name": "hip_abduction",
+      "node_type": "terminal",
+      "long_name": "Hip Abduction",
+      "morphology_family": "lizard",
+      "description": "Hip abduction joint for sprawled limb posture."
+    },
+    {
+      "short_form_name": "limb_link",
+      "node_type": "terminal",
+      "long_name": "Limb Link",
+      "morphology_family": "lizard",
+      "description": "Generic limb link component."
+    },
+    {
+      "short_form_name": "toe_splay_joint",
+      "node_type": "terminal",
+      "long_name": "Toe Splay Joint",
+      "morphology_family": "lizard",
+      "description": "Toe-spreading joint for adhesive foot contact."
+    },
+    {
+      "short_form_name": "adhesive_pad",
+      "node_type": "terminal",
+      "long_name": "Adhesive Pad",
+      "morphology_family": "lizard",
+      "description": "Adhesive climbing contact pad."
+    },
+    {
+      "short_form_name": "spine_yaw",
+      "node_type": "terminal",
+      "long_name": "Spine Yaw",
+      "morphology_family": "lizard",
+      "description": "Yaw-axis spine joint component."
+    },
+    {
+      "short_form_name": "short_hip",
+      "node_type": "terminal",
+      "long_name": "Short Hip",
+      "morphology_family": "lizard",
+      "description": "Short-leg hip joint component."
+    },
+    {
+      "short_form_name": "short_limb",
+      "node_type": "terminal",
+      "long_name": "Short Limb",
+      "morphology_family": "lizard",
+      "description": "Short limb link component."
+    },
+    {
+      "short_form_name": "flat_foot",
+      "node_type": "terminal",
+      "long_name": "Flat Foot",
+      "morphology_family": "lizard",
+      "description": "Flat ground-contact foot terminal."
+    },
+    {
+      "short_form_name": "compact_body",
+      "node_type": "terminal",
+      "long_name": "Compact Body",
+      "morphology_family": "arachnid",
+      "description": "Compact central body component."
+    },
+    {
+      "short_form_name": "radial_mount",
+      "node_type": "terminal",
+      "long_name": "Radial Mount",
+      "morphology_family": "arachnid",
+      "description": "Radial limb mounting component."
+    },
+    {
+      "short_form_name": "hip_joint",
+      "node_type": "terminal",
+      "long_name": "Hip Joint",
+      "morphology_family": "arachnid",
+      "description": "Actuated hip joint component."
+    },
+    {
+      "short_form_name": "femur_link",
+      "node_type": "terminal",
+      "long_name": "Femur Link",
+      "morphology_family": "arachnid",
+      "description": "Insect or arachnid femur link component."
+    },
+    {
+      "short_form_name": "tibia_joint",
+      "node_type": "terminal",
+      "long_name": "Tibia Joint",
+      "morphology_family": "arachnid",
+      "description": "Insect or arachnid tibia joint component."
+    },
+    {
+      "short_form_name": "tarsus_tip",
+      "node_type": "terminal",
+      "long_name": "Tarsus Tip",
+      "morphology_family": "arachnid",
+      "description": "Arachnid-like distal tarsus contact tip."
+    },
+    {
+      "short_form_name": "strut_link",
+      "node_type": "terminal",
+      "long_name": "Strut Link",
+      "morphology_family": "hybrid",
+      "description": "Rigid strut link component."
+    },
+    {
+      "short_form_name": "wheel",
+      "node_type": "terminal",
+      "long_name": "Wheel",
+      "morphology_family": "hybrid",
+      "description": "Driven wheel contact component."
+    }
+  ],
+  "rules": [
+    {
+      "id": "shared_start_body",
+      "lhs": "S",
+      "rhs": [
+        "BODY"
+      ],
+      "morphology_family": "shared",
+      "constraints": {
+        "recursive": false
+      },
+      "rule": "S -> BODY",
+      "description": "Initialize a morphology from a root body placeholder."
+    },
+    {
+      "id": "shared_body_extend",
+      "lhs": "BODY_CHAIN",
+      "rhs": [
+        "BODY_SEG",
+        "BODY_JOINT",
+        "BODY_CHAIN"
+      ],
+      "morphology_family": "shared",
+      "constraints": {
+        "recursive": true,
+        "max_segments": 40
+      },
+      "rule": "BODY_CHAIN -> BODY_SEG BODY_JOINT BODY_CHAIN",
+      "description": "Recursively add another body segment to an axial chain."
+    },
+    {
+      "id": "shared_body_stop",
+      "lhs": "BODY_CHAIN",
+      "rhs": [
+        "BODY_SEG"
+      ],
+      "morphology_family": "shared",
+      "constraints": {
+        "recursive": false
+      },
+      "rule": "BODY_CHAIN -> BODY_SEG",
+      "description": "Terminate an axial body chain."
+    },
+    {
+      "id": "shared_pair_symmetry",
+      "lhs": "APPENDAGE_PAIR",
+      "rhs": [
+        "mirror_left",
+        "APPENDAGE",
+        "mirror_right"
+      ],
+      "morphology_family": "shared",
+      "constraints": {
+        "symmetry": "bilateral"
+      },
+      "rule": "APPENDAGE_PAIR -> mirror_left APPENDAGE mirror_right",
+      "description": "Represent a left-right symmetric appendage pair from one abstract branch."
+    },
+    {
+      "id": "shared_terminal_foot",
+      "lhs": "TERMINAL_CONTACT",
+      "rhs": [
+        "foot_pad"
+      ],
+      "morphology_family": "shared",
+      "constraints": {
+        "contact": "ground"
+      },
+      "rule": "TERMINAL_CONTACT -> foot_pad",
+      "description": "Instantiate a limb end as a passive foot pad."
+    },
+    {
+      "id": "shared_terminal_wheel",
+      "lhs": "TERMINAL_CONTACT",
+      "rhs": [
+        "wheel"
+      ],
+      "morphology_family": "shared",
+      "constraints": {
+        "contact": "rolling"
+      },
+      "rule": "TERMINAL_CONTACT -> wheel",
+      "description": "Instantiate a limb end as an actively driven wheel."
+    },
+    {
+      "id": "humanoid_torso_pelvis",
+      "lhs": "S",
+      "rhs": [
+        "TORSO",
+        "PELVIS",
+        "HEAD",
+        "ARM_PAIR",
+        "LEG_PAIR"
+      ],
+      "morphology_family": "humanoid",
+      "constraints": {
+        "requires": [
+          "ARM_PAIR",
+          "LEG_PAIR"
+        ]
+      },
+      "rule": "S -> TORSO PELVIS HEAD ARM_PAIR LEG_PAIR",
+      "description": "Build a humanoid body plan with upper and lower body anchors."
+    },
+    {
+      "id": "humanoid_arm_pair",
+      "lhs": "ARM_PAIR",
+      "rhs": [
+        "mirror_left",
+        "ARM",
+        "mirror_right"
+      ],
+      "morphology_family": "humanoid",
+      "constraints": {
+        "count": 2
+      },
+      "rule": "ARM_PAIR -> mirror_left ARM mirror_right",
+      "description": "Attach mirrored arms to the torso."
+    },
+    {
+      "id": "humanoid_leg_pair",
+      "lhs": "LEG_PAIR",
+      "rhs": [
+        "mirror_left",
+        "LEG",
+        "mirror_right"
+      ],
+      "morphology_family": "humanoid",
+      "constraints": {
+        "count": 2
+      },
+      "rule": "LEG_PAIR -> mirror_left LEG mirror_right",
+      "description": "Attach mirrored legs to the pelvis."
+    },
+    {
+      "id": "humanoid_arm_chain",
+      "lhs": "ARM",
+      "rhs": [
+        "shoulder_joint",
+        "upper_arm",
+        "elbow_joint",
+        "forearm",
+        "wrist_joint",
+        "hand"
+      ],
+      "morphology_family": "humanoid",
+      "constraints": {
+        "min_dof": 5
+      },
+      "rule": "ARM -> shoulder_joint upper_arm elbow_joint forearm wrist_joint hand",
+      "description": "Expand an arm into a manipulation chain."
+    },
+    {
+      "id": "biped_leg_chain",
+      "lhs": "LEG",
+      "rhs": [
+        "hip_joint",
+        "upper_leg",
+        "knee_joint",
+        "lower_leg",
+        "ankle_joint",
+        "foot_pad"
+      ],
+      "morphology_family": "biped",
+      "constraints": {
+        "min_dof": 3
+      },
+      "rule": "LEG -> hip_joint upper_leg knee_joint lower_leg ankle_joint foot_pad",
+      "description": "Expand a biped leg into a walking chain."
+    },
+    {
+      "id": "biped_digitigrade_leg",
+      "lhs": "DIGITIGRADE_LEG",
+      "rhs": [
+        "hip_pitch",
+        "thigh_link",
+        "reverse_knee",
+        "heel_link",
+        "toe_pad"
+      ],
+      "morphology_family": "biped",
+      "constraints": {
+        "leg_style": "digitigrade"
+      },
+      "rule": "DIGITIGRADE_LEG -> hip_pitch thigh_link reverse_knee heel_link toe_pad",
+      "description": "Create an animal-like high-compliance biped leg."
+    },
+    {
+      "id": "biped_hopper_leg",
+      "lhs": "SPRING_LEG",
+      "rhs": [
+        "hip_joint",
+        "spring_thigh",
+        "compliant_knee",
+        "spring_shank",
+        "wide_foot"
+      ],
+      "morphology_family": "biped",
+      "constraints": {
+        "compliance": "high"
+      },
+      "rule": "SPRING_LEG -> hip_joint spring_thigh compliant_knee spring_shank wide_foot",
+      "description": "Create a spring-biased hopping leg."
+    },
+    {
+      "id": "quadruped_two_segment_body",
+      "lhs": "BODY_CHAIN",
+      "rhs": [
+        "front_body_segment",
+        "body_connector",
+        "rear_body_segment"
+      ],
+      "morphology_family": "quadruped",
+      "constraints": {
+        "segments": 2
+      },
+      "rule": "BODY_CHAIN -> front_body_segment body_connector rear_body_segment",
+      "description": "Build front and rear quadruped body anchors."
+    },
+    {
+      "id": "quadruped_front_pair",
+      "lhs": "front_body_segment",
+      "rhs": [
+        "LEG_PAIR"
+      ],
+      "morphology_family": "quadruped",
+      "constraints": {
+        "slot": "front"
+      },
+      "rule": "front_body_segment -> LEG_PAIR",
+      "description": "Attach a mirrored front leg pair."
+    },
+    {
+      "id": "quadruped_rear_pair",
+      "lhs": "rear_body_segment",
+      "rhs": [
+        "LEG_PAIR"
+      ],
+      "morphology_family": "quadruped",
+      "constraints": {
+        "slot": "rear"
+      },
+      "rule": "rear_body_segment -> LEG_PAIR",
+      "description": "Attach a mirrored rear leg pair."
+    },
+    {
+      "id": "quadruped_hip_stack",
+      "lhs": "HIP_STACK",
+      "rhs": [
+        "hip_yaw",
+        "hip_roll",
+        "hip_pitch"
+      ],
+      "morphology_family": "quadruped",
+      "constraints": {
+        "dof": 3
+      },
+      "rule": "HIP_STACK -> hip_yaw hip_roll hip_pitch",
+      "description": "Instantiate a yaw-roll-pitch hip stack."
+    },
+    {
+      "id": "quadruped_leg_chain",
+      "lhs": "LEG",
+      "rhs": [
+        "HIP_STACK",
+        "thigh_link",
+        "knee_joint",
+        "shank_link",
+        "foot_pad"
+      ],
+      "morphology_family": "quadruped",
+      "constraints": {
+        "min_dof": 3
+      },
+      "rule": "LEG -> HIP_STACK thigh_link knee_joint shank_link foot_pad",
+      "description": "Create a standard articulated quadruped leg."
+    },
+    {
+      "id": "hexapod_thorax_chain",
+      "lhs": "THORAX_CHAIN",
+      "rhs": [
+        "THORAX_SEG",
+        "THORAX_SEG",
+        "THORAX_SEG"
+      ],
+      "morphology_family": "hexapod",
+      "constraints": {
+        "segments": 3
+      },
+      "rule": "THORAX_CHAIN -> THORAX_SEG THORAX_SEG THORAX_SEG",
+      "description": "Build a three-segment insect thorax."
+    },
+    {
+      "id": "hexapod_tripod_pairs",
+      "lhs": "THORAX_SEG",
+      "rhs": [
+        "LEG_PAIR"
+      ],
+      "morphology_family": "hexapod",
+      "constraints": {
+        "pairs_total": 3
+      },
+      "rule": "THORAX_SEG -> LEG_PAIR",
+      "description": "Attach leg pairs for tripod gait support."
+    },
+    {
+      "id": "centipede_segment_extend",
+      "lhs": "SEG_CHAIN",
+      "rhs": [
+        "SEG",
+        "flex_joint",
+        "SEG_CHAIN"
+      ],
+      "morphology_family": "centipede",
+      "constraints": {
+        "recursive": true,
+        "max_segments": 24
+      },
+      "rule": "SEG_CHAIN -> SEG flex_joint SEG_CHAIN",
+      "description": "Extend a many-legged body chain."
+    },
+    {
+      "id": "centipede_short_leg_pair",
+      "lhs": "SEG",
+      "rhs": [
+        "body_segment",
+        "LEG_PAIR"
+      ],
+      "morphology_family": "centipede",
+      "constraints": {
+        "leg_length": "short"
+      },
+      "rule": "SEG -> body_segment LEG_PAIR",
+      "description": "Attach a short mirrored leg pair to a body segment."
+    },
+    {
+      "id": "snake_yaw_extend",
+      "lhs": "BODY_CHAIN",
+      "rhs": [
+        "vertebra_link",
+        "yaw_joint",
+        "BODY_CHAIN"
+      ],
+      "morphology_family": "snake",
+      "constraints": {
+        "limbs": 0,
+        "recursive": true
+      },
+      "rule": "BODY_CHAIN -> vertebra_link yaw_joint BODY_CHAIN",
+      "description": "Extend a limbless yaw-articulated body chain."
+    },
+    {
+      "id": "snake_pitch_yaw_pair",
+      "lhs": "SIDEWINDER_CHAIN",
+      "rhs": [
+        "YAW_SEG",
+        "PITCH_SEG",
+        "SIDEWINDER_CHAIN"
+      ],
+      "morphology_family": "snake",
+      "constraints": {
+        "pattern": "alternating"
+      },
+      "rule": "SIDEWINDER_CHAIN -> YAW_SEG PITCH_SEG SIDEWINDER_CHAIN",
+      "description": "Add alternating yaw and pitch segments for sidewinding."
+    },
+    {
+      "id": "bird_body_wings_legs",
+      "lhs": "S",
+      "rhs": [
+        "BODY",
+        "WING_PAIR",
+        "LEG_PAIR",
+        "NECK",
+        "HEAD"
+      ],
+      "morphology_family": "bird",
+      "constraints": {
+        "legs": 2,
+        "wings": true
+      },
+      "rule": "S -> BODY WING_PAIR LEG_PAIR NECK HEAD",
+      "description": "Create a bird-like body with wings and biped legs."
+    },
+    {
+      "id": "bird_wing_pair",
+      "lhs": "WING_PAIR",
+      "rhs": [
+        "mirror_left",
+        "WING",
+        "mirror_right"
+      ],
+      "morphology_family": "bird",
+      "constraints": {
+        "count": 2
+      },
+      "rule": "WING_PAIR -> mirror_left WING mirror_right",
+      "description": "Attach mirrored wing appendages."
+    },
+    {
+      "id": "bird_perching_leg",
+      "lhs": "PERCHING_LEG",
+      "rhs": [
+        "hip_joint",
+        "shin_link",
+        "ankle_joint",
+        "opposable_talon"
+      ],
+      "morphology_family": "bird",
+      "constraints": {
+        "foot_grasp": "opposable"
+      },
+      "rule": "PERCHING_LEG -> hip_joint shin_link ankle_joint opposable_talon",
+      "description": "Create a leg with a grasping talon foot."
+    },
+    {
+      "id": "lizard_sprawled_pairs",
+      "lhs": "TRUNK",
+      "rhs": [
+        "SPRAWLED_LEG_PAIR",
+        "SPRAWLED_LEG_PAIR"
+      ],
+      "morphology_family": "lizard",
+      "constraints": {
+        "posture": "sprawled"
+      },
+      "rule": "TRUNK -> SPRAWLED_LEG_PAIR SPRAWLED_LEG_PAIR",
+      "description": "Attach two sprawled leg pairs to a low trunk."
+    },
+    {
+      "id": "lizard_tail",
+      "lhs": "TAIL",
+      "rhs": [
+        "tail_yaw",
+        "tail_link",
+        "tail_tip"
+      ],
+      "morphology_family": "lizard",
+      "constraints": {
+        "stabilizer": true
+      },
+      "rule": "TAIL -> tail_yaw tail_link tail_tip",
+      "description": "Add an articulated stabilizing tail."
+    },
+    {
+      "id": "gecko_adhesive_foot",
+      "lhs": "ADHESIVE_FOOT",
+      "rhs": [
+        "toe_splay_joint",
+        "adhesive_pad"
+      ],
+      "morphology_family": "lizard",
+      "constraints": {
+        "contact": "adhesive"
+      },
+      "rule": "ADHESIVE_FOOT -> toe_splay_joint adhesive_pad",
+      "description": "Instantiate a climbing foot with adhesive contact."
+    },
+    {
+      "id": "salamander_spine_extend",
+      "lhs": "SPINE_CHAIN",
+      "rhs": [
+        "BODY_SEG",
+        "spine_yaw",
+        "SPINE_CHAIN"
+      ],
+      "morphology_family": "lizard",
+      "constraints": {
+        "recursive": true,
+        "spine_dof": "high"
+      },
+      "rule": "SPINE_CHAIN -> BODY_SEG spine_yaw SPINE_CHAIN",
+      "description": "Extend a body-wave spine chain."
+    },
+    {
+      "id": "arachnid_four_pairs",
+      "lhs": "BODY",
+      "rhs": [
+        "LEG_PAIR",
+        "LEG_PAIR",
+        "LEG_PAIR",
+        "LEG_PAIR"
+      ],
+      "morphology_family": "arachnid",
+      "constraints": {
+        "pairs_total": 4
+      },
+      "rule": "BODY -> LEG_PAIR LEG_PAIR LEG_PAIR LEG_PAIR",
+      "description": "Attach four mirrored leg pairs for eight-legged stability."
+    },
+    {
+      "id": "hybrid_appendage_contact",
+      "lhs": "TERMINAL_CONTACT",
+      "rhs": [
+        "wheel",
+        "foot_pad"
+      ],
+      "morphology_family": "hybrid",
+      "constraints": {
+        "select_one": true
+      },
+      "rule": "TERMINAL_CONTACT -> wheel foot_pad",
+      "description": "Allow a terminal contact to become either a wheel or a foot."
+    }
+  ]
+}

@@ -42,7 +42,7 @@ export const designReviewVideos = [
   },
 ];
 
-export const designIds: Record<"A" | "B" | "C", string> = {
+export const designIds: Record<string, string> = {
   A: "design-a",
   B: "design-b",
   C: "design-c",

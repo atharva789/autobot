@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-05-24T18:36:30.894198+00:00",
+  "dataset": "robogrammar-structural-rules-evals",
+  "examples": 1,
+  "loops": {
+    "compiler_centric": {
+      "experiment_name": "robogrammar-compile-result-state.2026-05-25-compiler_centric-qwen-1d65cb18"
+    }
+  },
+  "max_attempts": 1,
+  "model": "Qwen/Qwen3-1.7B",
+  "provider": "qwen"
+}

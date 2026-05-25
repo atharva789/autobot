@@ -1,0 +1,1 @@
+"""Strategy-agnostic design evaluation."""

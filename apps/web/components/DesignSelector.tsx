@@ -7,12 +7,12 @@ import { api } from "@/lib/api";
 
 interface DesignSelectorProps {
   candidates: RobotDesignCandidate[];
-  designIds: Record<"A" | "B" | "C", string>;
-  modelPreferredId: "A" | "B" | "C";
+  designIds: Record<string, string>;
+  modelPreferredId: string;
   rankings: FallbackRanking[];
-  onSelect: (designId: string, candidateId: "A" | "B" | "C") => void;
+  onSelect: (designId: string, candidateId: string) => void;
   disabled?: boolean;
-  initialSelectedId?: "A" | "B" | "C" | null;
+  initialSelectedId?: string | null;
 }
 
 function ScoreBar({ score, label }: { score: number; label: string }) {
@@ -258,14 +258,16 @@ export function DesignSelector({
   disabled,
   initialSelectedId = null,
 }: DesignSelectorProps) {
-  const [selectedId, setSelectedId] = useState<"A" | "B" | "C" | null>(initialSelectedId);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
   const [bomData, setBomData] = useState<BOMOutput | null>(null);
   const [bomLoading, setBomLoading] = useState(false);
 
-  async function handleViewBom(candidateId: "A" | "B" | "C") {
+  async function handleViewBom(candidateId: string) {
+    const designId = designIds[candidateId];
+    if (!designId) return;
     setBomLoading(true);
     try {
-      const bom = await api.designs.getBom(designIds[candidateId]);
+      const bom = await api.designs.getBom(designId);
       setBomData(bom);
     } catch (err) {
       console.error("Failed to load BOM:", err);
@@ -274,9 +276,11 @@ export function DesignSelector({
     }
   }
 
-  function handleSelect(candidateId: "A" | "B" | "C") {
+  function handleSelect(candidateId: string) {
+    const designId = designIds[candidateId];
+    if (!designId) return;
     setSelectedId(candidateId);
-    onSelect(designIds[candidateId], candidateId);
+    onSelect(designId, candidateId);
   }
 
   return (
@@ -290,7 +294,7 @@ export function DesignSelector({
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {candidates.map((candidate, index) => {
           const ranking = rankings.find(
             (r) => r.candidate_id === candidate.candidate_id

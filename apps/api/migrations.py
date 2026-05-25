@@ -1,7 +1,8 @@
 """Database migrations for the robot design pipeline.
 
 Provides schema definitions and SQL generation for:
-- designs table (stores 3 design candidates per ingest job)
+- designs table (stores generated design candidates per ingest job)
+- prompt query events table (stores raw prompts and derived normalized queries)
 - evolutions.design_id foreign key
 """
 from __future__ import annotations
@@ -29,7 +30,6 @@ DESIGNS_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
     "candidate_id": {
         "type": "text",
         "nullable": False,
-        "check": "candidate_id IN ('A', 'B', 'C')",
     },
     "design_json": {
         "type": "jsonb",
@@ -50,6 +50,52 @@ DESIGNS_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
     "screening_score": {
         "type": "float",
         "nullable": True,
+    },
+    "created_at": {
+        "type": "timestamptz",
+        "default": "NOW()",
+    },
+}
+
+
+PROMPT_QUERIES_TABLE_SCHEMA: dict[str, dict[str, Any]] = {
+    "id": {
+        "type": "uuid",
+        "primary_key": True,
+        "default": "gen_random_uuid()",
+    },
+    "event_type": {
+        "type": "text",
+        "nullable": False,
+    },
+    "prompt": {
+        "type": "text",
+        "nullable": True,
+    },
+    "query_text": {
+        "type": "text",
+        "nullable": True,
+    },
+    "ingest_job_id": {
+        "type": "text",
+        "nullable": True,
+    },
+    "normalized_query_json": {
+        "type": "jsonb",
+        "nullable": True,
+    },
+    "population": {
+        "type": "integer",
+        "nullable": True,
+    },
+    "langsmith_trace_id": {
+        "type": "text",
+        "nullable": True,
+    },
+    "metadata_json": {
+        "type": "jsonb",
+        "nullable": False,
+        "default": "'{}'::jsonb",
     },
     "created_at": {
         "type": "timestamptz",
@@ -115,6 +161,44 @@ WITH CHECK (true);
 """
 
 
+def generate_prompt_queries_table_sql() -> str:
+    """Generate SQL to create the prompt/query persistence table."""
+    columns = []
+    for col_name, col_def in PROMPT_QUERIES_TABLE_SCHEMA.items():
+        col_type = col_def["type"].upper()
+        parts = [col_name, col_type]
+        if col_def.get("primary_key"):
+            parts.append("PRIMARY KEY")
+        if col_def.get("default"):
+            parts.append(f"DEFAULT {col_def['default']}")
+        if col_def.get("nullable") is False:
+            parts.append("NOT NULL")
+        columns.append(" ".join(parts))
+    columns_sql = ",\n    ".join(columns)
+    return f"""CREATE TABLE IF NOT EXISTS "PromptQueries" (
+    {columns_sql}
+);
+
+CREATE INDEX IF NOT EXISTS idx_prompt_queries_ingest_job_id
+ON "PromptQueries"(ingest_job_id);
+
+CREATE INDEX IF NOT EXISTS idx_prompt_queries_event_type_created_at
+ON "PromptQueries"(event_type, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_prompt_queries_langsmith_trace_id
+ON "PromptQueries"(langsmith_trace_id)
+WHERE langsmith_trace_id IS NOT NULL;
+
+ALTER TABLE "PromptQueries" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role has full access to PromptQueries"
+ON "PromptQueries" FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+"""
+
+
 def generate_evolutions_alter_sql() -> str:
     """Generate SQL to add design_id column to evolutions table."""
     col = EVOLUTIONS_DESIGN_ID_COLUMN
@@ -133,11 +217,13 @@ def generate_full_migration_sql() -> str:
 
 {generate_designs_table_sql()}
 
+{generate_prompt_queries_table_sql()}
+
 {generate_evolutions_alter_sql()}
 """
 
 
-MigrationName = Literal["designs_table", "evolutions_design_id", "full"]
+MigrationName = Literal["designs_table", "prompt_queries_table", "evolutions_design_id", "full"]
 
 
 def run_migration(
@@ -156,6 +242,7 @@ def run_migration(
     """
     sql_map = {
         "designs_table": generate_designs_table_sql,
+        "prompt_queries_table": generate_prompt_queries_table_sql,
         "evolutions_design_id": generate_evolutions_alter_sql,
         "full": generate_full_migration_sql,
     }

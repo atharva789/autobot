@@ -14,7 +14,7 @@ import type {
   HitlSetupResponse,
 } from "./types";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -73,10 +73,10 @@ export const api = {
       req(`/evolutions/${evoId}/iterations`),
   },
   designs: {
-    generate: (ingestJobId: string): Promise<GenerateDesignsResponse> =>
+    generate: (ingestJobId: string, population?: number): Promise<GenerateDesignsResponse> =>
       req("/designs/generate", {
         method: "POST",
-        body: JSON.stringify({ ingest_job_id: ingestJobId }),
+        body: JSON.stringify({ ingest_job_id: ingestJobId, population }),
       }),
     get: (designId: string) => req<Record<string, unknown>>(`/designs/${designId}`),
     getSpec: (designId: string): Promise<DesignSpecResponse> => req(`/designs/${designId}/spec`),

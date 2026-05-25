@@ -79,8 +79,8 @@ class Collision:
 @dataclass(frozen=True)
 class ActuatorSlot:
     """Slot for an actuator on a joint."""
-    actuator_type: Literal["motor", "servo", "hydraulic", "pneumatic"]
-    max_torque: float = 100.0
+    actuator_type: Literal["motor", "servo", "hydraulic", "pneumatic", "position"]
+    max_torque: float = 1.0
     max_velocity: float = 10.0
     gear_ratio: float = 1.0
     vendor_sku: str | None = None  # If resolved to real part
@@ -98,9 +98,9 @@ class SensorSlot:
 @dataclass(frozen=True)
 class JointLimits:
     """Joint motion limits."""
-    lower: float = -3.14159
-    upper: float = 3.14159
-    effort: float = 100.0
+    lower: float = -1.047
+    upper: float = 1.047
+    effort: float = 1.0
     velocity: float = 10.0
 
 

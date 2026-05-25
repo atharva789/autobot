@@ -21,6 +21,122 @@ If no active phase is specified, assume work starts at Phase 01.
 4. Write a phase-specific implementation spec in a separate file when that phase meets its exit criteria.
 5. Implement only after the phase spec exists or the user explicitly authorizes implementation from the discovery doc.
 
+## Codebase Architecture: Two Independent Layers
+
+This repo has two layers that share `packages/pipeline/`. Product code may use
+the narrow research agent-loop registry described below, but research code must
+still avoid importing from `apps/`.
+Full details in `AGENTS.md`. Summary for session orientation:
+
+### Layer 1 — Product Engineering (`apps/` + `packages/pipeline/`)
+
+Web product: FastAPI backend + Next.js frontend. Users describe a robot, get candidate designs,
+eventually get validated imitation-learning datasets.
+
+- New web routes, UI changes, Supabase schema → work in `apps/`
+- `apps/api/routes/designs.py` calls the app-compatible research agent-loop registry
+- Product code should only import `packages.research.agent_loops` for robot-generation loop selection
+
+### Layer 2 — Research Experimentation (`packages/research/`)
+
+Self-contained Python package for trying different robot generation methods.
+No web server, no Supabase, no frontend. Entry points: CLI and notebook.
+
+- New robot generation implementations → work here, **not** in `apps/`
+- LangGraph agent-loop structure lives in `packages/research/agent_loops/`
+- The built-in grammar loop is `packages/research/agent_loops/grammar_loop.py`
+- Register app-compatible loops with `register_agent_loop(name, runner)`
+- Backend-compatible loops return `AgentLoopResult(state=..., hitl=...)`
+- Every method implements the `GenerationStrategy` protocol:
+  ```python
+  def generate(self, prompt: str, config: StrategyConfig) -> list[RobotDesignIR]: ...
+  ```
+- Register with `register_strategy(name, cls)` in `packages/research/strategy/registry.py`
+- Benchmark via `ExperimentRunner` (strategy → harness → SQLiteStore)
+- Prompt templates live in `packages/research/prompts/templates/` as versioned YAML
+- Do **not** import from `apps/` here
+
+**Reference notebook:** `packages/research/notebooks/quickstart.ipynb`
+Shows a complete example: a `ParametricMorphologyStrategy` (LLM-free, parametric templates)
+registered, run through `ExperimentRunner`, benchmarked with `evaluate_single`, and compared
+against `GrammarStrategy` using `compare_runs`. Use this as the canonical pattern for any new
+strategy implementation.
+
+### Agent Loop Registry (`packages/research/agent_loops/`)
+
+This is the only approved bridge from the product backend into the research
+layer. It lets notebooks and research modules swap LangGraph loop structure
+without changing FastAPI route code.
+
+Public contract:
+```python
+def loop(
+    prompt: str,
+    initial_state: dict[str, Any] | None = None,
+    *,
+    config: AgentLoopConfig | None = None,
+) -> AgentLoopResult: ...
+```
+
+- `AgentLoopConfig` carries population, max attempts, optional injected agents, optional confirmed spec, and extra metadata.
+- `AgentLoopResult.state` is the full research/debug state.
+- `AgentLoopResult.hitl` is the backend/UI-facing payload and should preserve the existing grammar HITL shape unless the frontend contract changes.
+- `POST /designs/generate` accepts optional `agent_loop`; default is `grammar`.
+- `GET /designs/agent-loops` lists loop names available in the running server process.
+- Runtime notebook registration is process-local. A separate FastAPI server only sees loops registered by importable code loaded in that server process.
+- Registered agent loops use LangSmith for active observability. Preserve `langsmith_trace_id` in loop state/HITL and product prompt persistence; Langfuse IDs are legacy debug/import data only.
+- `RunDebugAPI()` reads LangSmith by default. Pass `RunDebugAPI(use_langfuse=True)` only when intentionally debugging legacy Langfuse traces.
+- `packages/research/agent_loops/grammar_loop.py` exposes the reusable grammar-loop node/tool surface via `STRUCTURAL_RULE_GRAPH_NODES`, `STRUCTURAL_RULE_GRAPH_NODE_ORDER`, `GRAMMAR_LOOP_TOOLS`, and `StructuralRuleLoopContext`; new research-owned loops can import those nodes instead of copying the built-in normalize/checklist/build/repair/compile/evaluate stages.
+- `grammar_loop.make_structured_agent_from_chat_model()` and `make_structural_rule_agents_from_chat_model()` adapt swappable LangChain chat models into grammar-loop agents. Use these in notebooks when testing Qwen/OpenAI-compatible models through the real grammar loop instead of duplicating rule-builder logic.
+
+### Research LLM Backend (`packages/research/local_chat_models.py`)
+
+Research loops and materializers must not instantiate `ChatOpenAI` directly.
+Use `make_chat_model(...)` or `make_structured_llm(...)` so notebooks can swap
+between local Claude Code, local Codex, or an explicit OpenAI fallback without
+rewriting agent-loop code.
+
+- `RESEARCH_LLM_PROVIDER=codex` starts one isolated persistent `codex mcp-server` process and continues the same Codex thread with `codex-reply`; the default command disables user-level MCP servers/plugins so research LLM calls are not blocked by unrelated local connector config.
+- `RESEARCH_LLM_PROVIDER=claude-code` uses Claude Code's non-interactive `claude -p --output-format json` path with prompts sent on stdin. The adapter removes `ANTHROPIC_API_KEY` from the Claude subprocess by default so local Claude Code subscription auth is not overridden by stale shell/API-key state; set `RESEARCH_LLM_USE_ANTHROPIC_API_KEY=1` only when intentionally using an Anthropic API key.
+- `RESEARCH_LLM_PROVIDER=openai-compatible` uses the OpenAI Chat Completions HTTP shape against a local server. The Qwen3 1.7B helper server is `python -m packages.research.qwen_openai_server --host 127.0.0.1 --port 8001`; point agent loops at it with `RESEARCH_LLM_MODEL=Qwen/Qwen3-1.7B`, `RESEARCH_LLM_BASE_URL=http://127.0.0.1:8001/v1`, and `RESEARCH_LLM_API_KEY=EMPTY`.
+- `RESEARCH_LLM_COMMAND` plus `RESEARCH_LLM_PROTOCOL=jsonl` can point at a custom persistent wrapper; this is the most testable protocol for notebooks.
+- `RESEARCH_LLM_PROVIDER=openai` is the only path that may use `langchain_openai.ChatOpenAI`.
+
+### Shared Library (`packages/pipeline/`)
+
+Both layers read from it. Neither should modify it lightly.
+Contains: `RobotDesignIR`, grammar catalog/tool helpers in `grammar_graph`, MJCF compiler, simulation validator.
+`packages/pipeline/grammar_graph.py` keeps a compatibility shim for older
+`build_structural_rules` imports, but the core loop is research-owned.
+- `compile_structural_rules(...)` returns `CompileResult(compile_safe, invalid_nodes, unreachable_nodes, compile_error)`;
+  `invalid_nodes` and `unreachable_nodes` are `CompilerError` values with `nodes` and optional
+  `error` details. Reachability is computed by walking generated structural rules from `S`, so
+  generated nodes that exist in the grammar vocabulary but cannot be reached from `S` are compile
+  errors. `RoboGraphState` stores this as a single `compile_result` object; HITL/API payloads keep
+  plain `compile_safe`, `compile_error`, `invalid_grammar_nodes`, and `unreachable_grammar_nodes`
+  fields for frontend compatibility.
+
+### Dependency Rule
+
+```
+apps/api/  →  packages/pipeline/   (ok)
+apps/api/  →  packages/research/agent_loops/  (ok, narrow loop registry only)
+packages/research/  →  packages/pipeline/  (ok)
+packages/research/  →  apps/        (FORBIDDEN)
+```
+
+### Quick Decision Table
+
+| Task | Layer |
+|------|-------|
+| New API route or frontend page | `apps/` |
+| New robot generation method | `packages/research/strategy/` |
+| New app-testable LangGraph loop | `packages/research/agent_loops/` |
+| Swapping or tuning LLM prompts for generation | `packages/research/prompts/templates/` |
+| Benchmark comparison between methods | `packages/research/` CLI or notebook |
+| IR types, MJCF compiler, simulation | `packages/pipeline/` |
+| Supabase schema, auth, deployment | `apps/` |
+
 ## Guardrails
 - Preserve these defaults unless the master plan changes:
   web-first product, URDF-first ingest, humanoids, open-web discovery, full source mirroring, human review gate, cloud jobs, Isaac Lab / Isaac Sim, LeRobot-compatible export, no in-platform training in v1.
@@ -35,6 +151,37 @@ If no active phase is specified, assume work starts at Phase 01.
 - Implementation work should reference both the master plan and the phase spec.
 - If implementation pressure conflicts with the master plan, update the planning artifacts first instead of drifting silently.
 - Keep cross-phase interfaces stable unless you intentionally revise upstream documents.
+- Update this `.codex` file in the same change whenever you make a major or new architecture/API change. At minimum, document new public APIs, changed dependency boundaries, new persistence/schema contracts, new experiment/research abstractions, and any workflow rule future agents must follow.
+- This rule is enforced locally by the global Codex Git pre-commit hook at `/Users/thorbthorb/.codex/git-hooks/pre-commit`: staged architecture/API/schema/abstraction changes are blocked unless `.codex` is staged in the same commit. This repo also has a `.git/hooks/pre-commit` wrapper because its local Git config points `core.hooksPath` at `.git/hooks`.
+
+## Active Research Experiment Log
+
+### RoboGrammar Claude Code 701-example loop comparison
+
+- Date started: 2026-05-25 local workspace session.
+- Detached session: `screen` session `47581.robogrammar_claude_701`.
+- Runner PID observed: `47584`.
+- Command:
+  ```bash
+  /Users/thorbthorb/.venvs/jupyterfix/bin/python -m evals.run_langsmith_loop_experiments \
+    --provider claude-code \
+    --loop grammar \
+    --loop compiler_centric \
+    --loop compiler_feedback \
+    --limit 0 \
+    --max-attempts 2 \
+    --max-concurrency 3 \
+    --output evals/results/loop_comparison_claude_701.json
+  ```
+- Partial LangSmith project:
+  `robogrammar-compile-result-state.2026-05-25-grammar-claude-code-a74f00ff`
+- LangSmith comparison URL:
+  `https://smith.langchain.com/o/a52ccfe7-bc7a-4851-9a62-677d03ed199b/datasets/76d011c7-6bff-4260-a5bd-dbd8dddc80c1/compare?selectedSessions=b70dabe3-dfba-42e0-8196-6b30ff2e1f1e`
+- Final checkpoint for this stopped run: first loop `grammar`, local progress `102/701` after about 80 minutes. The experiment was stopped at the user's request after the last completed run. LangSmith root runs first page remained capped at `100` visible with `97` successful and `3` pending on that page. Bounded first-page metrics are recorded in `evals/results/loop_comparison_claude_701_partial_first_page_metrics.json`. Final output `evals/results/loop_comparison_claude_701.json` was not emitted because the three-loop comparison did not complete; partial notes are recorded in `evals/results/loop_comparison_claude_701_partial.md`.
+- Tooling follow-up: `evals/run_langsmith_loop_experiments.py` now writes the output summary before each loop, after each completed loop, and on SIGTERM/SIGINT. It also supports `--offset` for chunked/resumed dataset slices. `evals/summarize_loop_experiment_metrics.py` now supports bounded pagination with `--max-pages` so partial LangSmith projects can be summarized without hanging on full pagination.
+- Aggregation follow-up: `evals/aggregate_loop_comparison_chunks.py` aggregates chunk JSON plus per-project metric JSON into loop-level totals, reports `coverage.complete` as the local completion gate for same-slice, all-loop chunk coverage, and supports `--require-complete` to exit non-zero until that gate is satisfied.
+- Resume plan: `evals/results/loop_comparison_claude_701_resume_plan.md` contains the chunked commands for completing the 701-example side-by-side comparison without reusing the stopped grammar-only run as a matched baseline.
+- Completion still requires a future full side-by-side run if the original three-loop comparison objective is resumed; this stopped run is only a partial grammar-loop baseline.
 
 ## Invariants
 - Every exportable episode must be traceable back to source clips and review decisions.

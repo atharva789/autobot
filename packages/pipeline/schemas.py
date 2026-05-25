@@ -12,9 +12,31 @@ tree, not a gatekept enum.
 """
 from __future__ import annotations
 
-from typing import Literal
-
 from pydantic import BaseModel, Field
+from pydantic.dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class TaskIntent:
+    """Rich, structured representation of a user's robot-design intent.
+
+    Produced by the query-normalizer agent. All collection fields use tuples
+    so the dataclass remains hashable and immutable end-to-end.
+    """
+
+    task_goal: str
+    success_criteria: tuple[str, ...] = ()
+    environment: str | None = None
+    terrain: tuple[str, ...] = ()
+    obstacles: tuple[str, ...] = ()
+    contact_requirements: tuple[str, ...] = ()
+    payload_requirements: tuple[str, ...] = ()
+    manipulation_requirements: tuple[str, ...] = ()
+    spatial_constraints: tuple[str, ...] = ()
+    stability_requirements: tuple[str, ...] = ()
+    sensing_requirements: tuple[str, ...] = ()
+    hard_constraints: tuple[str, ...] = ()
+    failure_modes_to_avoid: tuple[str, ...] = ()
 
 
 class RobotDesignCandidate(BaseModel):
@@ -23,27 +45,15 @@ class RobotDesignCandidate(BaseModel):
     The agent loop populates this from a ``GrammarGraph`` derivation.
     """
 
-    candidate_id: Literal["A", "B", "C"]
-    embodiment_class: str
-    num_legs: int = Field(ge=0, le=8)
-    num_arms: int = Field(ge=0, le=4)
-    has_torso: bool
-    torso_length_m: float = Field(ge=0.05, le=2.0)
-    arm_length_m: float = Field(ge=0.0, le=1.5)
-    leg_length_m: float = Field(ge=0.0, le=1.5)
-    arm_dof: int = Field(ge=0, le=7)
-    leg_dof: int = Field(ge=0, le=6)
-    spine_dof: int = Field(ge=0, le=4)
-    actuator_class: Literal["servo", "bldc", "stepper", "hydraulic"]
-    actuator_torque_nm: float = Field(ge=0.1, le=500.0)
-    total_mass_kg: float = Field(ge=0.1, le=500.0)
-    payload_capacity_kg: float = Field(ge=0.0, le=200.0)
-    sensor_package: list[Literal["imu", "camera", "lidar", "force", "encoder"]]
-    joint_damping: float = Field(ge=0.01, le=10.0, default=0.5)
-    joint_stiffness: float = Field(ge=1.0, le=1000.0, default=100.0)
+    candidate_id: int
+
+    structural_rules: dict[str, list[str]]
+    robo_graph: dict[str, list[str]]
+    task_prompt: TaskIntent
+
     friction: float = Field(ge=0.1, le=2.0, default=0.8)
     rationale: str
     confidence: float = Field(ge=0.0, le=1.0)
 
 
-__all__ = ["RobotDesignCandidate"]
+__all__ = ["TaskIntent", "RobotDesignCandidate"]

@@ -1,11 +1,11 @@
 """
 MuJoCo screening service for design evaluation.
 
-Performs lightweight physics checks:
+Performs physics-based checks using actual MuJoCo simulation:
 - MJCF compilation
-- Static stability
-- Reachability
-- Short-horizon task sanity
+- Zero-control stability (real simulation)
+- Actuator coverage
+- Self-collision detection
 """
 
 from __future__ import annotations
@@ -22,118 +22,96 @@ class ScreeningResult:
 
     mjcf_compiled: bool = True
     mjcf_xml: str | None = None
-    stability_score: float = 0.5
-    reachability_score: float = 0.5
-    task_sanity_score: float = 0.5
-    overall_score: float = 0.5
+    stability_score: float = 0.0
+    reachability_score: float = 0.0
+    task_sanity_score: float = 0.0
+    overall_score: float = 0.0
     errors: list[str] = field(default_factory=list)
-
-    def __post_init__(self):
-        """Calculate overall score if not set."""
-        if self.overall_score == 0.5 and self.mjcf_compiled:
-            # Weighted average
-            self.overall_score = (
-                self.stability_score * 0.4 +
-                self.reachability_score * 0.3 +
-                self.task_sanity_score * 0.3
-            )
 
 
 def screen_design(ir: RobotDesignIR) -> ScreeningResult:
     """
-    Screen a robot design using MuJoCo.
+    Screen a robot design using actual MuJoCo simulation.
 
-    Performs:
     1. MJCF compilation
-    2. Static stability check
-    3. Reachability analysis
-    4. Short-horizon task sanity
-
-    Args:
-        ir: The robot design to screen
-
-    Returns:
-        ScreeningResult with scores and compiled MJCF
+    2. Zero-control stability (simulated)
+    3. Actuator coverage check
+    4. Self-collision check in rest pose
     """
+    from packages.pipeline.simulation.validator import (
+        validate_compiles,
+        validate_actuator_coverage,
+        validate_no_self_collision,
+    )
+
     result = ScreeningResult()
 
-    # Step 1: Compile to MJCF
     try:
         mjcf_xml = compile_to_mjcf(ir)
-        result.mjcf_compiled = True
         result.mjcf_xml = mjcf_xml
     except Exception as e:
         result.mjcf_compiled = False
         result.errors.append(f"MJCF compilation failed: {e}")
-        result.overall_score = 0.0
         return result
 
-    # Step 2: Static stability check (mock for now)
-    # In production, would load into MuJoCo and check
-    result.stability_score = _estimate_stability(ir)
+    ok, err = validate_compiles(mjcf_xml)
+    if not ok:
+        result.mjcf_compiled = False
+        result.errors.append(f"MuJoCo load failed: {err}")
+        return result
 
-    # Step 3: Reachability analysis (mock)
-    result.reachability_score = _estimate_reachability(ir)
+    result.stability_score = _simulate_stability(mjcf_xml)
 
-    # Step 4: Task sanity (mock)
-    result.task_sanity_score = _estimate_task_sanity(ir)
+    ok, err = validate_actuator_coverage(mjcf_xml)
+    result.task_sanity_score = 1.0 if ok else 0.0
+    if not ok:
+        result.errors.append(err)
 
-    # Calculate overall score
+    ok, err = validate_no_self_collision(mjcf_xml)
+    result.reachability_score = 1.0 if ok else 0.2
+    if not ok:
+        result.errors.append(err)
+
     result.overall_score = (
-        result.stability_score * 0.4 +
-        result.reachability_score * 0.3 +
-        result.task_sanity_score * 0.3
+        result.stability_score * 0.4
+        + result.reachability_score * 0.3
+        + result.task_sanity_score * 0.3
     )
 
     return result
 
 
-def _estimate_stability(ir: RobotDesignIR) -> float:
+def _simulate_stability(mjcf_xml: str, steps: int = 1000) -> float:
     """
-    Estimate static stability (mock implementation).
+    Run zero-control simulation and score based on final state.
 
-    In production, would simulate the robot in MuJoCo
-    and check if it remains stable.
+    Returns 0.0-1.0 where 1.0 means the robot remained upright and stable.
     """
-    # Heuristic: more links = potentially less stable
-    num_links = len(ir.links)
-    if num_links == 0:
+    import mujoco
+    import numpy as np
+
+    model = mujoco.MjModel.from_xml_string(mjcf_xml)
+    data = mujoco.MjData(model)
+    mujoco.mj_forward(model, data)
+
+    initial_z = data.qpos[2] if model.nq >= 3 else 0.5
+
+    for _ in range(steps):
+        data.ctrl[:] = 0.0
+        mujoco.mj_step(model, data)
+        if np.any(np.isnan(data.qpos)):
+            return 0.0
+
+    if model.nq < 3:
         return 0.5
-    if num_links <= 3:
-        return 0.8
-    if num_links <= 6:
-        return 0.6
-    return 0.4
 
+    final_z = data.qpos[2]
 
-def _estimate_reachability(ir: RobotDesignIR) -> float:
-    """
-    Estimate reachability (mock implementation).
+    if final_z < 0.01:
+        return 0.1
 
-    In production, would sample workspace and check
-    what percentage of points are reachable.
-    """
-    # Heuristic: more joints = better reachability
-    num_joints = len(ir.joints)
-    if num_joints == 0:
-        return 0.3
-    if num_joints <= 2:
-        return 0.5
-    if num_joints <= 4:
-        return 0.7
-    return 0.8
+    height_ratio = min(final_z / max(initial_z, 0.01), 1.0)
+    max_vel = float(np.max(np.abs(data.qvel)))
+    velocity_penalty = min(max_vel / 10.0, 0.5)
 
-
-def _estimate_task_sanity(ir: RobotDesignIR) -> float:
-    """
-    Estimate task sanity (mock implementation).
-
-    In production, would run a short trajectory
-    and check for self-collision, singularities, etc.
-    """
-    # Heuristic: having actuators is good
-    num_actuated = sum(1 for j in ir.joints if j.actuator is not None)
-    if len(ir.joints) == 0:
-        return 0.5
-    ratio = num_actuated / len(ir.joints)
-    return 0.5 + ratio * 0.4
+    return max(0.0, min(1.0, height_ratio - velocity_penalty))

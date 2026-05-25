@@ -36,6 +36,23 @@ If no active phase has been designated, start with Phase 01.
 - When promoting a phase to a spec, reference the source phase discovery doc and restate the locked inputs.
 - When implementing, preserve cross-phase contracts and keep artifact lineage intact.
 
+## Research vs Product Engineering
+
+This codebase has two distinct layers. Never conflate them.
+
+**Product engineering** (`apps/`, `packages/pipeline/`) is the stable backend that the web
+product and API depend on. Changes here must preserve existing contracts, go through migration,
+and be safe for live users. `packages/pipeline/schemas.py` defines the canonical types
+(`TaskIntent`, `RobotDesignCandidate`) shared across this boundary.
+
+**Research** (`packages/research/`) is a self-contained experimentation layer. It never imports
+from `apps/` and does not touch the Supabase production database. Researchers can iterate on
+generation strategies, agent prompts, and benchmark methods here without affecting the product.
+The entry points are the `GenerationStrategy` protocol and the CLI
+(`python -m packages.research.cli`).
+
+See `AGENTS.md` for the full architectural boundary rules before modifying either layer.
+
 ## Non-Negotiable Constraints
 - Do not allow dataset export without human approval.
 - Do not erase lineage between source video, extracted motion, retargeted trajectory, replay, and dataset export.

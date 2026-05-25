@@ -1,0 +1,19 @@
+{
+  "created_at": "2026-05-24T18:40:13.960583+00:00",
+  "dataset": "robogrammar-structural-rules-evals",
+  "examples": 1,
+  "loops": {
+    "compiler_centric": {
+      "experiment_name": "robogrammar-compile-result-state.2026-05-25-compiler_centric-claude-code-b91cc8a5"
+    },
+    "compiler_feedback": {
+      "experiment_name": "robogrammar-compile-result-state.2026-05-25-compiler_feedback-claude-code-959e9755"
+    },
+    "grammar": {
+      "experiment_name": "robogrammar-compile-result-state.2026-05-25-grammar-claude-code-f382175e"
+    }
+  },
+  "max_attempts": 1,
+  "model": "claude-sonnet-4-5",
+  "provider": "claude-code"
+}
