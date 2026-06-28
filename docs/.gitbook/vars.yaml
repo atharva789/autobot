@@ -1,0 +1,12 @@
+project_name: IL_ideation
+docs_name: Robodex
+api_app: apps/api/app.py
+web_app: apps/web/app/page.tsx
+workspace_sdk: apps/api/workspace_sdk.py
+agent_loop_registry: packages/research/agent_loops/registry.py
+grammar_v2_loop: packages/research/agent_loops/grammar_v2_loop.py
+creative_qd_loop: packages/research/agent_loops/creative_qd_v2_loop.py
+robot_program: packages/pipeline/robot_program.py
+canonical_ir: packages/pipeline/ir/design_ir.py
+workspace_db_default: /tmp/il_ideation/workspace.sqlite3
+

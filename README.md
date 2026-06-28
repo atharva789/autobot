@@ -4,6 +4,8 @@ IL Ideation is a local-first robotics design workspace.
 
 It takes a task prompt, finds or falls back to motion references, generates robot design candidates, compiles engineering render artifacts, exposes human-in-the-loop checkpoints, and tracks revision/export state through a FastAPI backend and a Next.js frontend.
 
+**Documentation:** [Robodex GitBook](https://sites.gitbook.com/preview/site_Y3B9C/) contains the current architecture, agent-loop, robot-body generation, frontend, pipeline, and operations guide.
+
 ## Current Scope
 
 This repo currently includes:
