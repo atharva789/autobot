@@ -137,6 +137,33 @@ packages/research/  →  apps/        (FORBIDDEN)
 | IR types, MJCF compiler, simulation | `packages/pipeline/` |
 | Supabase schema, auth, deployment | `apps/` |
 
+### Agentic Robot Design Evals POC
+
+- Date approved: 2026-07-19.
+- The former task-to-robot-body workbench is no longer the proposed commercial
+  product. Spec 011 tests a headless evaluator for agent-produced robot
+  artifacts and executed behavior.
+- The POC belongs entirely to the research layer. Reusable code lives in
+  `packages/research/agent_evals.py`; commands extend
+  `packages/research/cli.py`; protected task assets live under
+  `evals/robot_design/`.
+- The authoritative result is an immutable ordinary-files evidence bundle,
+  not a workspace flag, generated report, model assertion, UI state, or
+  synthetic score. No new database schema is introduced.
+- A live agent receives only a copied public starter workspace. The outer
+  macOS sandbox must deny repository, protected-grader, reference-answer,
+  previous-trial, and result-bundle access. Unsupported isolation is `unrun`.
+- Protected grades keep structural validity, compile/load, static diagnostics,
+  and executed MuJoCo behavior separate. The current product simulation check,
+  placeholder MJCF path, legacy URDF alias, and aggregate screening scores are
+  forbidden as evidence for this POC.
+- The first experiment compares two controlled Codex profiles with the same
+  executable and model. Claude parity, UI/API work, Isaac Sim, controller
+  training, HIL, physical testing, and hosted infrastructure are deferred.
+- The POC must be compared with a deliberately small agent-plus-scripts control.
+  If the valued result is reproduced in one day, the engine is open-source
+  infrastructure rather than a standalone moat.
+
 ## Guardrails
 - Preserve these defaults unless the master plan changes:
   web-first product, URDF-first ingest, humanoids, open-web discovery, full source mirroring, human review gate, cloud jobs, Isaac Lab / Isaac Sim, LeRobot-compatible export, no in-platform training in v1.

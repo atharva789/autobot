@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://il-ideation.local/schemas/eval-task.json",
+  "title": "EvalTask",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "version",
+    "title",
+    "family",
+    "prompt",
+    "starter_dir",
+    "required_outputs",
+    "allowed_tools",
+    "time_limit_seconds",
+    "grader_entrypoint",
+    "reference_dir",
+    "seeded_failure_dir",
+    "seeded_failure_grade_id"
+  ],
+  "properties": {
+    "task_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "version": {"type": "integer", "minimum": 1},
+    "title": {"type": "string", "minLength": 1},
+    "family": {
+      "enum": ["repair", "constrained-modification", "executed-behavior"]
+    },
+    "prompt": {"type": "string", "minLength": 1},
+    "starter_dir": {"type": "string", "pattern": "^(?!/)(?!.*\\.\\.).+$"},
+    "required_outputs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^(?!/)(?!.*\\.\\.).+$"}
+    },
+    "allowed_tools": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "time_limit_seconds": {"type": "integer", "minimum": 1, "maximum": 3600},
+    "grader_entrypoint": {"type": "string", "pattern": "^protected/.+\\.py$"},
+    "reference_dir": {"type": "string", "pattern": "^protected/reference$"},
+    "seeded_failure_dir": {"type": "string", "pattern": "^protected/seeded_failure$"},
+    "seeded_failure_grade_id": {"type": "string", "minLength": 1}
+  }
+}
