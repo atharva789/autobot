@@ -14,7 +14,8 @@
     "mcps",
     "tools",
     "environment_keys",
-    "time_limit_seconds"
+    "time_limit_seconds",
+    "observable_cost_usd"
   ],
   "properties": {
     "profile_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},

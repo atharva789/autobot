@@ -13,6 +13,7 @@
     "starter_dir",
     "required_outputs",
     "allowed_tools",
+    "constraints",
     "time_limit_seconds",
     "grader_entrypoint",
     "reference_dir",
@@ -39,10 +40,32 @@
       "uniqueItems": true,
       "items": {"type": "string", "minLength": 1}
     },
+    "constraints": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["constraint_id", "quantity", "operator", "value", "unit"],
+        "properties": {
+          "constraint_id": {"type": "string", "minLength": 1},
+          "quantity": {"type": "string", "minLength": 1},
+          "operator": {"type": "string", "minLength": 1},
+          "value": {},
+          "unit": {"type": "string", "minLength": 1}
+        }
+      }
+    },
     "time_limit_seconds": {"type": "integer", "minimum": 1, "maximum": 3600},
     "grader_entrypoint": {"type": "string", "pattern": "^protected/.+\\.py$"},
-    "reference_dir": {"type": "string", "pattern": "^protected/reference$"},
-    "seeded_failure_dir": {"type": "string", "pattern": "^protected/seeded_failure$"},
+    "reference_dir": {
+      "type": "string",
+      "pattern": "^protected/[a-z0-9]+(?:-[a-z0-9]+)*/reference$"
+    },
+    "seeded_failure_dir": {
+      "type": "string",
+      "pattern": "^protected/[a-z0-9]+(?:-[a-z0-9]+)*/seeded_failure$"
+    },
     "seeded_failure_grade_id": {"type": "string", "minLength": 1}
   }
 }

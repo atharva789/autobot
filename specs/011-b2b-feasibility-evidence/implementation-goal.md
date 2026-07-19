@@ -23,5 +23,6 @@ an evidence-backed continue, refine, open-source, or kill decision.
 
 ## Complete when
 
-All required tasks are checked, focused tests pass, `poc-results.md` contains raw bundle paths and a
-decision, and `concept-tree.md` identifies the next approved branch or parent node.
+All executable local tasks are checked or carry an exact `unrun`/partial reason, focused tests pass,
+`poc-results.md` contains raw bundle paths and a decision, and `concept-tree.md` identifies the next
+node for review. Selecting a node for review does not approve its implementation.

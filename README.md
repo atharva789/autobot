@@ -1,12 +1,15 @@
 # IL Ideation
 
-IL Ideation is a local-first test harness for AI agents that create or modify robot designs. Give Codex, Claude Code, or another agent a protected robotics task and an allowed tool set; IL Ideation records the run, independently checks the final robot files, executes physics tests, and reports what passed or failed.
+IL Ideation now contains a local falsification harness for AI agents that create or modify robot
+designs. Give an agent a protected robotics task and an allowed tool set; the harness freezes the
+result, independently checks the robot files, executes physics tests, and reports what passed or
+failed.
 
 The agent designs or edits the robot. IL Ideation grades the outcome.
 
 The previous product thesis was a task-to-robot-body workbench. That thesis has been rejected. Coding agents can now use CAD, URDF, SDF, Isaac Sim, ROS, and other robotics capabilities through skills, plugins, MCP servers, and ordinary scripts. Connecting those steps in a separate UI is not a durable product.
 
-The surviving hypothesis is narrower:
+The tested hypothesis is narrower:
 
 ```text
 protected robotics task + starter files + allowed tools
@@ -17,7 +20,17 @@ protected robotics task + starter files + allowed tools
   -> regression comparison between two complete agent configurations
 ```
 
-Today, the repository contains useful evaluation building blocks: local Codex and Claude Code adapters, registered morphology-generation loops, an experiment runner, run storage, a robot grammar, a canonical IR, an MJCF compiler, MuJoCo-oriented validators, and a local review workspace. It does **not** yet implement the protected agent-eval harness described above.
+The deterministic six-task POC slice is implemented. All six references pass, all six seeded failures are caught, and
+twelve saved outcomes replay identically three times. A 291-SLOC one-file control matches the full
+evaluator's grading decisions on all twelve frozen outcomes, so frozen-artifact grading and basic
+comparison are open-source-style infrastructure, not a demonstrated moat. The control does not run
+agents or reproduce isolation and evidence capture. The overall product decision is `refine`; the
+possible product asset is the robotics failure corpus and its executable graders.
+
+The live two-profile Codex experiment is still `unrun`. Codex's inner sandbox cannot start inside the
+outer macOS sandbox, and global skill descriptions contaminate the frozen empty profile. Fixtures are
+used only to validate the evaluator and are never reported as agent performance. See the executed
+[POC results](specs/011-b2b-feasibility-evidence/poc-results.md).
 
 Several current product paths are also not trustworthy evaluation evidence: the design route can project one selected graph into several candidates, Candidate A is preferred by default, some scores are deterministic formulas, render payloads can contain placeholder MJCF, and the workspace “simulation check” reads stored flags instead of executing physics.
 
@@ -31,13 +44,21 @@ Robotics engineers can increasingly ask a coding agent to write robot code, gene
 
 The agent should not grade its own work. A plausible render, successful XML parse, generated confidence score, or self-authored report is not independent evidence.
 
-### Current product wedge
+### Current product decision
 
-The proposed product is **agentic robotics outcome evaluation**.
+The root POC tested **agentic robotics outcome evaluation**.
 
 The first buyer is a robotics platform, simulation, or AI-tooling team that repeatedly changes a model, agent harness, robotics skill, MCP server, plugin, prompt, or robot-description workflow. The job is to run the same protected robotics tasks before and after the change and identify real regressions in final artifacts and executed behavior.
 
-The useful output is an **Agentic Robotics Eval Run**: the task revision, starter state, complete model/harness/tool profile, transcript, final robot artifacts, immutable digests, protected grader versions, executed simulator output, trial-level results, cost, runtime, and regression comparison. The [product research](specs/011-b2b-feasibility-evidence/research.md) and [four-round red team](specs/011-b2b-feasibility-evidence/red-team/agentic-ai-audit.md) explain why the former generation workbench was killed and what this evaluator must prove.
+The useful output is an **Agentic Robotics Eval Run**: the task revision, starter state, complete
+model/harness/tool profile, transcript, final robot artifacts and hashes, protected grader versions,
+executed simulator output, trial-level results, cost, runtime, and regression comparison. The POC
+built this record format for deterministic fixture outcomes and protected grading; it did not
+validate a live agent comparison. It also showed that the frozen-artifact grading layer is easy to
+reproduce. The engineer-plus-Codex substitute remains unrun. The next reviewed hypothesis is
+narrower: whether a proprietary corpus of real
+robot-model repair failures and executable invariants can generalize and recur for engineering teams.
+It is not yet approved for implementation.
 
 ### What the repository can do now
 
@@ -51,19 +72,25 @@ The useful output is an **Agentic Robotics Eval Run**: the task revision, starte
 - Create simulation and policy specifications without pretending that a long-running training job has occurred.
 - Run research strategies under seeds and prompt versions, store runs in SQLite, and compare compile, stability, score, and diversity metrics.
 
-### The next truthful demo story
+### The implemented local demo
 
-A credible local demo evaluates the agent rather than advertising the generated robot:
+A credible local demo evaluates saved outcomes rather than advertising a generated robot:
 
 1. Create a protected task containing a broken robot description and explicit physical constraints.
-2. Give two complete agent configurations the same starter files, time budget, and allowed robotics tools.
-3. Run three isolated trials per configuration without exposing graders or reference answers.
-4. Inspect the final environment, compile the produced robot, and execute the same MuJoCo behavior checks.
-5. Show every task and trial result before pass rate, repeatability, runtime, and cost.
-6. Change one model, skill, MCP, prompt, or tool version and report the exact regression.
-7. Export the task, system profile, transcript, artifacts, digests, grader versions, raw simulator output, and comparison.
+2. Validate the passing reference and intended seeded failure.
+3. Freeze the final files and raw transcript before protected grading.
+4. Compile the produced robot and execute the task's real MuJoCo checks.
+5. Show every task and trial before any aggregate.
+6. Replay the same grader three times and refuse changed task, profile, grader, simulator, transcript,
+   grade, or artifact bytes.
+7. Verify every saved bundle before comparison and expose the exact profile, bundle, and environment
+   revisions used on both sides.
+8. Compare the full evaluator with the one-file control on identical artifact manifests.
 
-The first six-task falsification slice is specified in [spec.md](specs/011-b2b-feasibility-evidence/spec.md). It is not implemented yet.
+The first six-task falsification slice is specified in
+[spec.md](specs/011-b2b-feasibility-evidence/spec.md) and audited in
+[poc-results.md](specs/011-b2b-feasibility-evidence/poc-results.md). A valid live-agent demo now needs
+a disposable worker, disposable credential, empty Codex home, and no global skills or plugins.
 
 ### Product maturity and honest boundaries
 
@@ -76,29 +103,37 @@ The first six-task falsification slice is specified in [spec.md](specs/011-b2b-f
 | MJCF compilation | IR-to-MJCF compiler exists but is not yet qualification-grade |
 | URDF compilation | Legacy `build_urdf` currently aliases the MJCF builder and must not be claimed as URDF output |
 | Physics validation | MuJoCo-oriented checks exist; the workspace check does not execute them |
-| Protected eval tasks | Not implemented |
-| Isolated agent trials | Not implemented |
-| Hidden outcome graders | Not implemented |
-| Model/harness/tool comparisons | Research comparison pieces exist; agentic robotics comparison is not implemented |
+| Protected eval tasks | Six implemented with passing references and caught seeded failures |
+| Isolated agent trials | Generic local probes pass; real Codex profile is `unrun` because nested isolation fails |
+| Hidden outcome graders | Six implemented across structural, compile/load, static, and behavior checks |
+| Model/harness/tool comparisons | Saved inputs are integrity-checked and source-revisioned; valid controlled live comparison is `unrun` |
+| Evidence replay | Task/profile/grader/environment/raw/artifact drift checks and three-repeat replay implemented |
+| Strongest substitute | 291-SLOC control reaches frozen-artifact grading parity; full agent workflow remains unrun |
 | Hardware-grounded calibration | Not implemented |
 | Multi-user B2B product | Not implemented and not yet justified |
 
-### Current and target evaluation path
+### Current evaluation path
 
-The current product path is still the pre-pivot robot-generation workbench. It calls one selected loop, may project that result into route-level variants, stores render and telemetry payloads, and lets the workspace inspect stored values. No source architecture has been changed at this specification checkpoint.
+The interactive product path is still the pre-pivot robot-generation workbench. Separately, the
+research layer now owns the headless evaluator POC. No eval code or protected task assets are imported
+into the web product.
 
-The proposed target is deliberately thin:
+The implemented POC path is deliberately thin:
 
 ```text
-protected task + isolated starter workspace
-  -> complete agent configuration runs
+protected task + copied starter workspace
+  -> fixture validation or attempted isolated agent run
   -> final environment and robot artifacts
   -> real structural, compiler, simulator, and behavior graders
   -> repeated trial comparison
-  -> reproducible eval bundle
+  -> hash-checked eval bundle with explicit drift refusal
 ```
 
-The first slice reuses the current adapters, experiment storage, robot IR, compiler, MuJoCo checks, and workspace only where their outputs are truthful. It does not justify a new simulator, robot IR, workflow engine, graph database, distributed queue, cloud database, CAD kernel, public leaderboard, or enterprise control plane.
+The first slice reuses current adapters, robot IR, compiler, and MuJoCo checks only where their
+outputs are truthful. Its evidence is ordinary files under `.runs/agent_evals/`; it does not use a
+new database or product UI. The POC result does not justify a new simulator, robot IR, workflow
+engine, graph database, distributed queue, cloud database, CAD kernel, public leaderboard, or
+enterprise control plane.
 
 ## Technical overview
 
@@ -220,11 +255,11 @@ apps/
 
 packages/
 ├── pipeline/                    shared deterministic robotics kernel
-└── research/                    loops, strategies, experiments, metrics, prompts
+└── research/                    loops, strategies, experiments, metrics, prompts, agent eval POC
 
 specs/                           Spec Kit feature directories and acceptance contracts
 tests/                           backend, pipeline, research, and frontend-contract tests
-evals/                           LangSmith/Langfuse and loop-comparison tooling
+evals/                           protected robot-design tasks plus trace/loop evaluation tooling
 supabase/migrations/             hosted schema history and grammar catalog migrations
 docs/                            detailed GitBook-compatible documentation
 ```
@@ -251,7 +286,7 @@ Current Spec Kit state at the time of this README rewrite:
 | `008-reward-generation` | Goal-grounded reward contract | Planned; task breakdown not created |
 | `009-llm-critic-memory` | Bounded critic evaluation and memory | Planned; task breakdown not created |
 | `010-ppo-training-loop` | PPO evidence and loss accounting | Planned; task breakdown not created |
-| `011-b2b-feasibility-evidence` | Protected evaluation of agent-produced robot artifacts and behavior | Revised specification; awaiting approval checkpoint |
+| `011-b2b-feasibility-evidence` | Protected evaluation of agent-produced robot artifacts and behavior | Root POC decision is refine; frozen-artifact control matches grading, live and full substitute gates unrun |
 
 Run the local status helper instead of trusting this snapshot:
 
@@ -417,6 +452,10 @@ The current system is intentionally local-first:
 
 That topology is appropriate for proving the workflow and collecting evidence. Splitting it into more services now would add operational cost without fixing the main product risk: whether the design-to-evidence workflow solves a painful, repeatable customer job.
 
+The agent-eval POC adds one local Python module, CLI commands, six protected task folders, and
+ordinary-file evidence bundles. It deliberately does not add an API route, UI, database table, queue,
+or hosted worker.
+
 ### What a real B2B deployment is likely to need
 
 This is a direction, not an implemented architecture. The market/niche specification must decide which pieces are justified.
@@ -433,7 +472,7 @@ browser
        -> trace, cost, audit, and failure telemetry
 ```
 
-Possible hosted-product additions are tenant/project access control, queued run state, resumable artifacts, budget enforcement, and provider isolation. None are justified until the local robot-design loop proves useful to engineers.
+Possible hosted-product additions are tenant/project access control, queued run state, resumable artifacts, budget enforcement, and provider isolation. None are justified by the POC: the one-file control reached grading parity, the live causal run is unrun, and no external failure corpus or recurring buyer use has been established.
 
 The initial infrastructure budget is capped at **$200**. Local MuJoCo and local model/simulation options should be exhausted first. Any cloud request should name the exact experiment, runtime, expected spend, stop condition, and artifact that cannot be produced locally.
 
@@ -451,6 +490,7 @@ The initial infrastructure budget is capped at **$200**. Local MuJoCo and local 
 - [Robot RL research program](specs/003-robot-rl-research-program/plan.md)
 - [Task-to-robot design specification](specs/011-b2b-feasibility-evidence/spec.md)
 - [Product and market research](specs/011-b2b-feasibility-evidence/research.md)
+- [Executed POC results and drift audit](specs/011-b2b-feasibility-evidence/poc-results.md)
 
 ## Change discipline
 

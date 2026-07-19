@@ -50,4 +50,5 @@
 
 - Specification quality validation completed after the agentic-AI red team.
 - Normative scope is limited to `spec.md`; `research.md` and `red-team/agentic-ai-audit.md` provide rationale and evidence.
-- Planning, data-model, contracts, tasks, implementation, and cloud provisioning remain intentionally unrun until user approval.
+- Planning, data model, contracts, and the deterministic implementation slice are complete. The live
+  comparison, complete agent-plus-engineer substitute, and child-node implementation remain unrun.

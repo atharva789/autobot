@@ -1,0 +1,59 @@
+{
+  "reference_passes": 6,
+  "seeded_failures_caught": 6,
+  "task_count": 6,
+  "tasks": [
+    {
+      "failed_grade_ids": [
+        "arm-reaches-target"
+      ],
+      "reference_state": "passed",
+      "seeded_failure_state": "failed",
+      "task_id": "arm-reach-target"
+    },
+    {
+      "failed_grade_ids": [
+        "ir.references_valid",
+        "ir.single_root",
+        "compiler.mjcf",
+        "simulator.mujoco_load"
+      ],
+      "reference_state": "passed",
+      "seeded_failure_state": "failed",
+      "task_id": "ir-missing-parent"
+    },
+    {
+      "failed_grade_ids": [
+        "ir.connected_tree",
+        "compiled.body_coverage"
+      ],
+      "reference_state": "passed",
+      "seeded_failure_state": "failed",
+      "task_id": "ir-orphan-payload"
+    },
+    {
+      "failed_grade_ids": [
+        "actuator-positive-direction"
+      ],
+      "reference_state": "passed",
+      "seeded_failure_state": "failed",
+      "task_id": "mjcf-actuator-contract"
+    },
+    {
+      "failed_grade_ids": [
+        "payload-inertia"
+      ],
+      "reference_state": "passed",
+      "seeded_failure_state": "failed",
+      "task_id": "mjcf-payload-inertia"
+    },
+    {
+      "failed_grade_ids": [
+        "payload-lifts-and-settles"
+      ],
+      "reference_state": "passed",
+      "seeded_failure_state": "failed",
+      "task_id": "payload-vertical-lift"
+    }
+  ]
+}

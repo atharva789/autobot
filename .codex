@@ -147,12 +147,14 @@ packages/research/  →  apps/        (FORBIDDEN)
   `packages/research/agent_evals.py`; commands extend
   `packages/research/cli.py`; protected task assets live under
   `evals/robot_design/`.
-- The authoritative result is an immutable ordinary-files evidence bundle,
-  not a workspace flag, generated report, model assertion, UI state, or
-  synthetic score. No new database schema is introduced.
-- A live agent receives only a copied public starter workspace. The outer
-  macOS sandbox must deny repository, protected-grader, reference-answer,
-  previous-trial, and result-bundle access. Unsupported isolation is `unrun`.
+- The authoritative result is a hash-checked ordinary-files evidence bundle
+  with drift refusal, not a workspace flag, generated report, model assertion,
+  UI state, or synthetic score. The manifest is unsigned, so this is not a
+  tamper-proof trust root. No new database schema is introduced.
+- A live agent must receive only a copied public starter workspace. Generic
+  macOS denial probes pass, but nested Codex isolation failed; valid live runs
+  require an externally isolated disposable VM or container. Unsupported
+  isolation is `unrun`.
 - Protected grades keep structural validity, compile/load, static diagnostics,
   and executed MuJoCo behavior separate. The current product simulation check,
   placeholder MJCF path, legacy URDF alias, and aggregate screening scores are
@@ -163,6 +165,35 @@ packages/research/  →  apps/        (FORBIDDEN)
 - The POC must be compared with a deliberately small agent-plus-scripts control.
   If the valued result is reproduced in one day, the engine is open-source
   infrastructure rather than a standalone moat.
+- Root POC result, 2026-07-19: six references passed, six seeded failures were
+  caught, and twelve bundles replayed identically three times. The 291-SLOC
+  one-file control matched frozen-artifact grading on all twelve states and
+  failed-grade sets. Treat grading and basic comparison as open-source-style
+  infrastructure. The control does not reproduce agent execution, isolation,
+  profile capture, or evidence bundles, so the overall product decision is
+  `refine`, not a defensibility win.
+- The only surviving product hypothesis is the protected robotics failure
+  corpus and executable invariant set. It remains unproven because all current
+  failures are internal and no recurring buyer use or physical calibration has
+  been observed.
+- The controlled live Codex comparison is `unrun`, not failed. Codex's inner
+  sandbox cannot start inside the outer local sandbox, and global skill
+  descriptions contaminate the empty profile. Do not disable the inner sandbox
+  under the compatibility profile on the host. A valid run requires a
+  disposable worker and credential with an empty Codex home.
+- Evidence bundles now copy and hash task, profile, grader, and environment
+  snapshots; hash transcripts, grades, and artifacts; and replay graders only
+  against temporary copies. The top-level manifest is not signed, and IR
+  graders still import unsnapshotted live pipeline code. Preserve those limits
+  in every reproducibility claim.
+- Saved-profile comparison verifies every referenced bundle byte before use,
+  exposes profile, bundle, and environment source revisions, and hashes those
+  revisions into the comparison ID. It rejects malformed manifests separately
+  from drift or incompatible task revisions.
+- The next reviewed concept node is `Agentic Robot Model-Repair Evals`. Do not
+  implement it until its design is approved and it has a disposable runner,
+  twelve held-out faults, at least three external faults from two teams, and a
+  static-lint baseline.
 
 ## Guardrails
 - Preserve these defaults unless the master plan changes:

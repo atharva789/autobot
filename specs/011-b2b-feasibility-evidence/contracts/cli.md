@@ -42,17 +42,19 @@ fingerprints before execution and reports drift rather than replaying under mism
 
 ## `eval-compare --run-root DIR --profiles LEFT,RIGHT [--output PATH]`
 
-Prints task/trial rows before pass rate, pass@1, pass^3, runtime, cost, improvements, and regressions.
-`error`, `timeout`, and `unrun` remain explicit.
+Validates every task/profile/environment/grader snapshot, transcript, grade file, artifact, trial
+cross-link, and source revision before loading results. It prints task/trial rows and both sides'
+profile, bundle, and environment revisions before pass rate, pass@1, pass^3, runtime, cost,
+improvements, and regressions. `error`, `timeout`, and `unrun` remain explicit.
 
 ## Exit codes
 
 | Code | Meaning |
 | --- | --- |
 | 0 | requested work completed and contract checks passed |
-| 2 | invalid CLI arguments or manifest |
+| 2 | invalid CLI arguments or malformed manifest contract |
 | 3 | task validation failure |
 | 4 | dependency or isolation unavailable |
 | 5 | agent timeout or execution error |
 | 6 | grading or replay error |
-| 7 | comparison inputs are incompatible |
+| 7 | comparison inputs drifted or are incompatible |

@@ -17,11 +17,12 @@ One protected robotics job given to an agent.
 | `starter_dir` | path | must stay inside the task directory |
 | `required_outputs` | string array | paths relative to the trial workspace |
 | `allowed_tools` | string array | visible tool names; empty means ordinary file and shell tools only |
+| `constraints` | object array | ID, quantity, operator, value, and nonempty unit for every visible threshold |
 | `time_limit_seconds` | integer | positive and bounded by the CLI maximum |
 | `grader_entrypoint` | string | path under `protected/`; never copied to the workspace |
 | `reference_dir` | path | protected known-passing outcome |
 | `seeded_failure_dir` | path | protected known-failing outcome |
-| `fingerprint` | SHA-256 | canonical manifest plus starter and protected-grader digests |
+| `fingerprint` | SHA-256 | canonical manifest, starter tree, grader bytes, reference tree, and seeded-failure tree |
 
 Validation requires the reference to pass all required grades and the seeded failure to fail the
 named target assertion before a task is runnable with a live agent.
@@ -90,7 +91,7 @@ preflight may transition `created -> unrun`. Final states are immutable.
 | `observed` | object | measured values, not conclusions alone |
 | `raw_output` | string | bounded raw diagnostic text |
 | `duration_seconds` | number | nonnegative |
-| `grader_fingerprint` | SHA-256 | grader source plus protected configuration |
+| `grader_fingerprint` | SHA-256 | exact protected `grader.py` bytes in this POC |
 
 A required `fail` makes the trial `failed`; `error` makes it `error`; an executed grade cannot be
 satisfied by a profile transcript or stored flag.
@@ -100,8 +101,11 @@ satisfied by a profile transcript or stored flag.
 A directory containing `manifest.json`, normalized task/profile snapshots, trial subdirectories,
 transcripts, final artifacts, grade payloads, and raw simulator output.
 
-The bundle fingerprint covers every manifest entry. Replay runs deterministic graders against the
-saved outcome and writes a separate replay record; it never overwrites the original result.
+The manifest records byte hashes for dependency snapshots, transcripts, grades, and artifacts.
+`bundle_id` covers task/profile/dependency hashes plus capture state, command, exit code, and artifact
+metadata; it does not cover every final manifest byte. Comparison and replay verify referenced bytes
+and refuse drift, but no external hash or signature protects the complete manifest. Replay runs
+deterministic graders against temporary copies and never overwrites the original result.
 
 ## Comparison
 
@@ -109,6 +113,7 @@ saved outcome and writes a separate replay record; it never overwrites the origi
 | --- | --- | --- |
 | `comparison_id` | UUID | unique |
 | `left_profile` / `right_profile` | fingerprints | complete system profiles |
+| `source_revisions` | object | validated profile fingerprints plus bundle and environment revisions for both sides |
 | `task_fingerprints` | string array | exact shared task set |
 | `trial_rows` | object array | every task and attempt before aggregates |
 | `pass_rate` | per-profile number | passed / executed trials; unrun reported separately |

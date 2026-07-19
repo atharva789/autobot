@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "state": "unrun",
+  "profiles": [
+    "codex-baseline",
+    "codex-robotics-context"
+  ],
+  "task_ids": [
+    "arm-reach-target",
+    "ir-missing-parent",
+    "ir-orphan-payload",
+    "mjcf-actuator-contract",
+    "mjcf-payload-inertia",
+    "payload-vertical-lift"
+  ],
+  "required_trials_per_profile_task": 3,
+  "valid_trials_completed": 0,
+  "smoke_attempt": {
+    "profile_id": "codex-baseline",
+    "task_id": "ir-missing-parent",
+    "bundle": ".runs/agent_evals/live-smoke-4/codex-baseline/ir-missing-parent/manifest.json",
+    "bundle_sha256": "93acb935946724b2598796e69ff2ec843c54575f1252d6ce8de5cb5e545aa6db",
+    "transcript": ".runs/agent_evals/live-smoke-4/codex-baseline/ir-missing-parent/attempt-001/transcript.json",
+    "transcript_sha256": "4f8d09458fd4077d5606a69a1f0a511a71c0d3f3994853d45fcf0f6c7c0eec1a",
+    "duration_seconds": 129.27270008297637,
+    "usage": {
+      "input_tokens": 200040,
+      "cached_input_tokens": 179200,
+      "output_tokens": 3791,
+      "reasoning_output_tokens": 2488
+    },
+    "artifact_changed": false,
+    "protected_grade_state": "failed"
+  },
+  "blockers": [
+    {
+      "category": "isolation-runtime",
+      "message": "Codex nested workspace-write sandbox failed inside the outer sandbox with sandbox-exec: sandbox_apply: Operation not permitted (exit 71), so every read, command, and patch tool was unavailable."
+    },
+    {
+      "category": "profile-contamination",
+      "message": "Codex injected globally installed skill descriptions even though the frozen profile used ignore-user-config, ignore-rules, empty skills, empty MCPs, empty plugins, and strict config."
+    }
+  ],
+  "unsafe_fallback_not_run": "Disabling Codex's inner sandbox while using the compatibility outer profile would grant agent tools ambient host write access outside enumerated denied roots.",
+  "minimum_resource_to_resume": "One disposable macOS or Linux worker/VM with a disposable Codex credential and no global skills/plugins, where the worker boundary replaces nested local sandboxing."
+}

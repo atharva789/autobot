@@ -1,0 +1,50 @@
+{
+  "task_id": "payload-vertical-lift",
+  "version": 1,
+  "title": "Lift and settle a two-kilogram payload",
+  "family": "executed-behavior",
+  "prompt": "Edit robot.xml so the named lift_servo raises the 2 kg payload through the payload_slide joint when commanded to 0.30 m. The protected grader executes 1,500 MuJoCo steps under gravity. Success requires the payload_site to finish at least 0.20 m above its initial height, with absolute final slide velocity no greater than 0.02 m/s and peak absolute actuator force no greater than 50 N. Preserve the payload, payload_slide, payload_site, and lift_servo names; keep the site and slide on the payload body and the servo connected to that slide. The grader measures the executed trajectory; declarations or stored success flags do not count.",
+  "starter_dir": "starter",
+  "required_outputs": [
+    "robot.xml"
+  ],
+  "allowed_tools": [
+    "python",
+    "shell"
+  ],
+  "constraints": [
+    {
+      "constraint_id": "payload-mass",
+      "quantity": "payload body mass",
+      "operator": ">=",
+      "value": 2.0,
+      "unit": "kg"
+    },
+    {
+      "constraint_id": "vertical-lift",
+      "quantity": "final payload vertical displacement",
+      "operator": ">=",
+      "value": 0.2,
+      "unit": "m"
+    },
+    {
+      "constraint_id": "settled-velocity",
+      "quantity": "absolute final slide velocity",
+      "operator": "<=",
+      "value": 0.02,
+      "unit": "m/s"
+    },
+    {
+      "constraint_id": "actuator-force-limit",
+      "quantity": "peak absolute lift actuator force",
+      "operator": "<=",
+      "value": 50.0,
+      "unit": "N"
+    }
+  ],
+  "time_limit_seconds": 300,
+  "grader_entrypoint": "protected/payload-vertical-lift/grader.py",
+  "reference_dir": "protected/payload-vertical-lift/reference",
+  "seeded_failure_dir": "protected/payload-vertical-lift/seeded_failure",
+  "seeded_failure_grade_id": "payload-lifts-and-settles"
+}

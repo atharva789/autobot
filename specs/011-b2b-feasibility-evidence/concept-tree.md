@@ -1,13 +1,13 @@
 # Local Concept Tree
 
-**Root status**: Approved for POC implementation
+**Root status**: POC decision `refine`; frozen-artifact evaluator layer is open-source-style infrastructure
 **Traversal rule**: Build the smallest falsification POC, compare it with the strongest substitute,
 record evidence, then continue, refine, open-source, or kill. Adjacent children require a reviewed
 design before implementation.
 
 ```text
-Agentic Robot Design Evals                                      [building]
-├── Agentic Robot Model-Repair Evals                           [candidate 1]
+Agentic Robot Design Evals                                      [refine; live evidence missing]
+├── Agentic Robot Model-Repair Evals                           [selected for design review]
 ├── Causal Task-Conditioning Evals for Morphology Agents       [candidate 2]
 ├── Cheap-Proxy Calibration for Generated Robot Bodies         [candidate 3]
 ├── Controller-Budget Robustness Evals                         [candidate 4]
@@ -21,13 +21,18 @@ Agentic Physical-Systems Verification                          [unexplored]
 
 - **Buyer/job**: Robotics platform or simulation lead qualifying changes to a model, prompt, skill,
   MCP, plugin, or robot-description workflow.
-- **POC**: Six isolated protected tasks, repeated agent trials, executable MuJoCo grades, replay, and
-  comparison.
+- **POC**: Six protected tasks, deterministic reference/seeded fixture outcomes, executable MuJoCo
+  grades, three-repeat grader replay, and comparison. Controlled live agent trials remain `unrun`.
 - **Strongest substitute**: One 300–500-line Python CLI plus Codex and task-specific tests.
 - **Kill**: The control comes within one consequential catch, the delta is presentation/storage, or
   every task requires bespoke simulation engineering.
 - **Possible defensible evidence**: Real failed repairs, protected behavior oracles, longitudinal
   profile regressions, and later physical-outcome calibration.
+- **Executed result**: The six-task evaluator caught all six seeded failures, but a 291-SLOC control
+  matched all 12 frozen reference/seeded outcomes and all failed-grade sets. The 2,701-SLOC evaluator
+  and eval CLI contain additional capture, isolation, profile, and evidence behavior that the control
+  does not reproduce. The live controlled-agent comparison and engineer-plus-Codex substitute remain
+  `unrun`, so the product returns `refine`, not a defensibility win.
 
 ## Child 1: Agentic Robot Model-Repair Evals
 
@@ -36,6 +41,10 @@ Agentic Physical-Systems Verification                          [unexplored]
 - **POC**: Expand to 12 real-looking seeded faults and preserve exact semantic invariants.
 - **Kill**: Static lint catches at least 90%, agents saturate the suite, or repairs are too infrequent.
 - **Evidence**: Anonymized real model failures and failed agent repair traces.
+- **Entry gate**: A disposable uncontaminated agent runner, twelve held-out faults, at least three
+  externally sourced faults from two teams, and an explicit static-lint baseline.
+- **Current status**: Selected for review only. Implementation is not authorized by the root result;
+  it first needs the missing runtime and external-failure inputs.
 
 ## Child 2: Causal Task-Conditioning Evals
 

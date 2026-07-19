@@ -1,0 +1,18 @@
+<mujoco model="underpowered_payload_lift_seeded_failure">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/>
+  <worldbody>
+    <geom name="floor" type="plane" size="2 2 0.05" rgba="0.18 0.18 0.20 1"/>
+    <body name="lift_frame" pos="0 0 0.15">
+      <geom name="frame" type="box" size="0.16 0.16 0.04" contype="0" conaffinity="0" rgba="0.25 0.30 0.38 1"/>
+      <body name="payload">
+        <joint name="payload_slide" type="slide" axis="0 0 1" range="0 0.35" damping="100"/>
+        <geom name="payload_geom" type="box" size="0.10 0.10 0.08" mass="2.0" rgba="0.85 0.45 0.18 1"/>
+        <site name="payload_site" pos="0 0 0.08" size="0.02" rgba="0.95 0.85 0.15 1"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="lift_servo" joint="payload_slide" kp="1000" ctrlrange="0 0.35" forcerange="-10 10"/>
+  </actuator>
+</mujoco>

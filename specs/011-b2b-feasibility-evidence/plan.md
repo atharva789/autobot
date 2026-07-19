@@ -25,7 +25,8 @@ Codex CLI for live trials
 
 **Testing**: pytest with red-green-refactor; real MuJoCo loads and steps in integration tests
 
-**Target Platform**: macOS local POC; `sandbox-exec` is the required live-agent isolation backend
+**Target Platform**: macOS for deterministic grading and generic isolation probes; a disposable Linux
+VM or container is required for valid live Codex trials because nested macOS sandboxing failed
 
 **Project Type**: Headless research library and CLI inside `packages/research/`
 
@@ -51,7 +52,7 @@ per live profile, one local comparison report, one minimal substitute runner
 | Complexity Pays Rent | One package, filesystem bundles, no hosted services or schema migration | Pass |
 | Architectural Boundaries | Implementation stays in one `packages/research/agent_evals.py` module; shared pipeline is consumed, not changed | Pass |
 | Falsification Before Expansion | Strongest substitute, head-to-head metrics, and kill artifact are mandatory deliverables | Pass |
-| Local and resource limits | Existing `.venv`, MuJoCo, Codex, and macOS sandbox; $0 required spend | Pass |
+| Local and resource limits | `.venv` and MuJoCo work at $0; generic probes pass, but valid live trials need a disposable worker | Partial |
 
 Post-design re-check: the data model and contracts introduce no network API, database, workflow
 engine, frontend, new robot IR, or cross-layer import. The gate remains passed.
@@ -179,18 +180,19 @@ task.json + starter/ + system profile
  structural -> compile/load -> static -> behavior grades
               |
               v
- immutable evidence bundle -> replay -> profile comparison
+ hash-checked evidence bundle -> replay -> profile comparison
 ```
 
 The agent command receives the visible prompt on stdin and a workspace as its current directory.
-Commands are argument arrays and run with `shell=False`. The outer macOS sandbox denies reads to the
-repository root and all result roots. The runner rejects execution when it cannot prove that the
-workspace is outside every denied root.
+Commands are argument arrays and run with `shell=False`. The macOS boundary denies enumerated roots
+for generic child-process probes, but a real Codex process could not start its own inner sandbox under
+that boundary. Those live trials are `unrun`; the next valid execution boundary is an externally
+isolated disposable VM or container mounting only the starter workspace.
 
 ## Error Handling
 
 - Missing task/profile fields fail validation before a trial starts.
-- Missing `sandbox-exec`, Codex, MuJoCo, or requested tools produce `unrun` with the exact
+- Missing a valid isolation boundary, Codex, MuJoCo, or requested tools produces `unrun` with the exact
   dependency reason.
 - Agent timeout produces `timeout`; nonzero exit produces `error`; neither is converted to `failed`.
 - Grader exceptions produce a grade-level `error` with captured traceback and raw-output digest.

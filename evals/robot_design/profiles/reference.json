@@ -1,0 +1,13 @@
+{
+  "profile_id": "reference",
+  "harness": "fixture-reference",
+  "model_id": "fixture",
+  "command": [],
+  "instructions": "",
+  "skills": [],
+  "mcps": [],
+  "tools": [],
+  "environment_keys": [],
+  "time_limit_seconds": 300,
+  "observable_cost_usd": null
+}

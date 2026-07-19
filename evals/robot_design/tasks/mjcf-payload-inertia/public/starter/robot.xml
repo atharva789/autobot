@@ -1,0 +1,13 @@
+<mujoco model="payload_inertia_task">
+  <compiler angle="degree"/>
+  <option gravity="0 0 -9.81" timestep="0.002"/>
+  <worldbody>
+    <geom name="floor" type="plane" size="2 2 0.1"/>
+    <body name="payload" pos="0 0 0.20">
+      <freejoint/>
+      <!-- Replace these provisional physical properties with the task contract. -->
+      <inertial pos="0 0 0" mass="1.0" diaginertia="0.004 0.008 0.010"/>
+      <geom name="payload_collision" type="box" size="0.14 0.10 0.05" contype="1" conaffinity="1" rgba="0.3 0.6 0.9 1"/>
+    </body>
+  </worldbody>
+</mujoco>

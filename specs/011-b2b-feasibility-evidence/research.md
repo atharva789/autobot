@@ -234,15 +234,18 @@ are inspectable, hashable, and sufficient for six tasks.
 **Alternative considered**: A database migration was rejected until query volume or concurrent writers
 demonstrate the need.
 
-### Decision: use macOS protected-path sandboxing for live local agents
+### Decision: keep macOS protected-path probes, but require an external boundary for live agents
 
-**Rationale**: Codex and Claude Code are installed locally, Docker is installed but its daemon is not
-running, and `/usr/bin/sandbox-exec` can deny the agent process access to the repository and protected
-task files while allowing a copied starter workspace. Unsupported isolation is reported as unrun.
+**Executed correction**: `/usr/bin/sandbox-exec` denied the enumerated protected roots for generic
+child-process probes. A real Codex process reached the model but could not start its inner sandbox
+inside the outer sandbox, and global skill descriptions contaminated the empty profile. Therefore the
+macOS boundary is not a valid live Codex backend. Those trials remain `unrun`.
 
-**Alternatives considered**: Trusting agent instructions does not meet the leakage requirement. Starting
-Docker adds setup and credential-mount complexity before it is needed. A remote runner would add spend
-and an unnecessary control plane.
+**Next valid boundary**: Use a disposable Linux VM or container, mount only the copied starter
+workspace, use an empty Codex home and disposable project credential, and then let Codex disable its
+inner sandbox only inside that external boundary. Starting Colima locally is the smallest no-compute-
+spend option on this machine; a remote runner is unnecessary until local disposable execution fails.
+Trusting instructions or disabling the inner sandbox directly on the host remains prohibited.
 
 ### Decision: compare two controlled Codex profiles before adding Claude parity
 

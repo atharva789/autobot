@@ -1,0 +1,17 @@
+<mujoco model="actuator_contract_task">
+  <compiler angle="degree" autolimits="true"/>
+  <option gravity="0 0 0" timestep="0.002"/>
+  <worldbody>
+    <body name="mount" pos="0 0 0.4">
+      <geom name="mount_geom" type="box" size="0.08 0.08 0.08" mass="2"/>
+      <body name="arm" pos="0 0 0.08">
+        <!-- Replace the provisional joint and motor settings with the contract. -->
+        <joint name="shoulder" type="hinge" axis="1 0 0" range="-20 20" damping="0.2"/>
+        <geom name="arm_geom" type="capsule" fromto="0 0 0 0 0 0.40" size="0.035" mass="1"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <motor name="shoulder_motor" joint="shoulder" gear="1" ctrllimited="true" ctrlrange="-0.5 0.5" forcelimited="true" forcerange="-6 6"/>
+  </actuator>
+</mujoco>

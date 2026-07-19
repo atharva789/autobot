@@ -1,0 +1,43 @@
+{
+  "task_id": "arm-reach-target",
+  "version": 1,
+  "title": "Reach a Cartesian target with a controlled arm",
+  "family": "executed-behavior",
+  "prompt": "Edit robot.xml so that the named end_effector moves from at least 0.50 m away to the Cartesian target [0.557365, 0.573885, 0.500000] metres when the protected grader commands the shoulder position actuator to 0.8 radians for 1,000 MuJoCo steps. Preserve the shoulder joint, shoulder_position actuator, and end_effector site names and keep them in one connected control chain. Success requires a final Euclidean target error no greater than 0.02 m. The grader loads and executes the submitted MJCF; declarations or stored success flags do not count.",
+  "starter_dir": "starter",
+  "required_outputs": [
+    "robot.xml"
+  ],
+  "allowed_tools": [
+    "python",
+    "shell"
+  ],
+  "constraints": [
+    {
+      "constraint_id": "arm-target-error",
+      "quantity": "final end-effector target error",
+      "operator": "<=",
+      "value": 0.02,
+      "unit": "m"
+    },
+    {
+      "constraint_id": "arm-initial-target-error",
+      "quantity": "initial end-effector target error",
+      "operator": ">=",
+      "value": 0.5,
+      "unit": "m"
+    },
+    {
+      "constraint_id": "arm-rollout-length",
+      "quantity": "protected rollout length",
+      "operator": "==",
+      "value": 1000,
+      "unit": "steps"
+    }
+  ],
+  "time_limit_seconds": 300,
+  "grader_entrypoint": "protected/arm-reach-target/grader.py",
+  "reference_dir": "protected/arm-reach-target/reference",
+  "seeded_failure_dir": "protected/arm-reach-target/seeded_failure",
+  "seeded_failure_grade_id": "arm-reaches-target"
+}

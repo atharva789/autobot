@@ -1,0 +1,86 @@
+{
+  "task_id": "mjcf-actuator-contract",
+  "version": 1,
+  "title": "Configure a hinge actuator contract",
+  "family": "constrained-modification",
+  "prompt": "Modify robot.xml so shoulder is a hinge joint with axis 0 1 0 and range -30 to 45 degrees. Keep an actuator named shoulder_motor bound to shoulder, with control range -1 to 1 and force range -12 to 12 N*m. A positive control command of 1.0 must increase the shoulder joint coordinate by at least 0.05 radians during the protected rollout. Preserve the shoulder and shoulder_motor names. The final robot.xml must load and step in MuJoCo; XML text or metadata that merely states the requested direction does not satisfy the task.",
+  "starter_dir": "starter",
+  "required_outputs": [
+    "robot.xml"
+  ],
+  "allowed_tools": [
+    "filesystem",
+    "python",
+    "mujoco"
+  ],
+  "constraints": [
+    {
+      "constraint_id": "shoulder-axis-x",
+      "quantity": "shoulder hinge axis x component",
+      "operator": "==",
+      "value": 0.0,
+      "unit": "dimensionless"
+    },
+    {
+      "constraint_id": "shoulder-axis-y",
+      "quantity": "shoulder hinge axis y component",
+      "operator": "==",
+      "value": 1.0,
+      "unit": "dimensionless"
+    },
+    {
+      "constraint_id": "shoulder-axis-z",
+      "quantity": "shoulder hinge axis z component",
+      "operator": "==",
+      "value": 0.0,
+      "unit": "dimensionless"
+    },
+    {
+      "constraint_id": "shoulder-range-min",
+      "quantity": "shoulder lower range",
+      "operator": "==",
+      "value": -30.0,
+      "unit": "degree"
+    },
+    {
+      "constraint_id": "shoulder-range-max",
+      "quantity": "shoulder upper range",
+      "operator": "==",
+      "value": 45.0,
+      "unit": "degree"
+    },
+    {
+      "constraint_id": "shoulder-control-min",
+      "quantity": "shoulder_motor minimum control",
+      "operator": "==",
+      "value": -1.0,
+      "unit": "dimensionless"
+    },
+    {
+      "constraint_id": "shoulder-control-max",
+      "quantity": "shoulder_motor maximum control",
+      "operator": "==",
+      "value": 1.0,
+      "unit": "dimensionless"
+    },
+    {
+      "constraint_id": "shoulder-force-limit",
+      "quantity": "shoulder_motor absolute force limit",
+      "operator": "==",
+      "value": 12.0,
+      "unit": "N*m"
+    },
+    {
+      "constraint_id": "positive-command-displacement",
+      "quantity": "shoulder displacement under positive command",
+      "operator": ">=",
+      "value": 0.05,
+      "unit": "radian"
+    }
+  ],
+  "time_limit_seconds": 300,
+  "grader_entrypoint": "protected/mjcf-actuator-contract/grader.py",
+  "reference_dir": "protected/mjcf-actuator-contract/reference",
+  "seeded_failure_dir": "protected/mjcf-actuator-contract/seeded_failure",
+  "seeded_failure_grade_id": "actuator-positive-direction"
+}

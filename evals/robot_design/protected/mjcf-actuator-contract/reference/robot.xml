@@ -1,0 +1,16 @@
+<mujoco model="actuator_contract_reference">
+  <compiler angle="degree" autolimits="true"/>
+  <option gravity="0 0 0" timestep="0.002"/>
+  <worldbody>
+    <body name="mount" pos="0 0 0.4">
+      <geom name="mount_geom" type="box" size="0.08 0.08 0.08" mass="2"/>
+      <body name="arm" pos="0 0 0.08">
+        <joint name="shoulder" type="hinge" axis="0 1 0" range="-30 45" damping="0.2"/>
+        <geom name="arm_geom" type="capsule" fromto="0 0 0 0 0 0.40" size="0.035" mass="1"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <motor name="shoulder_motor" joint="shoulder" gear="1" ctrllimited="true" ctrlrange="-1 1" forcelimited="true" forcerange="-12 12"/>
+  </actuator>
+</mujoco>
