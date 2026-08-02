@@ -80,5 +80,5 @@ For the human, when reviewing a routine PR:
 | --- | --- | --- |
 | Spec 012 lived only on `codex/agentic-robot-evals-poc` | Routine clones the default branch; prompt carries a `git fetch && checkout` fallback. | **Resolved 2026-08-02** — PR #3 merged to master |
 | `gh` availability in the routine sandbox is unverified | If absent, the routine pushes a branch but opens no PR. Prompt requires it to say so loudly. | Confirm on first firing |
-| Frontier-tier model id unverified against the live API | Compose default now `gpt-5.6-sol`, the id this repo's research configs already use; still not confirmed to resolve billing-side. | Confirm before first compute run |
+| Model ids unverified against the live API | Both tiers now default to `gpt-4.1-mini` (cheap end-to-end is the project's point; escalation only via manifest override citing a run log). Id still not confirmed to resolve billing-side. | Confirm before first compute run |
 | Workflow preflight read the secret inside a `run:` block | Reworked: the presence check is computed in the expression layer (`env: OPENAI_KEY_SET`) so no secret text enters the shell. | **Resolved 2026-08-02** |
