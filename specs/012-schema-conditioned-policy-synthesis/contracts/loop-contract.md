@@ -68,6 +68,17 @@ write time otherwise (R2).
 results. It does not raise, and it does not silently continue — a run that overspends must still
 produce a readable record of what it bought.
 
+**C6 — Evidence-dense requests.** One revision step is one model call. The call carries the entire
+`RolloutBatch` and returns diagnosis, proposed edit, and self-check in one structured response.
+Per-episode calls are forbidden. Latency-insensitive calls go through the async batch endpoint.
+
+The boundary: transport batching only. Independent gate arms (G2 permutations, G3 bodies) must
+never share a prompt context — a model shown four schemas side by side can differentiate its four
+outputs deliberately, which games the divergence gates. Separate requests, same batch job.
+
+*Enforcement:* the orchestrator logs calls-per-revision and request membership per batch job; a
+gate arm sharing a request with another arm invalidates that gate's result for the run.
+
 ## Expected shape of a revision step
 
 ```text

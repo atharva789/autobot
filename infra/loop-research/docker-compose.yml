@@ -93,10 +93,16 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY must be set}
       # Cost controls are enforced in code, not by convention. See plan.md §5.
       LOOP_USD_CEILING: ${LOOP_USD_CEILING:-5.00}
-      # Defaults follow the model ids already used across this repo's research
-      # configs. Overridable per-run from the experiment manifest.
+      # Cheap end-to-end by default — that is the point of the project. Both
+      # tiers resolve to the same cheap model until an experiment manifest
+      # explicitly overrides LOOP_FRONTIER_MODEL, and that override must cite a
+      # committed run log showing the cheap tier failing to move a gate.
       LOOP_CHEAP_MODEL: ${LOOP_CHEAP_MODEL:-gpt-4.1-mini}
-      LOOP_FRONTIER_MODEL: ${LOOP_FRONTIER_MODEL:-gpt-5.6-sol}
+      LOOP_FRONTIER_MODEL: ${LOOP_FRONTIER_MODEL:-gpt-4.1-mini}
+      # Latency-insensitive steps go through OpenAI's async batch endpoint
+      # (discounted); the nightly compute plane qualifies. See plan.md §5 for
+      # what may and may not be packed into one request.
+      LOOP_USE_BATCH_API: ${LOOP_USE_BATCH_API:-1}
       LOOP_MANIFEST: ${LOOP_MANIFEST:?LOOP_MANIFEST must point at an experiments/queue entry}
       LOOP_RUN_ID: ${LOOP_RUN_ID:?LOOP_RUN_ID must be set}
     volumes:

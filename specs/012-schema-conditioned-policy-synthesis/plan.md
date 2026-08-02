@@ -112,20 +112,43 @@ registry. Each gets added when a run log shows a measured limit, not before.
 
 ## 5. Cost model
 
-Most loop steps are not hard, and paying frontier prices for all of them is the obvious waste.
+Cheap end-to-end is the default, not an optimization applied later. Both model tiers resolve to the
+same cheap model until a manifest explicitly overrides the frontier tier — and that override must
+cite a committed run log showing the cheap tier failing to move a gate. Escalation is a measured
+response to evidence, never a standing configuration.
 
-| Step | Frequency | Tier | Why |
+| Step | Frequency | Model | Why |
 | --- | --- | --- | --- |
-| Read rollout metrics, adjust a weight | High | Cheap frontier | Numeric nudge on a fixed structure |
-| Diagnose a termination cause | Medium | Cheap frontier | Classification against a known set |
-| Restructure the scaffold | Low | Frontier | Genuinely open-ended |
+| Read rollout metrics, adjust a weight | High | Cheap | Numeric nudge on a fixed structure |
+| Diagnose a termination cause | Medium | Cheap | Classification against a known set |
+| Restructure the scaffold | Low | Cheap, until a run log proves otherwise | The claim that this needs a bigger model is testable, so test it |
 | G1 gate | Every run | None — static parse | No model call at all |
+
+### Maximize evidence per request
+
+Every model call must carry **all** the structured evidence its step has, and must return answers to
+**every** question that step needs — diagnosis, proposed edit, and self-check in one structured
+response, not three calls. Per-episode calls are forbidden outright: the loop consumes a
+`RolloutBatch` whole (64 episodes as one histogram, one contact table, one saturation table), so
+one revision step costs one call, not sixty-four.
+
+Transport-level batching stacks on top: the compute plane is nightly and latency-insensitive, so
+requests go through OpenAI's async batch endpoint (discounted — historically 50%) rather than the
+synchronous API. A 24-hour completion window is irrelevant to a run nobody is watching.
+
+**The one hard boundary:** batching happens at the transport layer, never by merging contexts where
+independence is load-bearing. G2 and G3 measure whether *independent* runs diverge. Packing "here
+are four schemas, emit four scaffolds" into one request lets the model see all variants side by side
+and trivially differentiate them — which games the divergence gates while looking like a cost
+optimization. Independent gate arms are separate requests with no shared context; they may share an
+async batch *job*, never a prompt.
 
 Enforced in the orchestrator, not by convention:
 
 - Hard per-experiment dollar ceiling; on breach the run aborts and the log records the abort.
 - Per-step token cap; an over-cap step is truncated and marked, never silently retried.
 - Prompt-prefix caching on the schema — fixed for the whole experiment and the largest stable block.
+- Calls-per-revision is logged next to cost; a rising call count is a design smell even when cheap.
 - **Cost per gate-point-moved** is logged. That is the number that says whether a change was worth it.
 
 Actions minutes are free on public repos, so the only real spend is OpenAI tokens, and the ceiling
