@@ -45,6 +45,21 @@ policy-generation direction above is being built now, on top of it.
 Nothing in this repository yet produces a trained policy end to end. Do not read the sections below
 as a claim that it does.
 
+### Daily research log
+
+Regenerated each morning by a scheduled routine ([`routines/registry.md`](routines/registry.md)).
+Every number in this block traces to a committed run log under `.runs/loop_research/`; the routine
+is not permitted to state a figure it did not read from a file. Everything outside the markers is
+hand-authored.
+
+<!-- ROUTINE:BEGIN -->
+**2026-08-02** · build order 0/8 · no runs yet
+
+Spec [012 — Schema-Conditioned Policy Synthesis](specs/012-schema-conditioned-policy-synthesis/spec.md)
+authored and awaiting review. The routine begins advancing the build order on its first firing
+(2026-08-03). No experiment has run, so there are no gate results and no cost to report.
+<!-- ROUTINE:END -->
+
 ### Why the direction changed
 
 Two theses have been rejected on evidence, and the reasoning is kept here on purpose.
