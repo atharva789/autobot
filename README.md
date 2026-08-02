@@ -1,38 +1,76 @@
-# IL Ideation
+# AutoBot
 
-IL Ideation now contains a local falsification harness for AI agents that create or modify robot
-designs. Give an agent a protected robotics task and an allowed tool set; the harness freezes the
-result, independently checks the robot files, executes physics tests, and reports what passed or
-failed.
+**Robot schema in. Task-specific RL policy out.**
 
-The agent designs or edits the robot. IL Ideation grades the outcome.
+AutoBot takes a robot description and one task, and returns a policy trained for that task on that
+body — together with the reward specification it wrote to get there, and the rollout evidence
+behind every revision of that specification.
 
-The previous product thesis was a task-to-robot-body workbench. That thesis has been rejected. Coding agents can now use CAD, URDF, SDF, Isaac Sim, ROS, and other robotics capabilities through skills, plugins, MCP servers, and ordinary scripts. Connecting those steps in a separate UI is not a durable product.
-
-The tested hypothesis is narrower:
+The bet is narrow and mechanical: **the model is the policy designer, not the policy.** Reward
+shaping, curriculum design, and termination conditions are the human bottleneck in robot RL, and
+they are re-derived by hand for every new body. AutoBot generates that scaffold from the schema,
+trains against MuJoCo, reads why the episodes actually ended, and rewrites the scaffold until the
+task holds.
 
 ```text
-protected robotics task + starter files + allowed tools
-  -> model + agent harness + instructions + skills + MCPs
-  -> final robot artifacts and transcript
-  -> protected structural and physics graders
-  -> repeated trials and raw evidence
-  -> regression comparison between two complete agent configurations
+robot.urdf | robot.xml  +  one task description
+  -> reward terms, termination conditions, curriculum, domain randomization
+  -> compiled MuJoCo environment
+  -> training run + rollout batch
+  -> structured failure trace (termination cause, contact events, joint saturation)
+  -> revised scaffold                          <-- loop until the task holds
+  -> policy checkpoint + reward spec + eval report + replayable rollouts
 ```
 
-The deterministic six-task POC slice is implemented. All six references pass, all six seeded failures are caught, and
-twelve saved outcomes replay identically three times. A 291-SLOC one-file control matches the full
-evaluator's grading decisions on all twelve frozen outcomes, so frozen-artifact grading and basic
-comparison are open-source-style infrastructure, not a demonstrated moat. The control does not run
-agents or reproduce isolation and evidence capture. The overall product decision is `refine`; the
-possible product asset is the robotics failure corpus and its executable graders.
+The loop closes on physics, not on a self-reported score. The model never sees a scalar reward in
+isolation; it sees the episode that produced it. Every reward term in the final specification is
+traceable to the rollout batch that caused it to be added.
 
-The live two-profile Codex experiment is still `unrun`. Codex's inner sandbox cannot start inside the
-outer macOS sandbox, and global skill descriptions contaminate the frozen empty profile. Fixtures are
-used only to validate the evaluator and are never reported as agent performance. See the executed
+## Status: this is a pivot in progress
+
+Read this before any capability claim further down.
+
+The repository as committed implements the **previous** thesis — task-conditioned robot *body*
+generation, plus a protected falsification harness that independently grades agent-produced robot
+artifacts. That code is real, tested, and described accurately in the sections below. The
+policy-generation direction above is being built now, on top of it.
+
+| | |
+| --- | --- |
+| Direction | Robot schema → task-specific RL policy |
+| Implemented today | Robot IR, MJCF compiler, agent-loop registry, protected graders, hash-checked eval bundles |
+| Being built | Reward and curriculum synthesis, training loop, critic memory, rollout-driven revision |
+| Specified, not implemented | `specs/003`–`specs/010`, listed in the spec table below |
+
+Nothing in this repository yet produces a trained policy end to end. Do not read the sections below
+as a claim that it does.
+
+### Why the direction changed
+
+Two theses have been rejected on evidence, and the reasoning is kept here on purpose.
+
+**Task-to-robot-body workbench.** Rejected. Coding agents can already drive CAD, URDF, SDF, Isaac
+Sim, and ROS through skills, plugins, MCP servers, and ordinary scripts. Wrapping those steps in a
+separate UI is not a durable product.
+
+**Agentic robotics outcome evaluation.** Refined, not adopted. The deterministic six-task slice is
+implemented: all six references pass, all six seeded failures are caught, and twelve saved outcomes
+replay identically three times. But a 291-SLOC one-file control matched the full evaluator's grading
+decisions on all twelve frozen outcomes, so frozen-artifact grading is reproducible infrastructure
+rather than a moat. The live two-profile Codex experiment remains `unrun`: Codex's inner sandbox
+cannot start inside the outer macOS sandbox, and global skill descriptions contaminate the frozen
+empty profile. See the executed
 [POC results](specs/011-b2b-feasibility-evidence/poc-results.md).
 
-Several current product paths are also not trustworthy evaluation evidence: the design route can project one selected graph into several candidates, Candidate A is preferred by default, some scores are deterministic formulas, render payloads can contain placeholder MJCF, and the workspace “simulation check” reads stored flags instead of executing physics.
+What survived both rejections is the part worth keeping: a robot IR that compiles to real physics,
+executable graders that run actual MuJoCo checks, and an evidence format that refuses drifted
+inputs. Policy generation is the thing that needs exactly that substrate — an LLM rewriting reward
+functions is only useful if something independent and physical decides whether the rewrite worked.
+
+Several existing product paths are still not trustworthy evidence: the design route can project one
+selected graph into several candidates, Candidate A is preferred by default, some scores are
+deterministic formulas, render payloads can contain placeholder MJCF, and the workspace "simulation
+check" reads stored flags instead of executing physics.
 
 The current product and architecture docs are also published in the [Robodex GitBook](https://robodex.gitbook.io/robodex-docs/).
 
@@ -40,25 +78,32 @@ The current product and architecture docs are also published in the [Robodex Git
 
 ### The problem
 
-Robotics engineers can increasingly ask a coding agent to write robot code, generate CAD, edit URDF or MJCF, run a simulator, and prepare a report. The difficult question shifts from “can the agent create something?” to “did the complete agent configuration produce a physically correct outcome, and did a new model, skill, MCP, or prompt introduce a regression?”
+Getting a robot to do one specific thing in simulation is rarely blocked on the RL algorithm. PPO,
+SAC, and their implementations are commodities. The work is upstream of them: deciding what to
+reward, how much, when to terminate an episode, and in what order to make the task harder. That
+work is done by hand, it is specific to the body, and it does not transfer — a reward function
+tuned for one arm's link lengths and actuator limits is close to worthless on the next one.
 
-The agent should not grade its own work. A plausible render, successful XML parse, generated confidence score, or self-authored report is not independent evidence.
+So the same engineer re-derives the same class of scaffolding for every new robot, and the feedback
+loop is slow: change a weight, train, watch the rollouts, guess which term was wrong, repeat.
 
-### Current product decision
+### Current direction
 
-The root POC tested **agentic robotics outcome evaluation**.
+The target output is a **task-conditioned policy bundle**: the trained checkpoint, the reward
+specification that produced it, every prior revision of that specification with the rollout batch
+that motivated the change, an evaluation report with failure modes and randomization coverage, and
+seeds that re-run the episodes behind each number.
 
-The first buyer is a robotics platform, simulation, or AI-tooling team that repeatedly changes a model, agent harness, robotics skill, MCP server, plugin, prompt, or robot-description workflow. The job is to run the same protected robotics tasks before and after the change and identify real regressions in final artifacts and executed behavior.
+Two properties are non-negotiable, both inherited from the rejected evaluation thesis:
 
-The useful output is an **Agentic Robotics Eval Run**: the task revision, starter state, complete
-model/harness/tool profile, transcript, final robot artifacts and hashes, protected grader versions,
-executed simulator output, trial-level results, cost, runtime, and regression comparison. The POC
-built this record format for deterministic fixture outcomes and protected grading; it did not
-validate a live agent comparison. It also showed that the frozen-artifact grading layer is easy to
-reproduce. The engineer-plus-Codex substitute remains unrun. The next reviewed hypothesis is
-narrower: whether a proprietary corpus of real
-robot-model repair failures and executable invariants can generalize and recur for engineering teams.
-It is not yet approved for implementation.
+- **The model does not grade its own work.** A plausible reward function, a rising return curve, or
+  a self-authored summary is not evidence. Only executed simulator output counts.
+- **No claim outlives its artifact.** A stored `policy_spec` or a UI badge is not a training run.
+  Execution evidence must carry the actual simulator output and reproducibility metadata.
+
+The first buyer hypothesis is a robotics or simulation team that needs a working policy for a
+specific body and task, and currently pays an engineer weeks of reward-tuning to get it. That
+hypothesis is not yet validated, and no revenue or design-partner evidence supports it today.
 
 ### What the repository can do now
 
@@ -109,6 +154,10 @@ a disposable worker, disposable credential, empty Codex home, and no global skil
 | Model/harness/tool comparisons | Saved inputs are integrity-checked and source-revisioned; valid controlled live comparison is `unrun` |
 | Evidence replay | Task/profile/grader/environment/raw/artifact drift checks and three-repeat replay implemented |
 | Strongest substitute | 291-SLOC control reaches frozen-artifact grading parity; full agent workflow remains unrun |
+| Reward/curriculum synthesis | Specified in `specs/008` and `specs/004`; not implemented |
+| Training loop | Specified in `specs/010`; no PPO run exists, and `policy_spec` records are specifications, not runs |
+| Rollout-driven revision | Specified in `specs/009`; the critic/memory loop is not implemented |
+| End-to-end schema-to-policy | Not implemented. No trained policy has been produced by this repository |
 | Hardware-grounded calibration | Not implemented |
 | Multi-user B2B product | Not implemented and not yet justified |
 
@@ -272,21 +321,28 @@ The source of intent is `specs/`, not issue titles, screenshots, or whatever the
 spec.md -> research.md -> plan.md + data-model.md + contracts/ -> tasks.md -> implementation -> verification
 ```
 
+Specs `003` through `010` are the schema-to-policy direction. They were written before the pivot and
+are now the active roadmap rather than a side research program. Specs `001`, `002`, and `011` are
+the implemented substrate the direction builds on.
+
 Current Spec Kit state at the time of this README rewrite:
 
 | Spec | Scope | State |
 | --- | --- | --- |
 | `001-creative-qd-v2` | Compile-safe quality-diversity morphology loop | Implemented; task list complete |
 | `002-macos-electron-dev-ui` | API/SDK-first local workspace and thin Electron shell | Implemented; task list complete |
-| `003-robot-rl-research-program` | Umbrella graph-to-control research program | Planned; task breakdown not created |
-| `004-task-goal-generation` | Task prompt to measurable goal contract | Planned; task breakdown not created |
-| `005-state-action-formalization` | Robot graph to control-problem contract | Planned; task breakdown not created |
-| `006-physics-dynamics-rules` | Physics and dynamics contract | Planned; task breakdown not created |
-| `007-policy-generation` | Graph-compatible policy proposal | Planned; task breakdown not created |
-| `008-reward-generation` | Goal-grounded reward contract | Planned; task breakdown not created |
-| `009-llm-critic-memory` | Bounded critic evaluation and memory | Planned; task breakdown not created |
-| `010-ppo-training-loop` | PPO evidence and loss accounting | Planned; task breakdown not created |
+| `003-robot-rl-research-program` | Umbrella graph-to-control research program | **Active roadmap**; task breakdown not created |
+| `004-task-goal-generation` | Task prompt to measurable goal contract | **Active roadmap**; task breakdown not created |
+| `005-state-action-formalization` | Robot graph to control-problem contract | **Active roadmap**; task breakdown not created |
+| `006-physics-dynamics-rules` | Physics and dynamics contract | **Active roadmap**; task breakdown not created |
+| `007-policy-generation` | Graph-compatible policy proposal | **Active roadmap**; task breakdown not created |
+| `008-reward-generation` | Goal-grounded reward contract | **Active roadmap**; task breakdown not created |
+| `009-llm-critic-memory` | Bounded critic evaluation and memory | **Active roadmap**; task breakdown not created |
+| `010-ppo-training-loop` | PPO evidence and loss accounting | **Active roadmap**; task breakdown not created |
 | `011-b2b-feasibility-evidence` | Protected evaluation of agent-produced robot artifacts and behavior | Root POC decision is refine; frozen-artifact control matches grading, live and full substitute gates unrun |
+
+"Active roadmap" means selected and prioritized, not started. None of `003`–`010` has an
+implementation or a task breakdown yet.
 
 Run the local status helper instead of trusting this snapshot:
 
