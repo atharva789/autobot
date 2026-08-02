@@ -39,6 +39,12 @@ Take the **lowest-numbered incomplete step**. Implement it. Write the tests its 
 skip ahead: step 4 (the negative control) exists to validate steps 5–8, and building the real loop
 before the control means you cannot trust any result it produces.
 
+When the step you are implementing is a gate, implement it **exactly** to
+`contracts/eval-contract.md` — the diff coefficients, the 0.80/1.00 G1 cutoffs, the τ derivation
+formula. Writing the gate code is not permission to redesign the gate: an implementation that
+quietly softens `D` weakens every future result without ever touching a documented constant. If you
+believe the contract is wrong, argue it in an increment and leave the code faithful to the contract.
+
 **If the build order is complete**, today is a research day:
 
 1. Read the most recent run log. Find the gate that failed, or the gate with the narrowest margin.
@@ -77,7 +83,22 @@ gh pr create --base master --title "Routine <date>: <summary>" --body "<what, wh
 If a PR from `routine/experiments` is already open, push to it and add a comment instead of opening
 a second one.
 
+If `gh` is unavailable or unauthenticated in this sandbox, **say so loudly** — in your registry row
+and in the last line of your output — so the human knows a pushed branch is waiting for a manual PR.
+Pushing work that nobody is told about is the same as losing it.
+
 **Never** commit to `master` or to any `codex/*` branch. A human works there.
+
+## If you cannot find the spec
+
+Spec 012 may not be merged to `master` yet. Before concluding it is missing, try:
+
+```bash
+git fetch origin && git checkout codex/agentic-robot-evals-poc
+```
+
+Only if the spec is genuinely absent from every branch should you stop, push a branch with a short
+note saying what you could not find, and end the run.
 
 ## Hard limits
 

@@ -66,7 +66,19 @@ For the human, when reviewing a routine PR:
 
 - [ ] Every number in the README block traces to a committed `run.json`.
 - [ ] No gate threshold, τ, or rubric criterion changed.
+- [ ] **Gate implementations match `contracts/eval-contract.md` exactly** — diff coefficients, G1
+      cutoffs, τ derivation. A softened `D` weakens every future result without touching a
+      documented constant, so diff the code against the contract, not against the previous commit.
 - [ ] No file under a `holdout-*` path was read or written.
 - [ ] The proposed change is one change, not several.
 - [ ] The increment states what would refute it.
 - [ ] The registry row matches what the diff actually does.
+
+## Known issues
+
+| Issue | Impact | Status |
+| --- | --- | --- |
+| Spec 012 lives on `codex/agentic-robot-evals-poc`, not `master` | Routine clones the default branch; the prompt carries a `git fetch && checkout` fallback. The API rejected a branch pin on the source. | Resolves when PR #3 merges |
+| `gh` availability in the routine sandbox is unverified | If absent, the routine pushes a branch but opens no PR. Prompt requires it to say so loudly. | Confirm on first firing |
+| `LOOP_FRONTIER_MODEL` defaults to `gpt-5.4` in the compose file | Taken from repo config, not independently confirmed to resolve. | Confirm before first compute run |
+| Workflow preflight tests `secrets.OPENAI_API_KEY` inside a `run:` block | Secrets are not interpolated into `run:` without an `env:` mapping, so the check may always report not-ready. | Fix before first compute run |
