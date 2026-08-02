@@ -1,0 +1,102 @@
+# Compute plane for spec 012 — schema-conditioned policy synthesis.
+#
+# Five services, each standing in for a managed cloud service we do not yet pay for.
+# Justification per service: specs/012-schema-conditioned-policy-synthesis/plan.md §4.
+# Adding a service requires a committed run log showing the limit that demands it.
+#
+# Runs inside a GitHub Actions runner (compute plane) or on a developer machine.
+# The databases are ephemeral: at teardown the run log is exported to JSON under
+# .runs/loop_research/<run-id>/, and that committed JSON is the record of the run.
+
+name: loop-research
+
+services:
+  # Stands in for: managed relational database.
+  # Justified by R2/R6 — scaffold revision lineage and replay need real relations.
+  runlog:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: loop
+      POSTGRES_PASSWORD: loop
+      POSTGRES_DB: runlog
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loop -d runlog"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    tmpfs:
+      - /var/lib/postgresql/data   # ephemeral by design; JSON export is the record
+
+  # Stands in for: object storage.
+  # Justified by rollout traces being far too large for a database row.
+  artifacts:
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: loop
+      MINIO_ROOT_PASSWORD: looploop
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    tmpfs:
+      - /data
+
+  # Stands in for: managed job queue.
+  # Justified by rollout batches fanning out; the loop must not block on a single episode.
+  queue:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # Stands in for: CPU/GPU worker pool.
+  # The only component that scales with rollout count. Replicas set by the manifest.
+  sim-worker:
+    build:
+      context: ../..
+      dockerfile: infra/loop-research/Dockerfile.sim
+    depends_on:
+      queue: {condition: service_healthy}
+      artifacts: {condition: service_healthy}
+    environment:
+      QUEUE_URL: redis://queue:6379/0
+      ARTIFACTS_ENDPOINT: http://artifacts:9000
+      ARTIFACTS_KEY: loop
+      ARTIFACTS_SECRET: looploop
+      MUJOCO_GL: osmesa          # headless; no display in CI
+    deploy:
+      replicas: 2
+    command: ["python", "-m", "packages.research.loop_research.sim_worker"]
+
+  # Stands in for: the application container.
+  # Holds the agent loop, the cost ceiling, and the gate runner.
+  orchestrator:
+    build:
+      context: ../..
+      dockerfile: infra/loop-research/Dockerfile.orchestrator
+    depends_on:
+      runlog: {condition: service_healthy}
+      queue: {condition: service_healthy}
+      artifacts: {condition: service_healthy}
+    environment:
+      RUNLOG_URL: postgresql://loop:loop@runlog:5432/runlog
+      QUEUE_URL: redis://queue:6379/0
+      ARTIFACTS_ENDPOINT: http://artifacts:9000
+      ARTIFACTS_KEY: loop
+      ARTIFACTS_SECRET: looploop
+      # Supplied by the GitHub Actions secret store. Never present in the
+      # Claude routine's session — the control plane makes no OpenAI calls.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY must be set}
+      # Cost controls are enforced in code, not by convention. See plan.md §5.
+      LOOP_USD_CEILING: ${LOOP_USD_CEILING:-5.00}
+      LOOP_CHEAP_MODEL: ${LOOP_CHEAP_MODEL:-gpt-4.1-mini}
+      LOOP_FRONTIER_MODEL: ${LOOP_FRONTIER_MODEL:-gpt-5.4}
+      LOOP_MANIFEST: ${LOOP_MANIFEST:?LOOP_MANIFEST must point at an experiments/queue entry}
+      LOOP_RUN_ID: ${LOOP_RUN_ID:?LOOP_RUN_ID must be set}
+    volumes:
+      - ../../.runs/loop_research:/out:rw   # JSON export lands here, then gets committed
+    command: ["python", "-m", "packages.research.loop_research.orchestrator"]
