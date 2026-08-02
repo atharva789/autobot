@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://il-ideation.local/schemas/system-profile.json",
+  "title": "SystemProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_id",
+    "harness",
+    "model_id",
+    "command",
+    "instructions",
+    "skills",
+    "mcps",
+    "tools",
+    "environment_keys",
+    "time_limit_seconds",
+    "observable_cost_usd"
+  ],
+  "properties": {
+    "profile_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "harness": {
+      "enum": ["fixture-reference", "fixture-seeded-failure", "codex", "claude-code", "command"]
+    },
+    "model_id": {"type": "string", "minLength": 1},
+    "command": {"type": "array", "items": {"type": "string"}},
+    "instructions": {"type": "string"},
+    "skills": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "mcps": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "tools": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "environment_keys": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "time_limit_seconds": {"type": "integer", "minimum": 1, "maximum": 3600},
+    "observable_cost_usd": {"type": ["number", "null"], "minimum": 0}
+  }
+}

@@ -67,7 +67,8 @@ packages/research/
 ├── storage/
 │   ├── store.py                  # RunStore protocol + SQLiteStore (local .runs/research.db)
 │   └── schema.sql                # experiments, runs, designs, run_metrics tables
-├── cli.py                        # Click CLI: run, strategies, show, compare, metrics, experiments
+├── agent_evals.py                # Local agent-eval capture, grading, bundle, replay, comparison
+├── cli.py                        # Research and agent-eval CLI commands
 └── notebooks/
     └── quickstart.ipynb
 ```
@@ -80,6 +81,28 @@ packages/research/
 - `local_chat_models` — ChatOpenAI-compatible local model factory for research loops. Use `make_chat_model()` / `make_structured_llm()` instead of direct `ChatOpenAI` imports. Set `RESEARCH_LLM_PROVIDER=codex` for an isolated persistent local `codex mcp-server` thread, `RESEARCH_LLM_PROVIDER=claude-code` for persistent Claude Code with Sonnet 4.5, or `RESEARCH_LLM_PROVIDER=openai` only when an explicit OpenAI fallback is desired.
 - `ExperimentRunner` — orchestrates: strategy.generate() → benchmark harness → SQLite persistence. One call, full reproducibility envelope.
 - `ReproEnvelope` — captures seed, model_id, prompt hashes, strategy version, git SHA for exact reproducibility.
+
+**Agentic robot-eval POC:**
+
+- The deterministic Spec 011 slice is implemented as research-only falsification infrastructure.
+  Protected tasks and the deliberately small control live under `evals/robot_design/`; evidence
+  lives under `.runs/agent_evals/`. The live comparison and complete agent-plus-engineer substitute
+  remain unrun.
+- A 291-SLOC control matched all twelve frozen reference/seeded grading outcomes. Treat
+  frozen-artifact grading and basic comparison as open-source-style infrastructure. The control does
+  not reproduce agent execution, isolation, profile capture, or evidence bundles, so the overall
+  product decision is `refine`, not `continue` or a completed strongest-substitute win.
+- The controlled live Codex comparison is `unrun`: nested sandboxing failed and global skills
+  contaminated the empty profile. Never replace that result with fixtures or disable the inner
+  sandbox under the host compatibility profile.
+- Evidence replay checks byte hashes for task, profile, grader, environment, transcript, grades, and
+  artifacts, then grades temporary copies. The bundle manifest is unsigned and IR graders import
+  unsnapshotted pipeline code, so do not claim hermetic or production-secure replay.
+- Saved comparisons must load manifests through `load_verified_evidence_manifest()`. Trial rows carry
+  validated profile, bundle, and environment revisions; `comparison_id` covers those revisions.
+  Malformed manifests exit 2, while drift or incompatible revisions exit 7.
+- `Agentic Robot Model-Repair Evals` is only selected for design review. Do not implement it before
+  approval plus a disposable runner, held-out faults, external failures, and a static-lint baseline.
 
 **When working in this layer:** you are doing research engineering. Changes should maintain the Strategy protocol, keep tests passing (`pytest tests/test_research_core.py`), and avoid importing from `apps/`. New strategies are added by implementing `GenerationStrategy` and calling `register_strategy()`. New app-testable loops are added under `packages/research/agent_loops/` and registered with `register_agent_loop()`.
 
@@ -121,6 +144,7 @@ packages/pipeline/
 | Adding a new generation method | `packages/research/strategy/` | `apps/api/routes/designs.py` |
 | Adding or changing a backend-selectable LangGraph loop | `packages/research/agent_loops/` | `apps/api/routes/designs.py` unless request/response contract changes |
 | Changing how the grammar loop's prompts work | `packages/research/prompts/templates/` | `apps/api/routes/designs.py` |
+| Agent-eval tasks, bundles, replay, or control | `packages/research/agent_evals.py` + `evals/robot_design/` | `apps/` |
 | Deploying the web app | `apps/` | `packages/research/` |
 
 ## Running Research Experiments
@@ -152,3 +176,9 @@ pytest tests/ -v --ignore=tests/test_research_core.py
 # Full suite
 pytest tests/ -v
 ```
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+at specs/011-b2b-feasibility-evidence/plan.md
+<!-- SPECKIT END -->

@@ -1,0 +1,79 @@
+{
+  "task_id": "mjcf-payload-inertia",
+  "version": 1,
+  "title": "Configure a payload collision body and inertia",
+  "family": "constrained-modification",
+  "prompt": "Modify robot.xml so the body named payload represents a 2.0 kg rectangular payload. Keep a collision-enabled box geom named payload_collision with full dimensions 0.30 m by 0.20 m by 0.10 m. Set the payload body's diagonal inertia to the solid-box values implied by that mass and those dimensions: Ixx=0.008333333333 kg*m^2, Iyy=0.016666666667 kg*m^2, and Izz=0.021666666667 kg*m^2. Preserve the payload and payload_collision names. The final robot.xml must load in MuJoCo; changing only comments or adding unreferenced metadata does not satisfy the task.",
+  "starter_dir": "starter",
+  "required_outputs": [
+    "robot.xml"
+  ],
+  "allowed_tools": [
+    "filesystem",
+    "python",
+    "mujoco"
+  ],
+  "constraints": [
+    {
+      "constraint_id": "payload-mass",
+      "quantity": "payload body mass",
+      "operator": "==",
+      "value": 2.0,
+      "unit": "kg"
+    },
+    {
+      "constraint_id": "payload-length-x",
+      "quantity": "payload collision full x dimension",
+      "operator": "==",
+      "value": 0.3,
+      "unit": "m"
+    },
+    {
+      "constraint_id": "payload-width-y",
+      "quantity": "payload collision full y dimension",
+      "operator": "==",
+      "value": 0.2,
+      "unit": "m"
+    },
+    {
+      "constraint_id": "payload-height-z",
+      "quantity": "payload collision full z dimension",
+      "operator": "==",
+      "value": 0.1,
+      "unit": "m"
+    },
+    {
+      "constraint_id": "payload-ixx",
+      "quantity": "payload diagonal inertia Ixx",
+      "operator": "==",
+      "value": 0.008333333333,
+      "unit": "kg*m^2"
+    },
+    {
+      "constraint_id": "payload-iyy",
+      "quantity": "payload diagonal inertia Iyy",
+      "operator": "==",
+      "value": 0.016666666667,
+      "unit": "kg*m^2"
+    },
+    {
+      "constraint_id": "payload-izz",
+      "quantity": "payload diagonal inertia Izz",
+      "operator": "==",
+      "value": 0.021666666667,
+      "unit": "kg*m^2"
+    },
+    {
+      "constraint_id": "payload-collision-enabled",
+      "quantity": "payload collision contact masks",
+      "operator": ">",
+      "value": 0,
+      "unit": "dimensionless"
+    }
+  ],
+  "time_limit_seconds": 300,
+  "grader_entrypoint": "protected/mjcf-payload-inertia/grader.py",
+  "reference_dir": "protected/mjcf-payload-inertia/reference",
+  "seeded_failure_dir": "protected/mjcf-payload-inertia/seeded_failure",
+  "seeded_failure_grade_id": "payload-inertia"
+}

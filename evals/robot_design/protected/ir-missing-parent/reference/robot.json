@@ -1,0 +1,70 @@
+{
+  "name": "repair_arm",
+  "version": "1.0.0",
+  "links": [
+    {
+      "name": "base",
+      "inertial": {
+        "mass": 1.0,
+        "ixx": 0.01,
+        "iyy": 0.01,
+        "izz": 0.01
+      },
+      "visual": {
+        "geometry": {
+          "type": "box",
+          "size": [0.3, 0.2, 0.1]
+        }
+      },
+      "collision": {
+        "geometry": {
+          "type": "box",
+          "size": [0.3, 0.2, 0.1]
+        }
+      }
+    },
+    {
+      "name": "arm",
+      "inertial": {
+        "mass": 0.3,
+        "ixx": 0.001,
+        "iyy": 0.001,
+        "izz": 0.0002
+      },
+      "visual": {
+        "geometry": {
+          "type": "capsule",
+          "size": [0.025, 0.25]
+        }
+      },
+      "collision": {
+        "geometry": {
+          "type": "capsule",
+          "size": [0.025, 0.25]
+        }
+      }
+    }
+  ],
+  "joints": [
+    {
+      "name": "shoulder",
+      "joint_type": "revolute",
+      "parent_link": "base",
+      "child_link": "arm",
+      "axis": {"x": 0.0, "y": 1.0, "z": 0.0},
+      "limits": {
+        "lower": -1.0,
+        "upper": 1.0,
+        "effort": 4.0,
+        "velocity": 2.0
+      },
+      "actuator": {
+        "actuator_type": "position",
+        "max_torque": 4.0,
+        "max_velocity": 2.0,
+        "gear_ratio": 1.0
+      }
+    }
+  ],
+  "sensors": []
+}

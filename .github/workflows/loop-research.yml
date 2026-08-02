@@ -1,0 +1,129 @@
+# Compute plane for spec 012 — schema-conditioned policy synthesis.
+#
+# The Claude routine (control plane) queues an experiment by committing a manifest to
+# experiments/queue/. That push triggers this workflow, which holds the secrets, runs the
+# physics, and commits the run log back for the next day's routine to read.
+#
+# Architecture: specs/012-schema-conditioned-policy-synthesis/plan.md §1-§3.
+
+name: loop-research
+
+on:
+  push:
+    branches: [routine/experiments]
+    paths: ["experiments/queue/**"]
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: "Path to an experiments/queue/*.yaml manifest"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: loop-research
+  cancel-in-progress: false      # never kill a run mid-experiment; partial logs are misleading
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+      manifest: ${{ steps.check.outputs.manifest }}
+      run_id: ${{ steps.check.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The build order (plan.md §7) puts the loop implementation before this workflow is
+      # useful. Until the entrypoint exists, exit cleanly and say so. A workflow that fails
+      # red every morning trains everyone to ignore it.
+      - id: check
+        env:
+          # Secrets never appear in run: text. The boolean is computed in the
+          # expression layer and only its result reaches the shell.
+          OPENAI_KEY_SET: ${{ secrets.OPENAI_API_KEY != '' }}
+          INPUT_MANIFEST: ${{ inputs.manifest }}
+        run: |
+          set -euo pipefail
+
+          MANIFEST="$INPUT_MANIFEST"
+          if [ -z "$MANIFEST" ]; then
+            MANIFEST=$(ls -1 experiments/queue/*.yaml 2>/dev/null | sort | tail -1 || true)
+          fi
+
+          if [ -z "$MANIFEST" ] || [ ! -f "$MANIFEST" ]; then
+            echo "::notice::No experiment manifest queued. Nothing to run."
+            echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          if [ ! -f packages/research/loop_research/orchestrator.py ]; then
+            echo "::notice::Orchestrator not implemented yet (build order step 6). Manifest $MANIFEST left queued."
+            echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          if [ "$OPENAI_KEY_SET" != "true" ]; then
+            echo "::warning::OPENAI_API_KEY is not set. Add it with: gh secret set OPENAI_API_KEY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          echo "manifest=$MANIFEST" >> "$GITHUB_OUTPUT"
+          echo "run_id=$(date -u +%Y-%m-%dT%H-%M-%SZ)_${GITHUB_SHA::6}" >> "$GITHUB_OUTPUT"
+
+  experiment:
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: routine/experiments
+
+      - name: Bring up the compute stack
+        working-directory: infra/loop-research
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LOOP_MANIFEST: ${{ needs.preflight.outputs.manifest }}
+          LOOP_RUN_ID: ${{ needs.preflight.outputs.run_id }}
+          LOOP_USD_CEILING: ${{ vars.LOOP_USD_CEILING || '5.00' }}
+        run: docker compose up --build --abort-on-container-failure --exit-code-from orchestrator
+
+      # Gates run against the produced run log, in a separate step, so a loop that
+      # crashes still leaves gradeable evidence behind.
+      - name: Run gates and negative control
+        if: always()
+        env:
+          LOOP_RUN_ID: ${{ needs.preflight.outputs.run_id }}
+        run: python -m packages.research.loop_research.gates --run-id "$LOOP_RUN_ID"
+
+      - name: Tear down
+        if: always()
+        working-directory: infra/loop-research
+        run: docker compose down -v
+
+      - name: Commit the run log
+        if: always()
+        env:
+          RUN_ID: ${{ needs.preflight.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          if [ ! -d ".runs/loop_research/$RUN_ID" ]; then
+            echo "::warning::No run log produced. Nothing to commit."; exit 0
+          fi
+          git config user.name  "loop-research[bot]"
+          git config user.email "loop-research@users.noreply.github.com"
+          git add ".runs/loop_research/$RUN_ID"
+          git commit -m "run: $RUN_ID" || { echo "nothing to commit"; exit 0; }
+          git push origin routine/experiments
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-${{ needs.preflight.outputs.run_id }}
+          path: .runs/loop_research/
+          if-no-files-found: warn
+          retention-days: 30
