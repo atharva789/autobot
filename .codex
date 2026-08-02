@@ -1,25 +1,27 @@
-# IL Platform Context for Codex
+# IL_ideation / AutoBot — Context for Codex
 
 ## Mission
-Build a platform that converts natural-language robot task requests plus sourced video into reviewed, simulator-validated imitation-learning datasets for humanoid robots.
+Robot schema in, task-specific RL policy out. An agent loop reads a URDF/MJCF and one task,
+emits an RL training scaffold (reward terms, terminations, curriculum, randomization), trains
+against MuJoCo, reads structured rollout failures, and revises the scaffold. The model is the
+policy designer, not the policy. Two prior theses (task-to-robot-body workbench; agentic robotics
+outcome evaluation) were rejected on evidence recorded in `README.md` and `specs/011`.
 
 ## Startup Read Order
-1. `plans/00-master-platform-plan.md`
-2. The active phase discovery doc:
-   - `plans/phase-01-foundation/implementation-discovery-and-validation.md`
-   - `plans/phase-02-robot-and-task-ingest/implementation-discovery-and-validation.md`
-   - `plans/phase-03-video-intelligence/implementation-discovery-and-validation.md`
-   - `plans/phase-04-retargeting-and-simulation/implementation-discovery-and-validation.md`
-   - `plans/phase-05-dataset-export-and-productization/implementation-discovery-and-validation.md`
+1. `README.md` — current thesis, pivot status, honest maturity table.
+2. `specs/012-schema-conditioned-policy-synthesis/spec.md` — the active falsifiable slice and its
+   four anti-cheat gates; `plan.md` for the two-plane architecture and build order.
+3. `AGENTS.md` — full two-layer architecture boundary rules.
+4. `routines/registry.md` — the daily research routine, its authority limits, and its run journal.
 
-If no active phase is specified, assume work starts at Phase 01.
+The `plans/phase-01..05` tree referenced by earlier revisions of this file no longer exists; its
+thesis was rejected. Do not reconstruct it.
 
 ## Planning and Execution Workflow
-1. Read the master plan to inherit locked product and architecture decisions.
-2. Read the relevant phase `implementation-discovery-and-validation.md`.
-3. Resolve phase-local open decisions and validation requirements.
-4. Write a phase-specific implementation spec in a separate file when that phase meets its exit criteria.
-5. Implement only after the phase spec exists or the user explicitly authorizes implementation from the discovery doc.
+Spec-as-source, per `README.md` "Spec-as-source development":
+`spec.md -> research.md -> plan.md + data-model.md + contracts/ -> tasks.md -> implementation -> verification`,
+under `specs/`. Implement only from an approved spec's contracts. Specs 003–010 are the active
+roadmap (selected, not started); spec 012 is the narrowed slice actually being executed.
 
 ## Codebase Architecture: Two Independent Layers
 
@@ -36,6 +38,41 @@ eventually get validated imitation-learning datasets.
 - New web routes, UI changes, Supabase schema → work in `apps/`
 - `apps/api/routes/designs.py` calls the app-compatible research agent-loop registry
 - Product code should only import `packages.research.agent_loops` for robot-generation loop selection
+
+### Workspace API/SDK and Optional Desktop Shell
+
+- Date simplified: 2026-06-24 local workspace session.
+- The root frontend is a local project/thread workspace modeled around API data
+  and a typed frontend client. Legacy capture routes remain reachable under
+  `/capture/...`.
+- Core workspace behavior belongs to `apps/api/workspace_sdk.py`. The
+  importable `RobotWorkspaceSDK` owns project/thread CRUD, inherited thread
+  context assembly, thread-scoped robot generation, simulation-spec checks, and
+  policy-spec persistence. FastAPI routes in `apps/api/routes/workspace.py`
+  should stay thin transport adapters over this SDK.
+- Workspace persistence belongs to the FastAPI `WorkspaceStore`, not Electron
+  local storage. The workspace tables are `workspace_projects`,
+  `workspace_threads`, `thread_messages`, `context_summaries`,
+  `thread_artifacts`, `simulation_specs`, and `policy_specs`.
+- Thread-scoped generation creates an ingest job, selects `creative_qd_v2` when
+  available with `grammar_v2` fallback, calls the existing `/designs/generate`
+  kernel, and attaches design artifacts to the active thread.
+- The frontend workspace client lives in `apps/web/lib/workspace-api.ts`.
+  Frontend workspace UI should consume `workspaceApi` or an injected client
+  shape rather than hard-coding route paths in components.
+- The Electron shell under `apps/web/electron/` is optional and intentionally
+  thin. It renders the existing Next app with `contextIsolation: true`,
+  `nodeIntegration: false`, and `sandbox: true`; it must not spawn or supervise
+  the FastAPI backend. Developers should run/edit the backend independently
+  with `uvicorn apps.api.app:app --host 127.0.0.1 --port 8000` or by importing
+  `RobotWorkspaceSDK` directly.
+- The right-side robot panel reuses `MorphologyViewer`. Concept-mode robots and
+  engineering overlays both emit component selections for the inspector; do not
+  replace this with a separate canvas implementation unless the render contract
+  changes.
+- Simulation/policy v1 is config plus compile/validation/screening checks only.
+  Full policy training, job queues, and long-running RL orchestration remain out
+  of scope until a later feature.
 
 ### Layer 2 — Research Experimentation (`packages/research/`)
 
@@ -80,14 +117,90 @@ def loop(
 
 - `AgentLoopConfig` carries population, max attempts, optional injected agents, optional confirmed spec, and extra metadata.
 - `AgentLoopResult.state` is the full research/debug state.
-- `AgentLoopResult.hitl` is the backend/UI-facing payload and should preserve the existing grammar HITL shape unless the frontend contract changes.
-- `POST /designs/generate` accepts optional `agent_loop`; default is `grammar`.
+- `AgentLoopResult.hitl` is the backend/UI-facing payload. The primary product
+  contract is now RobotDesignHitlV2 for the `grammar_v2` loop; legacy
+  structural-rule HITL is only a migration/debug surface for the old `grammar`
+  loop.
+- LangSmith eval target outputs now use the same RobotDesignHitlV2 semantic
+  contract as the product HITL surface: `version`, `spec`, `status`,
+  `design_program`, `derivation_trace`, `expanded_graph_summary`,
+  phase-grouped `validation`, `repair_history`, `component_program`,
+  `compile_safe`, `loop_trace`, and `messages`.
+  Grammar HITL payloads expose this object under `hitl["langsmith_output"]`;
+  eval runners should return that V2 object. The older
+  `graph`/`task_intent`/`evaluator_criteria` object is legacy compatibility
+  for old trace tooling only and must not be uploaded as the current dataset
+  reference output.
+- `POST /designs/generate` accepts optional `agent_loop`; default is
+  `grammar_v2`.
 - `GET /designs/agent-loops` lists loop names available in the running server process.
 - Runtime notebook registration is process-local. A separate FastAPI server only sees loops registered by importable code loaded in that server process.
 - Registered agent loops use LangSmith for active observability. Preserve `langsmith_trace_id` in loop state/HITL and product prompt persistence; Langfuse IDs are legacy debug/import data only.
 - `RunDebugAPI()` reads LangSmith by default. Pass `RunDebugAPI(use_langfuse=True)` only when intentionally debugging legacy Langfuse traces.
 - `packages/research/agent_loops/grammar_loop.py` exposes the reusable grammar-loop node/tool surface via `STRUCTURAL_RULE_GRAPH_NODES`, `STRUCTURAL_RULE_GRAPH_NODE_ORDER`, `GRAMMAR_LOOP_TOOLS`, and `StructuralRuleLoopContext`; new research-owned loops can import those nodes instead of copying the built-in normalize/checklist/build/repair/compile/evaluate stages.
 - `grammar_loop.make_structured_agent_from_chat_model()` and `make_structural_rule_agents_from_chat_model()` adapt swappable LangChain chat models into grammar-loop agents. Use these in notebooks when testing Qwen/OpenAI-compatible models through the real grammar loop instead of duplicating rule-builder logic.
+- The RoboGrammar catalog now reads from normalized Supabase tables: `grammar_nodes` for node vocabulary and `production_rules` for neutral production-rule enum options. Agent loops must select `production_rule_ids` from the loaded enum rather than filtering by `morphology_family` or generating free-form family-specific rule templates.
+- The active grammar vocabulary is intentionally bare-bones. `grammar_nodes`
+  exposes only `S`, `CONNECTOR`, `CAPSULE`, `JOINT`, and `CONTACT_SURFACE`;
+  `production_rules` exposes the matching generic enum (`S -> CONNECTOR`,
+  `CONNECTOR -> CAPSULE JOINT CONTACT_SURFACE`, plus the recursive connector
+  option). Do not reintroduce morphology-specific grammar node aliases like
+  `BODY`, `LEG_PAIR`, `TAIL`, or wheel/wing variants unless the schema contract
+  is explicitly changed again.
+
+### RobotDesignProgram V2 Contract
+
+- Date updated: 2026-06-01 local workspace session.
+- `packages/pipeline/robot_program.py` owns the V2 derivation-first schema and
+  deterministic compiler surface: `RobotDesignProgram`, `DerivationStep`,
+  `GrammarCatalog`, `ExpandedRobotGraph`, `ComponentProgram`,
+  `ValidationIssue`, `expand_design_program`, `validate_expanded_graph`,
+  `lower_components`, `validate_component_program`, and
+  `make_robot_design_hitl_v2`.
+- Agents author compact derivation programs only: catalog ID, selected rule
+  IDs, derivation steps, explicit targets/selectors, repeat counts, and short
+  rationale. Deterministic code expands instances, creates edges, validates
+  attachments, lowers physical primitives, and summarizes HITL.
+- Program validation rejects non-`2.0` programs and grammar-catalog mismatches.
+  Graph validation must flag each limb without a contact surface in its own
+  directed serial/contact subgraph, including graphs that contain no
+  `contact_surface` instances at all.
+- V2 prompt templates live alongside the existing registry prompts:
+  `v2_program_builder`, `v2_program_repair`, `v2_program_evaluator`, and
+  `v2_component_materializer`. `GrammarStrategy` must inject the
+  `RegistryProgramBuilderAgent` into `grammar_v2`; do not pass the legacy
+  structural-rules builder into the V2 loop.
+- `packages/research/agent_loops/grammar_v2_loop.py` registers as
+  `grammar_v2`. It returns `RobotDesignHitlV2` with `version: "2.0"`,
+  `design_program`, `derivation_trace`, `expanded_graph_summary`,
+  phase-grouped `validation`, `repair_history`, `component_program`,
+  `compile_safe`, `loop_trace`, and `messages`. Do not add
+  `structural_rules` to this V2 HITL payload.
+- `packages/research/agent_loops/creative_qd_v2_loop.py` registers as
+  `creative_qd_v2`. It wraps `grammar_v2` as the deterministic compile-safe
+  kernel, evaluates bounded proposal-mode candidates, computes graph identity
+  and physics-affordance descriptors through
+  `packages/research/benchmark/morphology_features.py`, keeps a per-run
+  quality-diversity archive, and returns the selected candidate's
+  RobotDesignHitlV2 payload with additive `hitl["creative_qd"]` metadata.
+  Product/UI consumers should continue to rely on the existing V2 keys and may
+  ignore the additive metadata unless they intentionally add a creative-QD view.
+- `GrammarStrategy` now runs the V2 loop and passes `design_program`,
+  `expanded_graph`, and `component_program` to `LLMIRMaterializer`.
+  `LLMIRMaterializer` must prefer lowered physical instance IDs such as
+  `capsule#17` over symbol-name trees when `component_program` is present.
+- Product generation in `apps/api/routes/designs.py` derives candidate
+  rationale and logging from V2 program steps, expanded node counts, validation
+  issue counts, and symbol counts. Candidate rationale must not be based on
+  `len(structural_rules)`.
+- Frontend grammar panels consume `RobotDesignHitlV2` from
+  `apps/web/lib/types.ts`; render derivation timeline, graph summary,
+  validation issues, component lowering, and loop trace instead of an
+  LHS-to-RHS structural-rule table.
+- Supabase migration `20260601090000_robot_design_program_v2.sql` adds
+  normalized V2 catalog, program, derivation-step, expanded graph, validation,
+  component, repair, and agent-loop-event tables. Existing `designs.design_json`
+  and `design_revisions.design_json` remain snapshot storage.
 
 ### Research LLM Backend (`packages/research/local_chat_models.py`)
 
@@ -102,12 +215,35 @@ rewriting agent-loop code.
 - `RESEARCH_LLM_COMMAND` plus `RESEARCH_LLM_PROTOCOL=jsonl` can point at a custom persistent wrapper; this is the most testable protocol for notebooks.
 - `RESEARCH_LLM_PROVIDER=openai` is the only path that may use `langchain_openai.ChatOpenAI`.
 
+### Robot RL Research Program Specs
+
+- Date added: 2026-06-27 planning session.
+- The active Spec Kit entry point is `specs/003-robot-rl-research-program/plan.md`.
+  It coordinates seven sibling research specs: task goal generation, state/action
+  formalization, physics dynamics rules, policy generation, reward generation,
+  LLM critic memory, and PPO training-loop accounting.
+- These specs are design and planning artifacts only. They must not be treated
+  as implemented controller or training behavior until `/speckit-tasks` and a
+  later implementation phase create code and tests.
+- Keep the architecture boundary strict: robot morphology generation produces
+  compile-safe graph/HITL artifacts; RL research consumes those artifacts through
+  explicit goal, control-problem, dynamics, reward, policy, critic, and PPO
+  contracts. Do not add PPO, critic memory, or long-running training to the
+  product `/designs` path without a separate product/API spec.
+- The strongest new design boundary is the graph-conditioned control problem
+  contract. Downstream policy, reward, critic, and PPO work must stop on graphs
+  with no controllable action space, unsupported dynamics, missing reward inputs,
+  uncalibrated critic scores, or incomplete rollout probability/value records.
+
 ### Shared Library (`packages/pipeline/`)
 
 Both layers read from it. Neither should modify it lightly.
 Contains: `RobotDesignIR`, grammar catalog/tool helpers in `grammar_graph`, MJCF compiler, simulation validator.
 `packages/pipeline/grammar_graph.py` keeps a compatibility shim for older
-`build_structural_rules` imports, but the core loop is research-owned.
+`build_structural_rules` imports, but the core loop is research-owned. Its
+`summarize_hitl_state` shim must expose `hitl["langsmith_output"]` as a
+RobotDesignHitlV2-normalized object; use explicit legacy extraction helpers
+only for old trace/debug flows that still need `graph`/`task_intent` fields.
 - `compile_structural_rules(...)` returns `CompileResult(compile_safe, invalid_nodes, unreachable_nodes, compile_error)`;
   `invalid_nodes` and `unreachable_nodes` are `CompilerError` values with `nodes` and optional
   `error` details. Reachability is computed by walking generated structural rules from `S`, so
@@ -195,12 +331,50 @@ packages/research/  →  apps/        (FORBIDDEN)
   twelve held-out faults, at least three external faults from two teams, and a
   static-lint baseline.
 
+### Schema-Conditioned Policy Synthesis (Spec 012) and the Two-Plane Loop
+
+- Date added: 2026-08-02.
+- Spec 012 narrows the specs/003 program to one falsifiable claim: the emitted training scaffold
+  must be causally dependent on the robot schema. Four gates enforce it — G1 schema-reference
+  (static symbol resolution), G2 ablation (permuted schema must change the scaffold past τ),
+  G3 cross-body divergence, G4 one-shot held-out. A deliberately cheating
+  `static_scaffold_loop` runs every experiment and must fail G1–G3; τ is derived from its margin.
+  Gate formulas and thresholds live in `specs/012-.../contracts/eval-contract.md` and may not be
+  changed by agents — human review only.
+- Execution is two cloud planes. Control plane: a daily scheduled Claude routine
+  (`trig_012k5hZBEfTpeyTjTaJ2aGcb`, prompt versioned at
+  `routines/prompts/daily-loop-research.v1.md`) that decides, queues manifests under
+  `experiments/queue/`, and reports — it holds no secrets and may not state numbers it did not
+  read from committed files. Compute plane: `.github/workflows/loop-research.yml` +
+  `infra/loop-research/docker-compose.yml` (Postgres/MinIO/Redis/sim-worker/orchestrator), holding
+  `OPENAI_API_KEY` as a repo secret, committing run logs to `.runs/loop_research/`.
+- Cost rules are contractual (loop-contract C5/C6): cheap model end-to-end by default
+  (both tiers `gpt-4.1-mini`); frontier escalation only via manifest override citing a run log;
+  one revision step = one evidence-dense call; async batch endpoint for latency-insensitive work;
+  independent gate arms never share a prompt context (context-merging games the divergence gates).
+- The routine writes only to branch `routine/experiments`, regenerates only the delimited
+  `ROUTINE` block in `README.md`, and appends to `routines/registry.md`. Registry review checklist
+  is the human gate on its PRs.
+
+## Design Philosophy (maintainer-set, 2026-08-02)
+- Sophistication belongs in the agent loop — how it reasons over the schema, what evidence it
+  consumes, how it decides to revise. Be ambitious there.
+- Data models stay lean. The current core is four records (`TrainingScaffold`, `RolloutBatch`,
+  `GateResult`, `ExperimentRun`); adding an abstraction requires retiring or folding another.
+  Two dozen abstractions is a failure mode, not thoroughness.
+- As the system gets functionally and conceptually more complex, the app around it must slim
+  down: fewer services, fewer layers, fewer files. Complexity budget is spent on core logic,
+  never on scaffolding.
+
 ## Guardrails
-- Preserve these defaults unless the master plan changes:
-  web-first product, URDF-first ingest, humanoids, open-web discovery, full source mirroring, human review gate, cloud jobs, Isaac Lab / Isaac Sim, LeRobot-compatible export, no in-platform training in v1.
-- Keep cloud-job boundaries explicit.
-- Keep provenance and auditability first-class.
-- Treat mirrored-source lifecycle, takedown, retention, and deletion as real product requirements.
+- The loop emits scaffolds, never policies, never executable code; the harness trains and grades.
+- No self-grading anywhere: the model never scores its own output as evidence; only executed
+  simulator results and static gates count.
+- No claim outlives its artifact: a spec, flag, badge, or generated report is not a run.
+- Held-out schemas (`holdout-*`) are read once, at the frozen G4 evaluation, and never during
+  development. Contact destroys them.
+- Gate thresholds, τ, and rubric versions move only through human review.
+- Cheap models are the default everywhere; escalation is an evidence-backed exception.
 - Do not bypass review gates for convenience.
 - Do not invent custom standards if existing robotics or dataset conventions are sufficient.
 
@@ -212,7 +386,10 @@ packages/research/  →  apps/        (FORBIDDEN)
 - Update this `.codex` file in the same change whenever you make a major or new architecture/API change. At minimum, document new public APIs, changed dependency boundaries, new persistence/schema contracts, new experiment/research abstractions, and any workflow rule future agents must follow.
 - This rule is enforced locally by the global Codex Git pre-commit hook at `/Users/thorbthorb/.codex/git-hooks/pre-commit`: staged architecture/API/schema/abstraction changes are blocked unless `.codex` is staged in the same commit. This repo also has a `.git/hooks/pre-commit` wrapper because its local Git config points `core.hooksPath` at `.git/hooks`.
 
-## Active Research Experiment Log
+## Historical Experiment Log (pre-pivot, retained for provenance)
+
+The active experiment logs are now `routines/registry.md` (control plane) and
+`.runs/loop_research/` (compute plane). Entries below predate the schema-to-policy pivot.
 
 ### RoboGrammar Claude Code 701-example loop comparison
 
@@ -241,7 +418,46 @@ packages/research/  →  apps/        (FORBIDDEN)
 - Resume plan: `evals/results/loop_comparison_claude_701_resume_plan.md` contains the chunked commands for completing the 701-example side-by-side comparison without reusing the stopped grammar-only run as a matched baseline.
 - Completion still requires a future full side-by-side run if the original three-loop comparison objective is resumed; this stopped run is only a partial grammar-loop baseline.
 
+### LangSmith RoboGrammar RobotDesignHitlV2 eval contract
+
+- Date updated: 2026-06-01 local workspace session.
+- Dataset `robogrammar-structural-rules-evals` now stores all 701 reference
+  outputs as RobotDesignHitlV2 objects with top-level keys `version`, `spec`,
+  `status`, `design_program`, `derivation_trace`,
+  `expanded_graph_summary`, `validation`, `repair_history`,
+  `component_program`, `compile_safe`, `loop_trace`, and `messages`.
+  Legacy `expected_behavior`, `expected_compile_safe`, and
+  `expected_invalid_nodes` remain in example metadata for filtering and
+  behavior scoring.
+- Shared helpers live in `packages/research/agent_loops/langsmith_output.py`; eval-side compatibility imports are in `evals/langsmith_contract.py`.
+- `evals/run_langsmith_model_experiments.py` and `evals/run_langsmith_loop_experiments.py` return only the RobotDesignHitlV2 LangSmith object from targets and use deterministic `hallucination` and `quality` evaluators from `evals/run_langsmith_deterministic_evals.py`. The former standalone deterministic `alignment` evaluator remains retired; V2 quality now scores schema validity, absence of `structural_rules`, allowed V2 rule IDs, expected behavior vs. `compile_safe`/`status`, program shape, derivation trace, graph summary, component lowering, and task intent/embodiment alignment.
+- Metric reporting is canonicalized to `mean_hallucination` and `mean_quality`.
+  Older LangSmith feedback keys `alignment`, `task_alignment`, and
+  `compiler_validity` are cleanup/audit signals only; summary and aggregation
+  code must not emit mean metric columns for them or use them as fallbacks.
+- Both LangSmith experiment runners also attach the default `nvidia_minimax_llm_judge_evaluator` from `evals/run_langsmith_llm_judge.py`, which emits distinct `llm_hallucination` and `llm_task_alignment` feedback against each example's RobotDesignHitlV2 reference output. The same module can backfill existing projects with `python -m evals.run_langsmith_llm_judge --project <project> [--limit N] [--dry-run]`.
+- The default hosted judge endpoint is NVIDIA Integrate `https://integrate.api.nvidia.com/v1` with model `minimaxai/minimax-m2.7`; override through `LANGSMITH_EVAL_LLM_*` or `NVIDIA_MINIMAX_*` env vars, and use `--no-llm-judge` only for explicit cost/debug skips. `minimaxai/minimax-m2.5` returned HTTP 410 on 2026-05-27 because NVIDIA marked it EOL on 2026-05-12.
+- UI-visible LangSmith workspace evaluator resources are registered through `python -m evals.register_langsmith_evaluators`. This calls `/v1/platform/evaluators`, not the feedback-config SDK path, and keeps the Evaluators page covering `hallucination`, `quality`, `llm_hallucination`, and `llm_task_alignment`. It skips keys already covered by an existing workspace evaluator unless `--include-covered` is passed.
+- The notebook compiler-centric and compiler-feedback loops in `packages/research/notebooks/rl_playground.ipynb` still keep full HITL state locally, but their LangSmith observation output is `final_state["hitl"]["langsmith_output"]`.
+- Historical LangSmith projects created before the V2 output contract may
+  have legacy or empty target run outputs. Treat those as invalid for current
+  comparison design; reruns through the updated scripts emit the V2 object
+  contract and the reduced metric set.
+- 2026-05-31 cleanup: the old RoboGrammar LangSmith experiment projects were
+  removed from the workspace because sampled targets were legacy HITL fields,
+  empty, or `{"output": null}` rather than the object-output contract. Current
+  valid runs must be newly created after this cleanup. Do not treat local
+  `evals/results/*.json` files that reference deleted historical project names
+  as live LangSmith evidence.
+- Current experiment-design guardrail: a loop comparison is valid only when
+  each compared loop runs against the same dataset slice, provider, model,
+  attempt limit, and evaluator set. Smoke runs and interrupted grammar-only
+  runs are wiring evidence, not side-by-side performance evidence.
+
 ## Invariants
-- Every exportable episode must be traceable back to source clips and review decisions.
-- Original extracted motion, retargeted motion, and simulator-corrected motion must remain distinguishable.
-- Export is blocked unless approval and validation requirements are satisfied.
+- Every scaffold revision is traceable to the rollout batch that motivated it; a revision with no
+  antecedent evidence is rejected at write time.
+- Every run is replayable from `(schema digest, task, seed, prompt version, model id)`.
+- Run history is append-only; a rerun gets a new run id, never an overwrite.
+- The negative control runs in every experiment; if it passes any of G1–G3, all results from that
+  gate implementation are inadmissible.

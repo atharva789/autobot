@@ -110,6 +110,12 @@ because the control plane can only read what is in git.
 **Explicitly not included:** Kubernetes, service mesh, tracing backend, feature store, model
 registry. Each gets added when a run log shows a measured limit, not before.
 
+**Standing direction (maintainer, 2026-08-02):** the complexity budget is spent on the loop's
+reasoning — schema comprehension, evidence consumption, revision strategy — which may grow as
+sophisticated as results justify. The app around it moves the other way: as core capability grows,
+services, layers, and record types shrink or hold. A change that adds loop capability *and* removes
+scaffolding is the ideal shape of a change.
+
 ## 5. Cost model
 
 Cheap end-to-end is the default, not an optimization applied later. Both model tiers resolve to the

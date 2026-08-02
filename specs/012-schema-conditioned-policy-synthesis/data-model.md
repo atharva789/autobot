@@ -163,3 +163,6 @@ and for replay.
 3. `GateResult` rows are append-only. A rerun writes a new `run_id`; it never overwrites.
 4. `control` is required on every run. A run without the negative control is incomplete (R7).
 5. Any number appearing in the README `ROUTINE` block must be traceable to a `run.json` field.
+6. **The core stays at four records.** Proposing a fifth record type requires folding or retiring
+   one of these, argued in an increment. Sophistication belongs in the loop's reasoning, not in
+   the data model (maintainer directive, 2026-08-02).
