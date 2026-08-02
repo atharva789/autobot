@@ -53,11 +53,22 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-02** · build order 0/8 · no runs yet
+**2026-08-02** · build order 1/8 · no compute-plane runs yet
 
-Spec [012 — Schema-Conditioned Policy Synthesis](specs/012-schema-conditioned-policy-synthesis/spec.md)
-authored and awaiting review. The routine begins advancing the build order on its first firing
-(2026-08-03). No experiment has run, so there are no gate results and no cost to report.
+Step 1 implemented: the `TrainingScaffold` schema and its compiler-to-MuJoCo
+(`packages/research/loop_research/`). Reward/termination expressions compile through a whitelisted
+AST evaluator, symbols resolve against a schema's entity table (joint/body/site/actuator/sensor)
+read via MuJoCo's own parser — no hardcoded name lists (loop-contract.md C2). A hand-written
+scaffold compiles against a fixture schema and steps correctly:
+`tests/test_loop_research_scaffold.py` (19 tests, all passing) covers symbol-grammar validation,
+expression-safety rejection of unsafe constructs, the R2 revision invariant, and that termination
+causes track real physics — a generous step budget reaches `success` every episode, a starved one
+times out every episode.
+
+`.runs/loop_research/` is still empty: no experiment has run through the compute plane, so there
+are no gate results, dev/holdout schemas, negative control, or cost figures to report. Steps 2-8
+(schemas, G1 resolver, negative control, G2/G3 diff, Actions + Compose, the real loop, held-out
+eval) remain.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
