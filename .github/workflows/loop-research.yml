@@ -40,10 +40,15 @@ jobs:
       # useful. Until the entrypoint exists, exit cleanly and say so. A workflow that fails
       # red every morning trains everyone to ignore it.
       - id: check
+        env:
+          # Secrets never appear in run: text. The boolean is computed in the
+          # expression layer and only its result reaches the shell.
+          OPENAI_KEY_SET: ${{ secrets.OPENAI_API_KEY != '' }}
+          INPUT_MANIFEST: ${{ inputs.manifest }}
         run: |
           set -euo pipefail
 
-          MANIFEST="${{ inputs.manifest }}"
+          MANIFEST="$INPUT_MANIFEST"
           if [ -z "$MANIFEST" ]; then
             MANIFEST=$(ls -1 experiments/queue/*.yaml 2>/dev/null | sort | tail -1 || true)
           fi
@@ -58,7 +63,7 @@ jobs:
             echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
 
-          if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
+          if [ "$OPENAI_KEY_SET" != "true" ]; then
             echo "::warning::OPENAI_API_KEY is not set. Add it with: gh secret set OPENAI_API_KEY"
             echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
