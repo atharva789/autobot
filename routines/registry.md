@@ -78,7 +78,7 @@ For the human, when reviewing a routine PR:
 
 | Issue | Impact | Status |
 | --- | --- | --- |
-| Spec 012 lives on `codex/agentic-robot-evals-poc`, not `master` | Routine clones the default branch; the prompt carries a `git fetch && checkout` fallback. The API rejected a branch pin on the source. | Resolves when PR #3 merges |
+| Spec 012 lived only on `codex/agentic-robot-evals-poc` | Routine clones the default branch; prompt carries a `git fetch && checkout` fallback. | **Resolved 2026-08-02** — PR #3 merged to master |
 | `gh` availability in the routine sandbox is unverified | If absent, the routine pushes a branch but opens no PR. Prompt requires it to say so loudly. | Confirm on first firing |
-| `LOOP_FRONTIER_MODEL` defaults to `gpt-5.4` in the compose file | Taken from repo config, not independently confirmed to resolve. | Confirm before first compute run |
-| Workflow preflight tests `secrets.OPENAI_API_KEY` inside a `run:` block | Secrets are not interpolated into `run:` without an `env:` mapping, so the check may always report not-ready. | Fix before first compute run |
+| Frontier-tier model id unverified against the live API | Compose default now `gpt-5.6-sol`, the id this repo's research configs already use; still not confirmed to resolve billing-side. | Confirm before first compute run |
+| Workflow preflight read the secret inside a `run:` block | Reworked: the presence check is computed in the expression layer (`env: OPENAI_KEY_SET`) so no secret text enters the shell. | **Resolved 2026-08-02** |
