@@ -7,11 +7,13 @@ did. Maintained by the routines themselves, reviewed by a human.
 
 ## Active routines
 
-| Routine | Schedule (UTC) | Local | Prompt | Model | Branch | Created |
+| Routine | ID | Schedule (UTC) | Local | Prompt | Model | Branch |
 | --- | --- | --- | --- | --- | --- | --- |
-| `daily-loop-research` | `0 13 * * *` | 06:00 PT | [`daily-loop-research.v1.md`](prompts/daily-loop-research.v1.md) | claude-sonnet-5 | `routine/experiments` | 2026-08-02 |
+| `daily-loop-research` | `trig_012k5hZBEfTpeyTjTaJ2aGcb` | `0 13 * * *` | 06:00 PT | [`daily-loop-research.v1.md`](prompts/daily-loop-research.v1.md) | claude-sonnet-5 | `routine/experiments` |
 
-Routine IDs and run history: <https://claude.ai/code/routines>
+Created 2026-08-02. Run history: <https://claude.ai/code/routines/trig_012k5hZBEfTpeyTjTaJ2aGcb>
+
+Routines cannot be deleted from here; disable or delete at <https://claude.ai/code/routines>.
 
 ### `daily-loop-research`
 
@@ -47,7 +49,7 @@ successes cannot tell the human whether the routine is worth its tokens.
 
 | Date | Type | What happened | Evidence read | PR |
 | --- | --- | --- | --- | --- |
-| — | — | No firings yet. Routine created 2026-08-02; first run 2026-08-03 06:00 PT. | — | — |
+| — | — | No firings yet. Routine created 2026-08-02 11:27 UTC; first run 2026-08-02 13:00 UTC. | — | — |
 
 ### Column meanings
 
