@@ -1,0 +1,62 @@
+<!-- dev-a: 4-DOF tabletop arm with parallel gripper and free payload.
+     Development schema for spec 012. Structurally paired against dev-b
+     (different topology/actuation) per spec.md §2. -->
+<mujoco model="dev-a">
+  <option timestep="0.002" gravity="0 0 -9.81"/>
+
+  <worldbody>
+    <geom name="table" type="plane" size="1 1 0.05"/>
+    <site name="shelf_target" pos="0.45 0.0 0.35" size="0.02"/>
+
+    <body name="base" pos="0 0 0.05">
+      <geom type="cylinder" size="0.06 0.04" mass="2.0"/>
+      <joint name="j_base_yaw" type="hinge" axis="0 0 1" range="-3.1 3.1"/>
+
+      <body name="upper_arm" pos="0 0 0.08">
+        <geom type="capsule" fromto="0 0 0  0 0 0.22" size="0.03" mass="1.2"/>
+        <joint name="j_shoulder" type="hinge" axis="0 1 0" range="-1.9 1.9"/>
+
+        <body name="forearm" pos="0 0 0.22">
+          <geom type="capsule" fromto="0 0 0  0 0 0.18" size="0.025" mass="0.8"/>
+          <joint name="j_elbow" type="hinge" axis="0 1 0" range="-2.4 2.4"/>
+
+          <body name="wrist" pos="0 0 0.18">
+            <geom type="cylinder" size="0.02 0.02" mass="0.3"/>
+            <joint name="j_wrist" type="hinge" axis="0 0 1" range="-3.1 3.1"/>
+            <site name="grip_center" pos="0 0 0.05" size="0.01"/>
+
+            <body name="finger_left" pos="0.02 0 0.04">
+              <geom name="pad_left" type="box" size="0.006 0.015 0.03" mass="0.05"/>
+              <joint name="j_finger_left" type="slide" axis="1 0 0" range="0 0.04"/>
+            </body>
+            <body name="finger_right" pos="-0.02 0 0.04">
+              <geom name="pad_right" type="box" size="0.006 0.015 0.03" mass="0.05"/>
+              <joint name="j_finger_right" type="slide" axis="-1 0 0" range="0 0.04"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="payload" pos="0.3 0 0.09">
+      <freejoint name="j_payload_free"/>
+      <geom name="payload_box" type="box" size="0.03 0.03 0.03" mass="0.5"/>
+      <site name="payload_center" size="0.01"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor name="m_base_yaw" joint="j_base_yaw" gear="40" ctrlrange="-1 1"/>
+    <motor name="m_shoulder" joint="j_shoulder" gear="60" ctrlrange="-1 1"/>
+    <motor name="m_elbow" joint="j_elbow" gear="40" ctrlrange="-1 1"/>
+    <motor name="m_wrist" joint="j_wrist" gear="10" ctrlrange="-1 1"/>
+    <motor name="m_finger_left" joint="j_finger_left" gear="8" ctrlrange="0 1"/>
+    <motor name="m_finger_right" joint="j_finger_right" gear="8" ctrlrange="0 1"/>
+  </actuator>
+
+  <sensor>
+    <touch name="s_touch_left" site="grip_center"/>
+    <framepos name="s_payload_pos" objtype="site" objname="payload_center"/>
+    <framepos name="s_target_pos" objtype="site" objname="shelf_target"/>
+  </sensor>
+</mujoco>

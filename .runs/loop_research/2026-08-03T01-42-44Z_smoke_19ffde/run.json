@@ -1,0 +1,50 @@
+{
+  "run_id": "2026-08-03T01-42-44Z_smoke_19ffde",
+  "git_sha": "44c650e9263391449be1932c92fa3af571a9f9bc",
+  "trigger": "manual",
+  "status": "completed",
+  "scaffolds": [
+    "sc_51b63e3f6d49"
+  ],
+  "batches": [],
+  "gates": [
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_51b63e3f6d49",
+      "passed": true,
+      "score": 1.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 8,
+        "total": 8,
+        "unresolved": [],
+        "termination_unresolved": [],
+        "entity_counts": {
+          "joint": 6,
+          "site": 3,
+          "actuator": 6,
+          "body": 7,
+          "sensor": 3
+        }
+      },
+      "rubric_version": "v1"
+    }
+  ],
+  "cost": {
+    "usd_total": 0.0,
+    "usd_ceiling": 0.0,
+    "ceiling_hit": false,
+    "note": "local substitute provider (subscription auth); no API spend"
+  },
+  "replay": {
+    "schema_digest": "sha256:5de2f0cdc712871799bb05c8d2fc76149bc9f98ed12757a62b273b969c5b8c0d",
+    "prompt_version": "smoke-v1",
+    "model_id": "haiku",
+    "provider": "claude-code",
+    "seed": 42
+  },
+  "manifest_path": null,
+  "control": {
+    "note": "negative control not yet implemented (build order step 4)"
+  }
+}
