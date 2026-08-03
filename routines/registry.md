@@ -49,7 +49,8 @@ successes cannot tell the human whether the routine is worth its tokens.
 
 | Date | Type | What happened | Evidence read | PR |
 | --- | --- | --- | --- | --- |
-| — | — | No firings yet. Routine created 2026-08-02 11:27 UTC; first run 2026-08-02 13:00 UTC. | — | — |
+| 2026-08-03 | implement (manual, human-directed session, not a routine firing) | First local smoke of the loop on a substitute provider: Haiku via the repo's `claude-code` adapter (subscription auth, $0 API spend). One evidence-dense call emitted a 5-term/4-termination scaffold for `dev-a`; G1 passed at 1.0. G1 resolver + records implemented with 6 passing tests, including proof G1 fails fabricated symbols. | `.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json` | this branch |
+| — | — | No routine firings yet. Routine created 2026-08-02 11:27 UTC. | — | — |
 
 ### Column meanings
 
@@ -73,6 +74,23 @@ For the human, when reviewing a routine PR:
 - [ ] The proposed change is one change, not several.
 - [ ] The increment states what would refute it.
 - [ ] The registry row matches what the diff actually does.
+
+## Local substitute mode (active until OpenAI credits arrive)
+
+No OpenAI credits exist yet (2026-08-03). Standing arrangement, maintainer-directed:
+
+- The loop runs **locally** through `packages/research/local_chat_models.py` with
+  `--provider claude-code --model haiku` (subscription auth, zero API spend) or `--provider codex`.
+  Entry point: `python -m packages.research.loop_research.smoke`.
+- A crontab job (`17 9 * * *`, this machine) runs `scripts/daily_budget_check.sh`: it appends to
+  `routines/budget-log.md`, and when OpenAI credits exceed **$500** it drops
+  `experiments/credits-ready.flag` and fires a desktop notification with the unlock command
+  (`gh secret set OPENAI_API_KEY --repo atharva789/autobot`).
+- The `credit_grants` endpoint is session-locked (403 with an API key), so the balance is
+  `?` in the log until the user sets `OPENAI_BUDGET_USD` in `.env` from the dashboard figure.
+  The key's liveness is verified daily via `/v1/models`.
+- The compute plane (Actions workflow) stays parked; its preflight correctly reports not-ready
+  until the secret exists.
 
 ## Known issues
 

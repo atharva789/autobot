@@ -53,11 +53,19 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-02** · build order 0/8 · no runs yet
+**2026-08-03** · build order: steps 1–3 partially implemented · first local run recorded
 
-Spec [012 — Schema-Conditioned Policy Synthesis](specs/012-schema-conditioned-policy-synthesis/spec.md)
-authored and awaiting review. The routine begins advancing the build order on its first firing
-(2026-08-03). No experiment has run, so there are no gate results and no cost to report.
+First smoke of the loop ran locally on a substitute provider (Haiku via the repo's `claude-code`
+adapter, subscription auth, $0 API spend), pending OpenAI credits. One evidence-dense call emitted
+a 5-reward-term, 4-termination scaffold for schema `dev-a`; **G1 passed at score 1.0**
+(21/21 symbols resolved). The G1 resolver carries 6 passing tests, including proof it fails
+scaffolds with fabricated entities. Evidence:
+[`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json).
+
+Honest boundaries: no MuJoCo compilation or training has run (step 1's gate is unmet); dev-b and
+both holdout schemas do not exist yet; the negative control (step 4) is not implemented, so G1's
+pass is not yet calibrated against a cheating loop. A daily local budget check unlocks the OpenAI
+compute plane when credits exceed $500 ([`budget log`](routines/budget-log.md)).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed

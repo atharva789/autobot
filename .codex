@@ -352,6 +352,20 @@ packages/research/  →  apps/        (FORBIDDEN)
   (both tiers `gpt-4.1-mini`); frontier escalation only via manifest override citing a run log;
   one revision step = one evidence-dense call; async batch endpoint for latency-insensitive work;
   independent gate arms never share a prompt context (context-merging games the divergence gates).
+- Implementation lives in `packages/research/loop_research/` (date added 2026-08-03):
+  `records.py` holds the four canonical records (`TrainingScaffold`, `RolloutBatch`,
+  `GateResult`, `ExperimentRun`) — frozen dataclasses, R2 enforced at construction, append-only
+  `ExperimentRun.write()`; the record count is capped at four by data-model invariant 6.
+  `g1.py` is the static schema-reference gate (MJCF+URDF entity table; 0.80 reward-term /
+  1.00 termination thresholds are contract values, human-review only). `smoke.py` is the local
+  entry point: `python -m packages.research.loop_research.smoke --provider claude-code --model
+  haiku` runs one evidence-dense call through `local_chat_models.make_chat_model` and writes a
+  run under `.runs/loop_research/`. Dev schemas live in `evals/policy_synthesis/dev/`;
+  `evals/policy_synthesis/holdout/` is G4-only and must never be read during development.
+- Until OpenAI credits exceed $500 the loop runs only on local substitute providers
+  (claude-code/codex adapters, zero API spend). `scripts/daily_budget_check.sh` (crontab,
+  9:17 daily) appends to `routines/budget-log.md` and drops `experiments/credits-ready.flag`
+  on unlock. Do not wire OpenAI billing into loop code; the watcher observes, the loop spends.
 - The routine writes only to branch `routine/experiments`, regenerates only the delimited
   `ROUTINE` block in `README.md`, and appends to `routines/registry.md`. Registry review checklist
   is the human gate on its PRs.
