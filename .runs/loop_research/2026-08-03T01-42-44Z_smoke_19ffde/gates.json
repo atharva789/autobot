@@ -1,0 +1,23 @@
+[
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_51b63e3f6d49",
+    "passed": true,
+    "score": 1.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 8,
+      "total": 8,
+      "unresolved": [],
+      "termination_unresolved": [],
+      "entity_counts": {
+        "joint": 6,
+        "site": 3,
+        "actuator": 6,
+        "body": 7,
+        "sensor": 3
+      }
+    },
+    "rubric_version": "v1"
+  }
+]

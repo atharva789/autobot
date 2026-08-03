@@ -1,9 +1,6 @@
-"""TrainingScaffold and RolloutBatch records.
-
-Shape follows specs/012-schema-conditioned-policy-synthesis/data-model.md exactly. Only the two
-records step 1 of the build order needs (plan.md §7) are defined here; GateResult and
-ExperimentRun belong to later steps (G1 static resolver, the orchestrator run log) and are added
-when those steps are built, not speculatively.
+"""The four records of spec 012, matching data-model.md exactly:
+TrainingScaffold, RolloutBatch, GateResult, ExperimentRun. Invariant 6: the core stays at four
+records — proposing a fifth requires folding one of these, argued in a spec increment.
 
 All records are immutable: a revision never edits its predecessor, it references it (data-model.md
 preamble). Frozen dataclasses and tuples throughout, mirroring
@@ -12,8 +9,10 @@ packages/pipeline/ir/design_ir.py and loop-contract.md's ScaffoldLoopResult.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Literal, Mapping
+import json
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any, Literal, Mapping
 
 ModelTier = Literal["cheap", "frontier"]
 
@@ -108,8 +107,66 @@ class RolloutBatch:
     trace_uri: str | None = None
 
 
+GateName = Literal["G1", "G2", "G3", "G4"]
+
+
+@dataclass(frozen=True)
+class GateResult:
+    """One gate outcome. Recorded on pass and on fail (R4) — see contracts/eval-contract.md."""
+
+    gate: GateName
+    scaffold_id: str
+    passed: bool
+    score: float
+    threshold: float
+    detail: Mapping[str, Any]
+    rubric_version: str = "v1"
+
+
+RunStatus = Literal["completed", "aborted_cost", "aborted_error"]
+RunTrigger = Literal["routine", "manual"]
+
+
+@dataclass(frozen=True)
+class ExperimentRun:
+    """The committed record: one directory under .runs/loop_research/<run_id>/ (data-model.md
+    "Files on disk"). `write()` persists it in that layout; `run.json` is the only file the daily
+    routine is required to parse."""
+
+    run_id: str
+    git_sha: str
+    trigger: RunTrigger
+    status: RunStatus
+    scaffolds: tuple[str, ...]
+    batches: tuple[str, ...]
+    gates: tuple[GateResult, ...]
+    cost: Mapping[str, Any]
+    replay: Mapping[str, Any]
+    manifest_path: str | None = None
+    control: Mapping[str, Any] = field(default_factory=dict)
+
+    def write(self, root: Path, scaffolds: list[TrainingScaffold]) -> Path:
+        run_dir = root / self.run_id
+        if run_dir.exists():
+            raise FileExistsError(f"Run history is append-only; {run_dir} already exists.")
+        scaffold_dir = run_dir / "scaffolds"
+        scaffold_dir.mkdir(parents=True)
+        for record in scaffolds:
+            path = scaffold_dir / f"{record.scaffold_id}.json"
+            path.write_text(json.dumps(asdict(record), indent=2), encoding="utf-8")
+        (run_dir / "gates.json").write_text(
+            json.dumps([asdict(g) for g in self.gates], indent=2), encoding="utf-8"
+        )
+        run_path = run_dir / "run.json"
+        run_path.write_text(json.dumps(asdict(self), indent=2), encoding="utf-8")
+        return run_path
+
+
 __all__ = [
     "ModelTier",
+    "GateName",
+    "RunStatus",
+    "RunTrigger",
     "RewardTerm",
     "Termination",
     "CurriculumStage",
@@ -117,4 +174,6 @@ __all__ = [
     "Provenance",
     "TrainingScaffold",
     "RolloutBatch",
+    "GateResult",
+    "ExperimentRun",
 ]

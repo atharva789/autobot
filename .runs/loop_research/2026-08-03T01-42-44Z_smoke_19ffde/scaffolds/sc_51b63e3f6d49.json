@@ -1,0 +1,213 @@
+{
+  "scaffold_id": "sc_51b63e3f6d49",
+  "schema_id": "dev-a",
+  "schema_digest": "sha256:5de2f0cdc712871799bb05c8d2fc76149bc9f98ed12757a62b273b969c5b8c0d",
+  "task_text": "lift the payload from the table and place it at the shelf target",
+  "reward_terms": [
+    {
+      "name": "grip_approach",
+      "weight": 1.0,
+      "expression": "exp(-distance(site.grip_center, site.payload_center) / 0.15)",
+      "symbols": [
+        "site.grip_center",
+        "site.payload_center"
+      ],
+      "rationale": "Reward for approaching payload with end-effector. Gaussian-shaped to encourage precise alignment for grasping."
+    },
+    {
+      "name": "payload_lift",
+      "weight": 2.5,
+      "expression": "max(0, (body.payload.z - z_initial) / 0.35)",
+      "symbols": [
+        "body.payload"
+      ],
+      "rationale": "Primary objective: lift payload. Normalized to 0.35m reference height. Scales linearly with lift success."
+    },
+    {
+      "name": "touch_contact",
+      "weight": 0.3,
+      "expression": "1.0 if sensor.s_touch_left > 0.5 else 0.0",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Sparse reward for gripper contact with payload. Required before lift phases."
+    },
+    {
+      "name": "payload_placement",
+      "weight": 1.8,
+      "expression": "max(0, 1.0 - distance(site.payload_center, site.shelf_target) / 0.5)",
+      "symbols": [
+        "site.payload_center",
+        "site.shelf_target"
+      ],
+      "rationale": "Secondary objective: move lifted payload to shelf target. Gated to active phase (lift > 0.2m)."
+    },
+    {
+      "name": "wrist_stability",
+      "weight": 0.15,
+      "expression": "1.0 / (1.0 + ||actuator.m_wrist|| + ||actuator.m_elbow||)",
+      "symbols": [
+        "actuator.m_wrist",
+        "actuator.m_elbow"
+      ],
+      "rationale": "Low-weight penalty on wrist/elbow effort during holds. Encourages efficient grasp configurations."
+    }
+  ],
+  "terminations": [
+    {
+      "name": "payload_on_table",
+      "predicate": "body.payload.z < 0.01",
+      "symbols": [
+        "body.payload"
+      ],
+      "cause_label": "Failure: payload returned to or dropped on table"
+    },
+    {
+      "name": "gripper_collision",
+      "predicate": "contact(finger_left, finger_right) AND distance(site.grip_center, site.payload_center) > 0.1",
+      "symbols": [
+        "body.finger_left",
+        "body.finger_right",
+        "site.grip_center",
+        "site.payload_center"
+      ],
+      "cause_label": "Gripper misalignment: fingers colliding without payload"
+    },
+    {
+      "name": "joint_limit_violation",
+      "predicate": "any(joint within 3\u00b0 of limit)",
+      "symbols": [
+        "joint.j_base_yaw",
+        "joint.j_shoulder",
+        "joint.j_elbow",
+        "joint.j_wrist",
+        "joint.j_finger_left",
+        "joint.j_finger_right"
+      ],
+      "cause_label": "Safety: robot joint near mechanical limit"
+    },
+    {
+      "name": "task_complete",
+      "predicate": "body.payload.z > 0.28 AND distance(site.payload_center, site.shelf_target) < 0.06",
+      "symbols": [
+        "body.payload",
+        "site.payload_center",
+        "site.shelf_target"
+      ],
+      "cause_label": "Success: payload lifted and placed at shelf target"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 1,
+      "parameter": "contact_reward_only",
+      "range": [
+        0,
+        1
+      ],
+      "advance_when": "sensor.s_touch_left triggered on 85% of episodes within 3 seconds"
+    },
+    {
+      "stage": 2,
+      "parameter": "min_lift_threshold",
+      "range": [
+        0.05,
+        0.05
+      ],
+      "advance_when": "body.payload sustained > 5cm for 1.5 seconds on 80% of episodes"
+    },
+    {
+      "stage": 3,
+      "parameter": "min_lift_threshold",
+      "range": [
+        0.05,
+        0.25
+      ],
+      "advance_when": "body.payload sustained > 25cm for 2 seconds on 75% of episodes"
+    },
+    {
+      "stage": 4,
+      "parameter": "placement_reward_weight",
+      "range": [
+        0,
+        1.8
+      ],
+      "advance_when": "distance(site.payload_center, site.shelf_target) < 0.15 on 70% of episodes"
+    },
+    {
+      "stage": 5,
+      "parameter": "payload_mass_variability",
+      "range": [
+        0.15,
+        0.45
+      ],
+      "advance_when": "task complete across mass range with 65% success rate"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "body.payload.mass",
+      "range": [
+        0.1,
+        0.6
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "body.payload.initial_xy",
+      "range": [
+        [
+          -0.18,
+          -0.08
+        ],
+        [
+          0.18,
+          0.08
+        ]
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "table.friction",
+      "range": [
+        0.2,
+        0.9
+      ],
+      "distribution": "log-uniform"
+    },
+    {
+      "parameter": "gripper.friction",
+      "range": [
+        0.3,
+        1.4
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "gravity.scale",
+      "range": [
+        0.92,
+        1.08
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "sensor.s_touch_left.noise_std",
+      "range": [
+        0.0,
+        0.05
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "smoke-v1",
+    "model_id": "haiku",
+    "model_tier": "local-substitute",
+    "provider": "claude-code",
+    "seed": 42,
+    "wall_clock_s": 58.45
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

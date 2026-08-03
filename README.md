@@ -53,22 +53,32 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-02** · build order 1/8 · no compute-plane runs yet
+**2026-08-03** · build order: steps 1 and 3 implemented, step 2 partial · reconciled from two
+parallel implementations
 
-Step 1 implemented: the `TrainingScaffold` schema and its compiler-to-MuJoCo
-(`packages/research/loop_research/`). Reward/termination expressions compile through a whitelisted
-AST evaluator, symbols resolve against a schema's entity table (joint/body/site/actuator/sensor)
-read via MuJoCo's own parser — no hardcoded name lists (loop-contract.md C2). A hand-written
-scaffold compiles against a fixture schema and steps correctly:
-`tests/test_loop_research_scaffold.py` (19 tests, all passing) covers symbol-grammar validation,
-expression-safety rejection of unsafe constructs, the R2 revision invariant, and that termination
-causes track real physics — a generous step budget reaches `success` every episode, a starved one
-times out every episode.
+Two sessions built overlapping, incompatible pieces of spec 012 in parallel — this routine's
+typed-dataclass `TrainingScaffold` with a multi-level dotted symbol grammar (`body.payload.pos.z`,
+needed to pull a runtime scalar out of MuJoCo state), and a separate human-directed session's
+dict-shaped records with a single-level G1 resolver. The maintainer chose this routine's
+implementation as canonical; today's work reconciled the two rather than picking a side silently
+(see [PR #6](https://github.com/atharva789/autobot/pull/6)).
 
-`.runs/loop_research/` is still empty: no experiment has run through the compute plane, so there
-are no gate results, dev/holdout schemas, negative control, or cost figures to report. Steps 2-8
-(schemas, G1 resolver, negative control, G2/G3 diff, Actions + Compose, the real loop, held-out
-eval) remain.
+- **Step 1 (`TrainingScaffold` + compiler-to-MuJoCo)** — unchanged, done: a hand-written scaffold
+  compiles against a fixture schema and its termination logic tracks real physics.
+- **Step 2 (four structurally different schemas)** — partial: `evals/policy_synthesis/dev/dev-a.xml`
+  (a real 4-DOF tabletop arm with a parallel gripper, ported from the other session) exists and
+  parses cleanly. `dev-b` and both `holdout-*` schemas do not exist yet.
+- **Step 3 (G1 static resolver)** — implemented against the canonical entity table and symbol
+  grammar, matching `contracts/eval-contract.md`'s 0.80/100% thresholds exactly. 26 tests pass
+  locally (`tests/test_loop_research_scaffold.py`: 19, `tests/test_loop_research_g1.py`: 7),
+  including G1 against the real `dev-a` schema and proof it fails fabricated entities.
+
+No fresh smoke or compute-plane run has executed under the reconciled code, so no new G1 score is
+reported here. The prior local smoke run
+([`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json), G1 = 1.0) used the
+now-superseded dict-shaped scaffold and stays as historical evidence, not a claim about the current
+G1. Steps 4-8 (negative control, G2/G3 diff, Actions + Compose, the real loop, held-out eval)
+remain.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
@@ -233,7 +243,9 @@ Next.js + optional Electron shell                    FastAPI + RobotWorkspaceSDK
                                                         |
                                              packages/research
                                              strategies, prompts,
-                                             experiments, metrics, storage
+                                             experiments, metrics, storage,
+                                             loop_research (spec 012 — schema-conditioned
+                                             policy synthesis, self-contained)
 ```
 
 Allowed dependency directions:
@@ -331,10 +343,13 @@ apps/
 packages/
 ├── pipeline/                    shared deterministic robotics kernel
 └── research/                    loops, strategies, experiments, metrics, prompts, agent eval POC
+    └── loop_research/           spec 012 — TrainingScaffold, MuJoCo compiler, G1-G4 gates
 
 specs/                           Spec Kit feature directories and acceptance contracts
 tests/                           backend, pipeline, research, and frontend-contract tests
 evals/                           protected robot-design tasks plus trace/loop evaluation tooling
+├── policy_synthesis/dev/        spec 012 development schemas (dev-a; dev-b not yet added)
+└── policy_synthesis/holdout/    spec 012 held-out schemas — generalization test, untouched by design
 supabase/migrations/             hosted schema history and grammar catalog migrations
 docs/                            detailed GitBook-compatible documentation
 ```

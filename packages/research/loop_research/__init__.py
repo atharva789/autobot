@@ -1,8 +1,9 @@
-"""Build-order step 1 (specs/012-schema-conditioned-policy-synthesis/plan.md §7):
-the TrainingScaffold schema and its compiler-to-MuJoCo.
+"""Spec 012 — schema-conditioned policy synthesis.
 
-Later build-order steps (schemas, G1-G4 gates, the negative control, the orchestrator) add
-sibling modules to this package as they are built; this file only exports what step 1 delivers.
+Build-order position (specs/012-schema-conditioned-policy-synthesis/plan.md §7): step 1
+(TrainingScaffold schema + compiler-to-MuJoCo) and step 3 (G1 static resolver) are implemented.
+The data model is fixed at four records (data-model.md invariant 6): proposing a fifth requires
+folding one of these, argued in a spec increment.
 """
 
 from packages.research.loop_research.entity_table import (
@@ -11,6 +12,7 @@ from packages.research.loop_research.entity_table import (
     load_model_and_entities_from_xml,
 )
 from packages.research.loop_research.expr import CompiledExpression, ExpressionError, compile_expression
+from packages.research.loop_research.g1 import run_g1
 from packages.research.loop_research.mujoco_compiler import (
     CompilationError,
     CompiledScaffold,
@@ -20,11 +22,16 @@ from packages.research.loop_research.mujoco_compiler import (
 from packages.research.loop_research.rollout import Policy, run_batch, run_episode, sample_constants
 from packages.research.loop_research.scaffold import (
     CurriculumStage,
+    ExperimentRun,
+    GateName,
+    GateResult,
     ModelTier,
     Provenance,
     RandomizationRange,
     RewardTerm,
     RolloutBatch,
+    RunStatus,
+    RunTrigger,
     Termination,
     TrainingScaffold,
 )
@@ -37,6 +44,7 @@ __all__ = [
     "CompiledExpression",
     "ExpressionError",
     "compile_expression",
+    "run_g1",
     "CompilationError",
     "CompiledScaffold",
     "StepOutcome",
@@ -46,11 +54,16 @@ __all__ = [
     "run_episode",
     "sample_constants",
     "CurriculumStage",
+    "ExperimentRun",
+    "GateName",
+    "GateResult",
     "ModelTier",
     "Provenance",
     "RandomizationRange",
     "RewardTerm",
     "RolloutBatch",
+    "RunStatus",
+    "RunTrigger",
     "Termination",
     "TrainingScaffold",
     "Symbol",
