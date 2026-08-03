@@ -53,32 +53,25 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-03** · build order: steps 1 and 3 implemented, step 2 partial · reconciled from two
-parallel implementations
+**2026-08-03** · build order: steps 1–3 implemented · step 2 now has both dev schemas and baselines
 
-Two sessions built overlapping, incompatible pieces of spec 012 in parallel — this routine's
-typed-dataclass `TrainingScaffold` with a multi-level dotted symbol grammar (`body.payload.pos.z`,
-needed to pull a runtime scalar out of MuJoCo state), and a separate human-directed session's
-dict-shaped records with a single-level G1 resolver. The maintainer chose this routine's
-implementation as canonical; today's work reconciled the two rather than picking a side silently
-(see [PR #6](https://github.com/atharva789/autobot/pull/6)).
+First cron firing. Completed step 2 (four structurally different schemas): authored
+`evals/policy_synthesis/dev/dev-b.xml`, a 4-DOF Cartesian gantry with a single-jaw pinch gripper
+and position (servo) actuators — structurally different from `dev-a`'s 6-DOF serial revolute arm
+with motor (torque) actuators on all three of spec.md §2's required axes (actuator count, joint
+topology, actuator bias type), asserted directly in a test rather than eyeballed. Authored frozen
+per-schema baselines for both schemas (`baselines.py`, spec.md §2's "one hand-written scaffold per
+schema, authored once, frozen").
 
-- **Step 1 (`TrainingScaffold` + compiler-to-MuJoCo)** — unchanged, done: a hand-written scaffold
-  compiles against a fixture schema and its termination logic tracks real physics.
-- **Step 2 (four structurally different schemas)** — partial: `evals/policy_synthesis/dev/dev-a.xml`
-  (a real 4-DOF tabletop arm with a parallel gripper, ported from the other session) exists and
-  parses cleanly. `dev-b` and both `holdout-*` schemas do not exist yet.
-- **Step 3 (G1 static resolver)** — implemented against the canonical entity table and symbol
-  grammar, matching `contracts/eval-contract.md`'s 0.80/100% thresholds exactly. 26 tests pass
-  locally (`tests/test_loop_research_scaffold.py`: 19, `tests/test_loop_research_g1.py`: 7),
-  including G1 against the real `dev-a` schema and proof it fails fabricated entities.
+Ran both: **G1 passes at 1.0 on dev-a and dev-b**, and both baselines complete an 8-episode rollout
+with a structurally valid `RolloutBatch` — step 2's gate is "all compile, baselines run", not
+"baselines succeed", and no success is claimed (both ended every episode in `timeout` under
+simple, untuned probe policies). 29/29 `loop_research` tests pass. Evidence:
+[`run.json`](.runs/loop_research/2026-08-03T13-39-19Z_step2_ce8fd4/run.json).
 
-No fresh smoke or compute-plane run has executed under the reconciled code, so no new G1 score is
-reported here. The prior local smoke run
-([`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json), G1 = 1.0) used the
-now-superseded dict-shaped scaffold and stays as historical evidence, not a claim about the current
-G1. Steps 4-8 (negative control, G2/G3 diff, Actions + Compose, the real loop, held-out eval)
-remain.
+Only `holdout-a`/`holdout-b` remain to fully close step 2, and those are deliberately deferred to
+step 8 (spec.md §2; creating them early would contaminate the generalization test). Steps 4-8
+(negative control, G2/G3 diff, Actions + Compose, the real loop, held-out eval) remain open.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed

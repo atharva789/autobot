@@ -1,0 +1,57 @@
+<!-- dev-b: 4-DOF Cartesian gantry lifter with a single-jaw pinch gripper and free payload.
+     Development schema for spec 012, structurally paired against dev-a (spec.md §2): fewer
+     actuated DOF (4 vs 6), an all-prismatic gantry topology instead of a serial revolute arm, a
+     single jaw pinching against a fixed anvil instead of two mobile fingers, and position
+     (servo) actuators instead of motor (torque) actuators. -->
+<mujoco model="dev-b">
+  <option timestep="0.002" gravity="0 0 -9.81"/>
+
+  <worldbody>
+    <geom name="floor" type="plane" size="1 1 0.05"/>
+    <site name="shelf_target" pos="0.15 0.1 0.4" size="0.02"/>
+
+    <body name="rail_x" pos="0 0 0.55">
+      <geom type="box" size="0.35 0.02 0.02" mass="3.0"/>
+      <joint name="x_slide" type="slide" axis="1 0 0" range="-0.25 0.25"/>
+
+      <body name="rail_y" pos="0 0 0">
+        <geom type="box" size="0.02 0.25 0.02" mass="1.5"/>
+        <joint name="y_slide" type="slide" axis="0 1 0" range="-0.2 0.2"/>
+
+        <body name="carriage" pos="0 0 -0.55">
+          <geom type="box" size="0.03 0.03 0.03" mass="1.0"/>
+          <joint name="z_slide" type="slide" axis="0 0 1" range="0 0.45"/>
+
+          <body name="anvil" pos="0.03 0 -0.03">
+            <geom name="anvil_pad" type="box" size="0.008 0.02 0.03" mass="0.05"/>
+          </body>
+
+          <body name="jaw" pos="-0.03 0 -0.03">
+            <geom name="jaw_pad" type="box" size="0.008 0.02 0.03" mass="0.05"/>
+            <joint name="jaw_slide" type="slide" axis="1 0 0" range="0 0.05"/>
+            <site name="grip_center" pos="0.03 0 0" size="0.01"/>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="payload" pos="0.15 0.1 0.05">
+      <freejoint name="j_payload_free"/>
+      <geom name="payload_box" type="box" size="0.025 0.025 0.025" mass="0.4"/>
+      <site name="payload_center" size="0.01"/>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="a_x" joint="x_slide" kp="200" ctrlrange="-0.25 0.25"/>
+    <position name="a_y" joint="y_slide" kp="200" ctrlrange="-0.2 0.2"/>
+    <position name="a_z" joint="z_slide" kp="300" ctrlrange="0 0.45"/>
+    <position name="a_jaw" joint="jaw_slide" kp="100" ctrlrange="0 0.05"/>
+  </actuator>
+
+  <sensor>
+    <touch name="s_touch_jaw" site="grip_center"/>
+    <framepos name="s_payload_pos" objtype="site" objname="payload_center"/>
+    <framepos name="s_target_pos" objtype="site" objname="shelf_target"/>
+  </sensor>
+</mujoco>
