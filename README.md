@@ -53,25 +53,25 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-03** · build order: steps 1–3 implemented · step 2 now has both dev schemas and baselines
+**2026-08-04** · build order: steps 1–4 implemented · negative control built and matches its required outcome
 
-First cron firing. Completed step 2 (four structurally different schemas): authored
-`evals/policy_synthesis/dev/dev-b.xml`, a 4-DOF Cartesian gantry with a single-jaw pinch gripper
-and position (servo) actuators — structurally different from `dev-a`'s 6-DOF serial revolute arm
-with motor (torque) actuators on all three of spec.md §2's required axes (actuator count, joint
-topology, actuator bias type), asserted directly in a test rather than eyeballed. Authored frozen
-per-schema baselines for both schemas (`baselines.py`, spec.md §2's "one hand-written scaffold per
-schema, authored once, frozen").
+Implemented step 4: `static_scaffold_loop`, the deliberately-cheating negative control that
+ignores its `schema_path`/`task_text` arguments and always returns one fixed scaffold hand-tuned
+for `dev-a`'s serial-arm topology (joints `j_shoulder`/`j_elbow`, bodies `wrist`/`finger_left`,
+sensor `s_touch_left` — chosen specifically because, unlike the per-schema baselines' shared site
+names, none of them exist on `dev-b`'s gantry).
 
-Ran both: **G1 passes at 1.0 on dev-a and dev-b**, and both baselines complete an 8-episode rollout
-with a structurally valid `RolloutBatch` — step 2's gate is "all compile, baselines run", not
-"baselines succeed", and no success is claimed (both ended every episode in `timeout` under
-simple, untuned probe policies). 29/29 `loop_research` tests pass. Evidence:
-[`run.json`](.runs/loop_research/2026-08-03T13-39-19Z_step2_ce8fd4/run.json).
+Ran it against both dev schemas: **G1 passes at 1.0 on dev-a, fails at 0.0 on dev-b** — the exact
+split eval-contract.md's required-outcome table demands ("Fail on every schema except dev-a").
+Corroborated at the compiler level: the same scaffold compiles to a steppable environment against
+`dev-a` and raises `CompilationError` against `dev-b`. G2/G3 need the structural diff `D(a, b)`
+(step 5, not built yet); what's provable without it — that the control returns an object-identical
+scaffold regardless of input, which forces every term of `D` to 0 by construction — is asserted in
+tests, not claimed as a run.json score. 34/34 `loop_research` tests pass. Evidence:
+[`run.json`](.runs/loop_research/2026-08-04T13-29-01Z_step4_423c5e/run.json).
 
-Only `holdout-a`/`holdout-b` remain to fully close step 2, and those are deliberately deferred to
-step 8 (spec.md §2; creating them early would contaminate the generalization test). Steps 4-8
-(negative control, G2/G3 diff, Actions + Compose, the real loop, held-out eval) remain open.
+Steps 5-8 (G2/G3 structural diff, Actions + Compose running steps 1-5 in CI, the real loop, held-out
+eval) remain open. `holdout-a`/`holdout-b` remain deliberately unwritten until step 8 (spec.md §2).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
