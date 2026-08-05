@@ -2,6 +2,13 @@
      Development schema for spec 012. Structurally paired against dev-b
      (different topology/actuation) per spec.md §2. -->
 <mujoco model="dev-a">
+  <!-- Explicit: MuJoCo's compiler default is angle="degree", which would silently
+       reinterpret every joint range below (written in radians, e.g. +-3.1 for a
+       full-turn yaw) as degrees, shrinking every range by a factor of about 57
+       and freezing the arm to a few degrees of motion. Found while building the
+       G2 ablation permutations (plan.md §7 step 5): a "limits_altered" mutation
+       is meaningless against a joint that already can't move. -->
+  <compiler angle="radian"/>
   <option timestep="0.002" gravity="0 0 -9.81"/>
 
   <worldbody>

@@ -53,25 +53,40 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-04** · build order: steps 1–4 implemented · negative control built and matches its required outcome
+**2026-08-05** · build order: steps 1–5 implemented · tau derived, gates separate control from hand-written baselines
 
-Implemented step 4: `static_scaffold_loop`, the deliberately-cheating negative control that
-ignores its `schema_path`/`task_text` arguments and always returns one fixed scaffold hand-tuned
-for `dev-a`'s serial-arm topology (joints `j_shoulder`/`j_elbow`, bodies `wrist`/`finger_left`,
-sensor `s_touch_left` — chosen specifically because, unlike the per-schema baselines' shared site
-names, none of them exist on `dev-b`'s gantry).
+Implemented step 5: the structural diff `D(a, b)` (eval-contract.md), the four G2 permutation
+classes (`link_scaled`, `limits_altered`, `dof_removed`, `topology_swapped`, each a real MJCF
+mutation of `dev-a`, not a stub), and the G2/G3 gates built on top. Derived tau from measured data,
+not chosen by hand: **D_control_max = 0.0000** (`static_scaffold_loop` returns the literal same
+object regardless of schema, so `D` is 0 by construction against every mutant and against `dev-b`),
+**D_handwritten_min = 0.0556** (the two frozen per-schema baselines, which intentionally share
+reward-term names/weights and differ only in their touch-sensor symbol), giving **tau = 0.0278**.
 
-Ran it against both dev schemas: **G1 passes at 1.0 on dev-a, fails at 0.0 on dev-b** — the exact
-split eval-contract.md's required-outcome table demands ("Fail on every schema except dev-a").
-Corroborated at the compiler level: the same scaffold compiles to a steppable environment against
-`dev-a` and raises `CompilationError` against `dev-b`. G2/G3 need the structural diff `D(a, b)`
-(step 5, not built yet); what's provable without it — that the control returns an object-identical
-scaffold regardless of input, which forces every term of `D` to 0 by construction — is asserted in
-tests, not claimed as a run.json score. 34/34 `loop_research` tests pass. Evidence:
-[`run.json`](.runs/loop_research/2026-08-04T13-29-01Z_step4_423c5e/run.json).
+Scored the control against tau: **fails all four G2 classes and G3**, exactly the required outcome
+(eval-contract.md's "if the control passes any of G1–G3, the gates are broken"). The `dof_removed`
+class's hard check ("no surviving symbol may reference the deleted joint") also fired for real —
+removing `j_shoulder` left the control's fixed scaffold still citing `joint.j_shoulder.qpos`, which
+fails it outright regardless of `D`. 29 new tests, 63/63 `loop_research` tests total. Evidence:
+[`run.json`](.runs/loop_research/2026-08-05T13-36-04Z_step5_256104/run.json).
 
-Steps 5-8 (G2/G3 structural diff, Actions + Compose running steps 1-5 in CI, the real loop, held-out
-eval) remain open. `holdout-a`/`holdout-b` remain deliberately unwritten until step 8 (spec.md §2).
+Also found and fixed a real bug in `dev-a.xml` while building the `limits_altered`/`link_scaled`
+permutations: it never set `<compiler angle="radian"/>`, so MuJoCo's degree default silently
+reinterpreted every joint range written in radians as degrees, shrinking motion by ~57x and
+freezing the arm — a permutation "tightening" an already-frozen joint would have been meaningless.
+Verified against the full existing suite (34 pre-existing tests) before and after; no assertion
+depended on the buggy magnitude.
+
+Honest caveat worth a human's attention, not something this routine may act on: `D_handwritten_min`
+is small (0.0556) because the two baselines were deliberately written to share term/symbol names
+for G2/G3 comparability (`baselines.py`), which makes the derived tau (0.0278) a low bar — nearly
+any structural change would clear it. This is a property of the current baselines, not a broken
+formula; flagging it as a candidate research-day topic once the build order is complete, not
+touching it today (tau is derived from data, never hand-picked, per eval-contract.md).
+
+Steps 6-8 (Actions + Compose running steps 1-5 in CI, the real loop, held-out eval) remain open.
+`holdout-a`/`holdout-b` remain deliberately unwritten until step 8 (spec.md §2). No model calls
+were made today; cost is $0.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
