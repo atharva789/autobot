@@ -53,40 +53,39 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-05** · build order: steps 1–5 implemented · tau derived, gates separate control from hand-written baselines
+**2026-08-06** · build order: step 6 started (orchestrator + gate-backfill entrypoints) · steps 1–5 unchanged and still green
 
-Implemented step 5: the structural diff `D(a, b)` (eval-contract.md), the four G2 permutation
-classes (`link_scaled`, `limits_altered`, `dof_removed`, `topology_swapped`, each a real MJCF
-mutation of `dev-a`, not a stub), and the G2/G3 gates built on top. Derived tau from measured data,
-not chosen by hand: **D_control_max = 0.0000** (`static_scaffold_loop` returns the literal same
-object regardless of schema, so `D` is 0 by construction against every mutant and against `dev-b`),
-**D_handwritten_min = 0.0556** (the two frozen per-schema baselines, which intentionally share
-reward-term names/weights and differ only in their touch-sensor symbol), giving **tau = 0.0278**.
+Implemented the first slice of step 6: `packages/research/loop_research/orchestrator.py`, the
+entrypoint `.github/workflows/loop-research.yml`'s preflight checks for before it will run anything.
+It re-runs steps 1–5's own generators (`step2_run`, `step4_run`, `step5_run`) in sequence — every
+step runs even if an earlier one fails, mirroring the workflow's `if: always()` gate step — and
+writes one umbrella run log. Ran it for real: **all three steps PASS in 0.68s**, no model calls,
+cost $0; step5's derived values reproduced exactly against 2026-08-05 (**tau = 0.0278**,
+**D_control_max = 0.0000**), a real consistency check, not a restated number. Also added `gates.py`
+(`python -m packages.research.loop_research.gates --run-id <id>`), an idempotent G1 backfill for a
+run whose loop crashed before scoring itself. 9 new tests, 72/72 `loop_research` tests total.
+Evidence:
+[`orchestrator run.json`](.runs/loop_research/2026-08-06T13-35-51Z_orchestrator_30ef1c/run.json),
+[`step2`](.runs/loop_research/2026-08-06T13-35-51Z_step2_82de1b/run.json) ·
+[`step4`](.runs/loop_research/2026-08-06T13-35-51Z_step4_93922c/run.json) ·
+[`step5`](.runs/loop_research/2026-08-06T13-35-51Z_step5_e3a5ab/run.json).
 
-Scored the control against tau: **fails all four G2 classes and G3**, exactly the required outcome
-(eval-contract.md's "if the control passes any of G1–G3, the gates are broken"). The `dof_removed`
-class's hard check ("no surviving symbol may reference the deleted joint") also fired for real —
-removing `j_shoulder` left the control's fixed scaffold still citing `joint.j_shoulder.qpos`, which
-fails it outright regardless of `D`. 29 new tests, 63/63 `loop_research` tests total. Evidence:
-[`run.json`](.runs/loop_research/2026-08-05T13-36-04Z_step5_256104/run.json).
+What step 6's full gate ("green run **through Actions + Compose**, logs committed") still needs,
+checked today with real commands rather than assumed: `docker`'s client is present in this sandbox
+but **no daemon is reachable**; `docker compose config` (required vars supplied) confirms
+`infra/loop-research/docker-compose.yml` parses correctly; but `Dockerfile.sim`,
+`Dockerfile.orchestrator`, and `sim_worker.py` **do not exist**, so `docker compose up --build`
+would fail today independent of whether the `OPENAI_API_KEY` secret is set. Two separate blockers,
+not attempted today: one human action (the secret), one real engineering task (the Dockerfiles +
+worker) that deserves a daemon to test against rather than being written blind.
 
-Also found and fixed a real bug in `dev-a.xml` while building the `limits_altered`/`link_scaled`
-permutations: it never set `<compiler angle="radian"/>`, so MuJoCo's degree default silently
-reinterpreted every joint range written in radians as degrees, shrinking motion by ~57x and
-freezing the arm — a permutation "tightening" an already-frozen joint would have been meaningless.
-Verified against the full existing suite (34 pre-existing tests) before and after; no assertion
-depended on the buggy magnitude.
+Before today's implementation: read `plan.md` §7 against a bare `master` checkout, concluded step 1
+was next, and rebuilt a third compiler-to-MuJoCo before checking `origin/routine/experiments` and
+finding PR #6 already at step 5. Discarded before pushing, same as 2026-08-03 and 2026-08-05 — the
+fix (prompt v2's step 0) is already written but the live trigger still bootstraps from v1.
 
-Honest caveat worth a human's attention, not something this routine may act on: `D_handwritten_min`
-is small (0.0556) because the two baselines were deliberately written to share term/symbol names
-for G2/G3 comparability (`baselines.py`), which makes the derived tau (0.0278) a low bar — nearly
-any structural change would clear it. This is a property of the current baselines, not a broken
-formula; flagging it as a candidate research-day topic once the build order is complete, not
-touching it today (tau is derived from data, never hand-picked, per eval-contract.md).
-
-Steps 6-8 (Actions + Compose running steps 1-5 in CI, the real loop, held-out eval) remain open.
-`holdout-a`/`holdout-b` remain deliberately unwritten until step 8 (spec.md §2). No model calls
-were made today; cost is $0.
+Steps 7–8 (the real loop, held-out eval) remain open. `holdout-a`/`holdout-b` remain deliberately
+unwritten until step 8 (spec.md §2). No model calls were made today; cost is $0.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
