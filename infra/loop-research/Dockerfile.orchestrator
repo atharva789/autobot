@@ -1,0 +1,23 @@
+# Compute-plane "orchestrator" service (plan.md §4). Runs the agent loop, the cost ceiling, and
+# the gate runner -- today, build order step 6's own scope: steps 1-5's evidence generators
+# (packages/research/loop_research/orchestrator.py). Built with context "../.." (repo root, see
+# docker-compose.yml) so it can copy exactly the loop_research package and the schemas it needs.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# See requirements.txt for why this is not pyproject.toml's full dependency set.
+COPY infra/loop-research/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY packages/__init__.py packages/__init__.py
+COPY packages/research/__init__.py packages/research/__init__.py
+COPY packages/research/loop_research packages/research/loop_research
+COPY evals/policy_synthesis/dev evals/policy_synthesis/dev
+
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# docker-compose.yml's `command:` overrides this for the orchestrator service; kept as a default
+# so `docker run` against this image alone is still meaningful.
+CMD ["python", "-m", "packages.research.loop_research.orchestrator"]

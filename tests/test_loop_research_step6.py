@@ -84,6 +84,21 @@ def test_orchestrator_main_writes_a_run_id_directory_verbatim(tmp_path, monkeypa
     assert run["control"]["orchestrator"]["all_passed"] is True
 
 
+def test_git_sha_prefers_git_sha_env_over_the_git_subprocess(monkeypatch):
+    """Dockerfile.orchestrator's image has no .git directory (only loop_research + schemas are
+    copied in), so `git rev-parse HEAD` always fails in-container -- verified by actually running
+    the built image. GIT_SHA (set from `github.sha` by the workflow) must win when present."""
+
+    monkeypatch.setenv("GIT_SHA", "env-sha-value")
+    assert orchestrator._git_sha() == "env-sha-value"
+
+
+def test_git_sha_falls_back_to_git_subprocess_when_env_unset(monkeypatch):
+    monkeypatch.delenv("GIT_SHA", raising=False)
+    sha = orchestrator._git_sha()
+    assert sha != "" and sha != "env-sha-value"
+
+
 def test_orchestrator_full_pipeline_real_run(tmp_path, monkeypatch):
     """One real, disk-touching run of the actual step 2/4/5 generators, redirected to a temp
     runs root so it doesn't add a permanent .runs/loop_research/ entry every test run."""

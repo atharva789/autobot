@@ -23,51 +23,16 @@ from pathlib import Path
 from packages.research.loop_research.baselines import DEV_A_SCHEMA, DEV_B_SCHEMA
 from packages.research.loop_research.entity_table import load_model_and_entities
 from packages.research.loop_research.g1 import run_g1
-from packages.research.loop_research.scaffold import (
-    CurriculumStage,
-    GateResult,
-    Provenance,
-    RandomizationRange,
-    RewardTerm,
-    Termination,
-    TrainingScaffold,
-)
+from packages.research.loop_research.scaffold import GateResult, TrainingScaffold, scaffold_from_dict
 
 _RUNS_ROOT = Path(".runs/loop_research")
 _SCHEMA_BY_ID = {"dev-a": DEV_A_SCHEMA, "dev-b": DEV_B_SCHEMA}
 
 
 def load_scaffold(path: Path) -> TrainingScaffold:
-    """Reconstructs a `TrainingScaffold` from its committed JSON form.
+    """Reconstructs a `TrainingScaffold` from its committed JSON form."""
 
-    JSON has no tuple type, so every field typed `tuple[...]` on the dataclasses (`symbols`,
-    `range`, and the top-level term/stage lists themselves) round-trips as a `list` and must be
-    converted back explicitly, or the reconstructed record fails `==` against the original despite
-    holding the same data.
-    """
-
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    return TrainingScaffold(
-        scaffold_id=raw["scaffold_id"],
-        schema_id=raw["schema_id"],
-        schema_digest=raw["schema_digest"],
-        task_text=raw["task_text"],
-        reward_terms=tuple(
-            RewardTerm(**{**t, "symbols": tuple(t["symbols"])}) for t in raw["reward_terms"]
-        ),
-        terminations=tuple(
-            Termination(**{**t, "symbols": tuple(t["symbols"])}) for t in raw["terminations"]
-        ),
-        curriculum=tuple(
-            CurriculumStage(**{**c, "range": tuple(c["range"])}) for c in raw["curriculum"]
-        ),
-        randomization=tuple(
-            RandomizationRange(**{**r, "range": tuple(r["range"])}) for r in raw["randomization"]
-        ),
-        provenance=Provenance(**raw["provenance"]),
-        parent_scaffold_id=raw.get("parent_scaffold_id"),
-        motivating_batch_id=raw.get("motivating_batch_id"),
-    )
+    return scaffold_from_dict(json.loads(path.read_text(encoding="utf-8")))
 
 
 def backfill_g1(run_dir: Path) -> list[GateResult]:

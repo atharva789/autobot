@@ -40,6 +40,14 @@ _STEPS = (
 
 
 def _git_sha() -> str:
+    # Dockerfile.orchestrator copies only packages/research/loop_research and the dev schemas
+    # into the image -- no .git directory -- so `git rev-parse HEAD` always fails inside the
+    # container (verified by actually running this image). GIT_SHA, set from `github.sha` by the
+    # workflow, is how the real sha reaches a containerized run instead of every run silently
+    # recording "unknown".
+    from_env = os.environ.get("GIT_SHA")
+    if from_env:
+        return from_env
     try:
         return subprocess.run(
             ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True

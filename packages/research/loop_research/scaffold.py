@@ -90,6 +90,40 @@ class TrainingScaffold:
             raise ValueError("TrainingScaffold must declare at least one termination predicate.")
 
 
+def scaffold_from_dict(raw: Mapping[str, Any]) -> TrainingScaffold:
+    """Reconstructs a `TrainingScaffold` from its `dataclasses.asdict`/JSON form.
+
+    JSON (and plain `asdict`) has no tuple type, so every field typed `tuple[...]` on these
+    dataclasses (`symbols`, `range`, and the top-level term/stage lists themselves) round-trips as
+    a `list` and must be converted back explicitly, or the reconstructed record fails `==` against
+    the original despite holding the same data. Shared by `gates.py` (loading a committed
+    scaffold) and `sim_worker.py` (loading a scaffold off a queued job) so this conversion exists
+    once.
+    """
+
+    return TrainingScaffold(
+        scaffold_id=raw["scaffold_id"],
+        schema_id=raw["schema_id"],
+        schema_digest=raw["schema_digest"],
+        task_text=raw["task_text"],
+        reward_terms=tuple(
+            RewardTerm(**{**t, "symbols": tuple(t["symbols"])}) for t in raw["reward_terms"]
+        ),
+        terminations=tuple(
+            Termination(**{**t, "symbols": tuple(t["symbols"])}) for t in raw["terminations"]
+        ),
+        curriculum=tuple(
+            CurriculumStage(**{**c, "range": tuple(c["range"])}) for c in raw["curriculum"]
+        ),
+        randomization=tuple(
+            RandomizationRange(**{**r, "range": tuple(r["range"])}) for r in raw["randomization"]
+        ),
+        provenance=Provenance(**raw["provenance"]),
+        parent_scaffold_id=raw.get("parent_scaffold_id"),
+        motivating_batch_id=raw.get("motivating_batch_id"),
+    )
+
+
 @dataclass(frozen=True)
 class RolloutBatch:
     """What the simulator returns. R3 forbids collapsing this to a scalar."""
@@ -173,6 +207,7 @@ __all__ = [
     "RandomizationRange",
     "Provenance",
     "TrainingScaffold",
+    "scaffold_from_dict",
     "RolloutBatch",
     "GateResult",
     "ExperimentRun",

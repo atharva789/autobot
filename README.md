@@ -53,39 +53,50 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-06** · build order: step 6 started (orchestrator + gate-backfill entrypoints) · steps 1–5 unchanged and still green
+**2026-08-07** · build order: step 6's engineering blocker cleared · steps 1–5 unchanged and still green
 
-Implemented the first slice of step 6: `packages/research/loop_research/orchestrator.py`, the
-entrypoint `.github/workflows/loop-research.yml`'s preflight checks for before it will run anything.
-It re-runs steps 1–5's own generators (`step2_run`, `step4_run`, `step5_run`) in sequence — every
-step runs even if an earlier one fails, mirroring the workflow's `if: always()` gate step — and
-writes one umbrella run log. Ran it for real: **all three steps PASS in 0.68s**, no model calls,
-cost $0; step5's derived values reproduced exactly against 2026-08-05 (**tau = 0.0278**,
-**D_control_max = 0.0000**), a real consistency check, not a restated number. Also added `gates.py`
-(`python -m packages.research.loop_research.gates --run-id <id>`), an idempotent G1 backfill for a
-run whose loop crashed before scoring itself. 9 new tests, 72/72 `loop_research` tests total.
-Evidence:
-[`orchestrator run.json`](.runs/loop_research/2026-08-06T13-35-51Z_orchestrator_30ef1c/run.json),
-[`step2`](.runs/loop_research/2026-08-06T13-35-51Z_step2_82de1b/run.json) ·
-[`step4`](.runs/loop_research/2026-08-06T13-35-51Z_step4_93922c/run.json) ·
-[`step5`](.runs/loop_research/2026-08-06T13-35-51Z_step5_e3a5ab/run.json).
+Unlike the last two firings, this sandbox has a real Docker daemon (`dockerd` starts and `docker
+info` succeeds) — 2026-08-06's registry row flagged "no daemon reachable" as the reason
+`Dockerfile.sim`/`Dockerfile.orchestrator`/`sim_worker.py` weren't attempted; that reason no longer
+holds, so today built and **actually ran** the missing pieces rather than writing them blind.
 
-What step 6's full gate ("green run **through Actions + Compose**, logs committed") still needs,
-checked today with real commands rather than assumed: `docker`'s client is present in this sandbox
-but **no daemon is reachable**; `docker compose config` (required vars supplied) confirms
-`infra/loop-research/docker-compose.yml` parses correctly; but `Dockerfile.sim`,
-`Dockerfile.orchestrator`, and `sim_worker.py` **do not exist**, so `docker compose up --build`
-would fail today independent of whether the `OPENAI_API_KEY` secret is set. Two separate blockers,
-not attempted today: one human action (the secret), one real engineering task (the Dockerfiles +
-worker) that deserves a daemon to test against rather than being written blind.
+Added `infra/loop-research/Dockerfile.{orchestrator,sim}` (minimal, compute-plane-only deps —
+verified nothing under `loop_research` imports `torch`/`langchain`/etc.) and
+`packages/research/loop_research/sim_worker.py`, a queue→physics→artifacts worker for the
+`sim-worker` Compose service (job format documented in its own module docstring; no producer
+exists yet, so it idles until step 7 exists to feed it). Building and running the real 5-service
+stack (`docker compose up --exit-code-from orchestrator`) surfaced and fixed **four** real defects
+that static review would not have caught:
 
-Before today's implementation: read `plan.md` §7 against a bare `master` checkout, concluded step 1
-was next, and rebuilt a third compiler-to-MuJoCo before checking `origin/routine/experiments` and
-finding PR #6 already at step 5. Discarded before pushing, same as 2026-08-03 and 2026-08-05 — the
-fix (prompt v2's step 0) is already written but the live trigger still bootstraps from v1.
+1. The `orchestrator` service's run-log volume mounted to `/out`; the code writes to
+   `.runs/loop_research` relative to its own cwd (`/app`). Mounting to `/out` left every run
+   unrecoverable — the workflow's "Commit the run log" step would silently find nothing.
+2. `docker compose up --abort-on-container-failure --exit-code-from orchestrator` does not abort
+   when the named container exits **successfully** — only `--exit-code-from`'s implied
+   `--abort-on-container-exit` does that. With both flags, the stack hung after a green
+   orchestrator run until something else (the job's 120-minute CI timeout) killed it.
+3. `sim_worker`'s Redis client raced its own `BRPOP` timeout against redis-py's default
+   `socket_timeout` (also 5s) and crashed with `TimeoutError` on a perfectly healthy empty queue.
+4. Two `sim-worker` replicas starting together both saw `bucket_exists() == False` and raced
+   `make_bucket()`; the loser crashed on MinIO's `BucketAlreadyOwnedByYou`.
 
-Steps 7–8 (the real loop, held-out eval) remain open. `holdout-a`/`holdout-b` remain deliberately
-unwritten until step 8 (spec.md §2). No model calls were made today; cost is $0.
+All four fixed and re-verified against the real stack — the final run
+([`run.json`](.runs/loop_research/2026-08-07T14-00-00Z_step6_compose_smoke/run.json)) shows
+`status: completed`, `all_passed: true`, steps 2/4/5 all PASS, and landed correctly under the
+host's `.runs/loop_research/` via the corrected volume mount. Also fixed `orchestrator.py`'s
+`git_sha`: the image has no `.git` directory, so `git rev-parse HEAD` always failed in-container;
+it now prefers a `GIT_SHA` env var (wired from `github.sha` in the workflow) and falls back to the
+subprocess only when unset. Extracted `scaffold_from_dict` (previously duplicated in `gates.py`)
+so `sim_worker.py` reconstructs scaffolds the same way. 4 new tests for the fixes plus 9 for
+`sim_worker` itself — **85/85 `loop_research` tests passing** (81 prior + 4).
+
+What step 6's gate still needs: this is local Docker verification, not an **Actions** run — the
+workflow itself hasn't executed, because its preflight still correctly reports not-ready until a
+human sets the `OPENAI_API_KEY` repo secret (plan.md §8, unchanged status). `OPENAI_API_KEY` was a
+local placeholder string for this session only, never a real credential, and it stayed out of the
+control plane the whole time, consistent with plan.md §3. Steps 7–8 (the real loop, held-out eval)
+remain open. `holdout-a`/`holdout-b` remain deliberately unwritten until step 8 (spec.md §2). No
+model calls were made today; cost is $0.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
