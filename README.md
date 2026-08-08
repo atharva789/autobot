@@ -53,50 +53,33 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-07** · build order: step 6's engineering blocker cleared · steps 1–5 unchanged and still green
+**2026-08-08** · build order: step 6's local-vs-Actions verification gap closed · steps 1–5 unchanged
 
-Unlike the last two firings, this sandbox has a real Docker daemon (`dockerd` starts and `docker
-info` succeeds) — 2026-08-06's registry row flagged "no daemon reachable" as the reason
-`Dockerfile.sim`/`Dockerfile.orchestrator`/`sim_worker.py` weren't attempted; that reason no longer
-holds, so today built and **actually ran** the missing pieces rather than writing them blind.
+2026-08-07 verified the full 5-service Compose stack against a real Docker daemon inside that day's
+sandbox, but the workflow itself had never executed under real GitHub Actions — `actions_list`
+showed **zero** prior runs of `.github/workflows/loop-research.yml`, on any branch, ever. Pushed a
+placeholder `experiments/queue/2026-08-08-actions-smoke.yaml` (not a real experiment — step 7 does
+not exist yet) purely to fire the workflow's `push` trigger for the first time, rather than
+continuing to infer its Actions behavior from local `docker compose config`.
 
-Added `infra/loop-research/Dockerfile.{orchestrator,sim}` (minimal, compute-plane-only deps —
-verified nothing under `loop_research` imports `torch`/`langchain`/etc.) and
-`packages/research/loop_research/sim_worker.py`, a queue→physics→artifacts worker for the
-`sim-worker` Compose service (job format documented in its own module docstring; no producer
-exists yet, so it idles until step 7 exists to feed it). Building and running the real 5-service
-stack (`docker compose up --exit-code-from orchestrator`) surfaced and fixed **four** real defects
-that static review would not have caught:
+Result: [run #1](https://github.com/atharva789/autobot/actions/runs/31259538315), conclusion
+`success`. The `preflight` job found the queued manifest and correctly reported not-ready — its own
+log: `::warning::OPENAI_API_KEY is not set. Add it with: gh secret set OPENAI_API_KEY`, `ready=false`
+— and the downstream `experiment` job was correctly `skipped`, spending no compute. This is the
+first confirmation, from a real Actions execution rather than local inference, that the workflow
+YAML parses and runs correctly end to end up to the secret gate. Separately, a manual
+`workflow_dispatch` attempt failed with `403 Resource not accessible by integration` — this
+session's GitHub token cannot dispatch workflows directly; noted below as a new known issue. It did
+not block today's work: the actual designed trigger (`push` to `experiments/queue/**`) needs no
+such permission.
 
-1. The `orchestrator` service's run-log volume mounted to `/out`; the code writes to
-   `.runs/loop_research` relative to its own cwd (`/app`). Mounting to `/out` left every run
-   unrecoverable — the workflow's "Commit the run log" step would silently find nothing.
-2. `docker compose up --abort-on-container-failure --exit-code-from orchestrator` does not abort
-   when the named container exits **successfully** — only `--exit-code-from`'s implied
-   `--abort-on-container-exit` does that. With both flags, the stack hung after a green
-   orchestrator run until something else (the job's 120-minute CI timeout) killed it.
-3. `sim_worker`'s Redis client raced its own `BRPOP` timeout against redis-py's default
-   `socket_timeout` (also 5s) and crashed with `TimeoutError` on a perfectly healthy empty queue.
-4. Two `sim-worker` replicas starting together both saw `bucket_exists() == False` and raced
-   `make_bucket()`; the loser crashed on MinIO's `BucketAlreadyOwnedByYou`.
-
-All four fixed and re-verified against the real stack — the final run
-([`run.json`](.runs/loop_research/2026-08-07T14-00-00Z_step6_compose_smoke/run.json)) shows
-`status: completed`, `all_passed: true`, steps 2/4/5 all PASS, and landed correctly under the
-host's `.runs/loop_research/` via the corrected volume mount. Also fixed `orchestrator.py`'s
-`git_sha`: the image has no `.git` directory, so `git rev-parse HEAD` always failed in-container;
-it now prefers a `GIT_SHA` env var (wired from `github.sha` in the workflow) and falls back to the
-subprocess only when unset. Extracted `scaffold_from_dict` (previously duplicated in `gates.py`)
-so `sim_worker.py` reconstructs scaffolds the same way. 4 new tests for the fixes plus 9 for
-`sim_worker` itself — **85/85 `loop_research` tests passing** (81 prior + 4).
-
-What step 6's gate still needs: this is local Docker verification, not an **Actions** run — the
-workflow itself hasn't executed, because its preflight still correctly reports not-ready until a
-human sets the `OPENAI_API_KEY` repo secret (plan.md §8, unchanged status). `OPENAI_API_KEY` was a
-local placeholder string for this session only, never a real credential, and it stayed out of the
-control plane the whole time, consistent with plan.md §3. Steps 7–8 (the real loop, held-out eval)
-remain open. `holdout-a`/`holdout-b` remain deliberately unwritten until step 8 (spec.md §2). No
-model calls were made today; cost is $0.
+Honest boundaries: step 6's gate is not yet fully closed — a real `experiment` job still needs the
+human to set `OPENAI_API_KEY` (plan.md §8). This sandbox has no MuJoCo installed, unlike the
+sandboxes of prior firings that ran the physics-dependent `loop_research` test suite locally
+(last confirmed 85/85 passing, 2026-08-07), so today could not independently re-verify those tests
+and did not attempt to install MuJoCo or run physics locally — the control plane does not execute
+physics, by design (spec.md §9). Steps 7–8 remain open; `holdout-a`/`holdout-b` remain deliberately
+unwritten (spec.md §2, step 8 happens once). No model calls were made today; cost is $0.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
