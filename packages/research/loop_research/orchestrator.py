@@ -9,9 +9,12 @@ order steps 1-5 already produced (`step2_run`, `step4_run`, `step5_run` — each
 routine's own tested, committed evidence for its step) back to back in one process, and fail
 loudly if any of them regresses.
 
-It does not run the real loop — step 7 doesn't exist yet, so there is nothing for
-`LOOP_CHEAP_MODEL`/`OPENAI_API_KEY` to drive. Once step 7 lands, this module is where its call
-goes; today it stays honest about not making one.
+It does not run the real loop. Step 7 (`scaffold_loop.py`/`step7_run.py`) exists now, but it runs
+against the local `claude-code` CLI substitute provider (routines/registry.md "Local substitute
+mode") -- there is no `claude` binary and no `OPENAI_API_KEY` inside this compute-plane container,
+so nothing here could drive it yet. This module is where that call goes once a compute-plane-usable
+provider exists (the pending `OPENAI_API_KEY` secret, plan.md §8); today it stays honest about not
+making one rather than silently no-op-ing on a provider that was never configured for it.
 
 `LOOP_RUN_ID` (env, or `--run-id`) is used verbatim as this run's directory name when supplied —
 the workflow's "Commit the run log" step looks for `.runs/loop_research/$LOOP_RUN_ID` exactly, so
