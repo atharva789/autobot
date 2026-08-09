@@ -45,8 +45,19 @@ import numpy as np
 
 from packages.research.local_chat_models import make_chat_model
 from packages.research.loop_research.entity_table import EntityTable, load_model_and_entities
+from packages.research.loop_research.expr import ExpressionError
 from packages.research.loop_research.mujoco_compiler import CompilationError, compile_scaffold
 from packages.research.loop_research.rollout import Policy, run_batch, sample_constants
+from packages.research.loop_research.symbols import SymbolSyntaxError
+
+# Every exception a model-authored scaffold can legitimately trigger while compiling against a
+# schema: an unresolvable/malformed symbol (CompilationError, SymbolSyntaxError) or an expression
+# using anything outside the whitelisted grammar (ExpressionError, e.g. a function name not in
+# {abs, clamp, max, min}). All three are `ValueError` subclasses but siblings of each other, not a
+# shared parent -- catching only `CompilationError` here missed `ExpressionError` outright and
+# crashed the loop instead of recording "revision N failed to compile" (found running this live:
+# a reply used a function name outside expr.py's whitelist).
+_SCAFFOLD_COMPILE_ERRORS = (CompilationError, ExpressionError, SymbolSyntaxError)
 from packages.research.loop_research.scaffold import (
     ModelTier,
     Provenance,
@@ -110,7 +121,15 @@ _SYMBOL_GRAMMAR = """Symbol grammar — every "symbols" entry must be a dotted p
   "randomization" below, spelled exactly the same. An expression referencing "const.foo" with no
   "randomization" entry named "foo" will fail to compile and the whole revision will be discarded.
   For any fixed threshold or offset (a target height, a tolerance, a bonus) just write the number
-  directly in the expression (e.g. "0.35", "0.03") instead of naming it "const.<name>"."""
+  directly in the expression (e.g. "0.35", "0.03") instead of naming it "const.<name>".
+
+Expressions may use ONLY: the symbols above, numeric literals, "+", "-", "*", "/", comparisons
+(">", "<", ">=", "<=", "=="), and these four function calls: abs(x), min(a, b, ...), max(a, b, ...),
+clamp(x, lo, hi). No other function name is permitted -- not sqrt, not pow, not round, not clip
+(the clamping function is spelled "clamp", not "clip"). Using any function outside this exact list
+of four will fail to compile and the whole revision will be discarded. If you need a square root
+or a power, restructure the expression to avoid it (e.g. compare squared distances instead of
+taking a square root)."""
 
 _INITIAL_PROMPT = """You are designing an RL training scaffold for one specific robot.
 
@@ -363,7 +382,7 @@ def run_scaffold_loop(
             probe = compiled_factory()
             probe.reset()
             probe.step(np.zeros(model.nu), sample_constants(candidate, np.random.default_rng(config.seed)))
-        except CompilationError as exc:
+        except _SCAFFOLD_COMPILE_ERRORS as exc:
             return _aborted("aborted_error", error=f"revision {revision} failed to compile: {exc}")
 
         scaffolds.append(candidate)

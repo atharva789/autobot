@@ -213,6 +213,26 @@ def test_fabricated_symbol_reply_aborts_at_compile_not_recorded() -> None:
     assert "compile" in result.cost["error"]
 
 
+def test_whitelist_violating_expression_aborts_gracefully_not_a_crash() -> None:
+    """Regression: `expr.py` raises `ExpressionError` (a `ValueError` sibling of
+    `CompilationError`, not a subclass of it) for a function name outside its whitelist
+    (abs/clamp/max/min). Found running this loop for real against dev-b -- a live reply used a
+    function outside that set and crashed the whole script uncaught, because only
+    `CompilationError` was caught at the compile-check site."""
+
+    bad = _initial_reply_json()
+    bad["reward_terms"][0]["expression"] = "sqrt(site.payload_center.pos.z)"
+    bad["reward_terms"][0]["symbols"] = ["site.payload_center.pos.z"]
+
+    config = ScaffoldLoopConfig()
+    with patch.object(scaffold_loop, "_invoke", return_value=json.dumps(bad)):
+        result = run_scaffold_loop(DEV_A_SCHEMA, _TASK, config=config)
+
+    assert result.status == "aborted_error"
+    assert result.scaffolds == ()
+    assert "compile" in result.cost["error"]
+
+
 def test_provider_resolution_failure_raises_loop_call_error() -> None:
     with pytest.raises(LoopCallError):
         scaffold_loop._invoke("not-a-valid-spec", "prompt")
