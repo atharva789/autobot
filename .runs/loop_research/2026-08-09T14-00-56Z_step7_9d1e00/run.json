@@ -1,0 +1,351 @@
+{
+  "run_id": "2026-08-09T14-00-56Z_step7_9d1e00",
+  "git_sha": "b10bb89221e46547ac64bceecb9ee5ab8fdd9583",
+  "trigger": "routine",
+  "status": "aborted_error",
+  "scaffolds": [
+    "sc_805a6d9ea1ca",
+    "sc_4fa98a9c1ce8",
+    "sc_59592391940d",
+    "sc_3c2ce96dbc5c",
+    "sc_9a69529415bb",
+    "sc_c13a2843c0b9",
+    "sc_550a81339676",
+    "sc_0d7651f82069",
+    "sc_static_control_v1",
+    "sc_static_control_v1",
+    "sc_static_control_v1",
+    "sc_static_control_v1",
+    "sc_static_control_v1",
+    "sc_static_control_v1"
+  ],
+  "batches": [
+    "rb_9ec0dcb504ce",
+    "rb_46adab5b304f"
+  ],
+  "gates": [
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_4fa98a9c1ce8",
+      "passed": true,
+      "score": 1.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 11,
+        "total": 11,
+        "unresolved": [],
+        "termination_unresolved": [],
+        "entity_counts": {
+          "joint": 7,
+          "body": 8,
+          "site": 3,
+          "actuator": 6,
+          "sensor": 3
+        }
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G2",
+      "scaffold_id": "sc_c13a2843c0b9",
+      "passed": true,
+      "score": 0.9886,
+      "threshold": 0.0278,
+      "detail": {
+        "permutation": "link_scaled",
+        "structural_diff": 0.9886,
+        "tau": 0.0278,
+        "original_scaffold_id": "sc_9a69529415bb",
+        "mutant_scaffold_id": "sc_c13a2843c0b9"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G2",
+      "scaffold_id": "sc_550a81339676",
+      "passed": true,
+      "score": 0.9375,
+      "threshold": 0.0278,
+      "detail": {
+        "permutation": "limits_altered",
+        "structural_diff": 0.9375,
+        "tau": 0.0278,
+        "original_scaffold_id": "sc_9a69529415bb",
+        "mutant_scaffold_id": "sc_550a81339676"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G2",
+      "scaffold_id": "sc_0d7651f82069",
+      "passed": true,
+      "score": 0.9737,
+      "threshold": 0.0278,
+      "detail": {
+        "permutation": "topology_swapped",
+        "structural_diff": 0.9737,
+        "tau": 0.0278,
+        "original_scaffold_id": "sc_9a69529415bb",
+        "mutant_scaffold_id": "sc_0d7651f82069"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G3",
+      "scaffold_id": "sc_4fa98a9c1ce8",
+      "passed": true,
+      "score": 0.9643,
+      "threshold": 0.0278,
+      "detail": {
+        "schema_a": "dev-a",
+        "schema_b": "dev-b",
+        "structural_diff": 0.9643,
+        "tau": 0.0278,
+        "scaffold_a_id": "sc_4fa98a9c1ce8",
+        "scaffold_b_id": "sc_3c2ce96dbc5c"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G2",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": false,
+      "score": 0.0,
+      "threshold": 0.0278,
+      "detail": {
+        "permutation": "link_scaled",
+        "structural_diff": 0.0,
+        "tau": 0.0278,
+        "original_scaffold_id": "sc_static_control_v1",
+        "mutant_scaffold_id": "sc_static_control_v1"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G2",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": false,
+      "score": 0.0,
+      "threshold": 0.0278,
+      "detail": {
+        "permutation": "limits_altered",
+        "structural_diff": 0.0,
+        "tau": 0.0278,
+        "original_scaffold_id": "sc_static_control_v1",
+        "mutant_scaffold_id": "sc_static_control_v1"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G2",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": false,
+      "score": 0.0,
+      "threshold": 0.0278,
+      "detail": {
+        "permutation": "dof_removed",
+        "structural_diff": 0.0,
+        "tau": 0.0278,
+        "original_scaffold_id": "sc_static_control_v1",
+        "mutant_scaffold_id": "sc_static_control_v1",
+        "dof_removed_hard_check": {
+          "deleted_joint": "j_shoulder",
+          "offending_symbols": [
+            "joint.j_shoulder.qpos"
+          ],
+          "passed": false
+        }
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G2",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": false,
+      "score": 0.0,
+      "threshold": 0.0278,
+      "detail": {
+        "permutation": "topology_swapped",
+        "structural_diff": 0.0,
+        "tau": 0.0278,
+        "original_scaffold_id": "sc_static_control_v1",
+        "mutant_scaffold_id": "sc_static_control_v1"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": true,
+      "score": 1.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 4,
+        "total": 4,
+        "unresolved": [],
+        "termination_unresolved": [],
+        "entity_counts": {
+          "joint": 7,
+          "body": 8,
+          "site": 3,
+          "actuator": 6,
+          "sensor": 3
+        }
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": false,
+      "score": 0.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 0,
+        "total": 4,
+        "unresolved": [
+          "body.wrist.pos.z",
+          "joint.j_elbow.qpos",
+          "joint.j_shoulder.qpos",
+          "sensor.s_touch_left"
+        ],
+        "termination_unresolved": [
+          "body.finger_left.pos.z"
+        ],
+        "entity_counts": {
+          "joint": 5,
+          "body": 7,
+          "site": 3,
+          "actuator": 4,
+          "sensor": 3
+        }
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G3",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": false,
+      "score": 0.0,
+      "threshold": 0.0278,
+      "detail": {
+        "schema_a": "dev-a",
+        "schema_b": "dev-a",
+        "structural_diff": 0.0,
+        "tau": 0.0278,
+        "scaffold_a_id": "sc_static_control_v1",
+        "scaffold_b_id": "sc_static_control_v1"
+      },
+      "rubric_version": "v1"
+    }
+  ],
+  "cost": {
+    "usd_total": 0.0,
+    "usd_ceiling": 5.0,
+    "ceiling_hit": false,
+    "calls_by_tier": {
+      "cheap": 9,
+      "frontier": 0
+    },
+    "note": "local claude-code/haiku substitute provider (subscription auth); no API spend"
+  },
+  "replay": {
+    "loop": "scaffold_v1",
+    "task_text": "lift the payload to shelf height",
+    "prompt_version": "v1",
+    "cheap_model": "claude-code/haiku",
+    "frontier_model": "claude-code/sonnet",
+    "g3_config": {
+      "seed": 7,
+      "max_revisions": 1,
+      "episodes_per_batch": 4,
+      "step_budget": 60
+    },
+    "g2_config": {
+      "seed": 11,
+      "max_revisions": 0,
+      "episodes_per_batch": 4,
+      "step_budget": 60
+    }
+  },
+  "manifest_path": null,
+  "control": {
+    "real_loop": {
+      "aborted_arms": [
+        {
+          "arm": "dof_removed",
+          "status": "aborted_error",
+          "detail": {
+            "usd_total": 0.0,
+            "usd_ceiling": 5.0,
+            "ceiling_hit": false,
+            "calls_by_tier": {
+              "cheap": 1,
+              "frontier": 0
+            },
+            "error": "revision 0 failed to compile: const.target_height has no runtime value bound"
+          }
+        }
+      ],
+      "g1_dev_a": {
+        "passed": true,
+        "score": 1.0
+      },
+      "g2_by_class": {
+        "link_scaled": {
+          "passed": true,
+          "structural_diff": 0.9886
+        },
+        "limits_altered": {
+          "passed": true,
+          "structural_diff": 0.9375
+        },
+        "topology_swapped": {
+          "passed": true,
+          "structural_diff": 0.9737
+        }
+      },
+      "g3_dev_a_vs_dev_b": {
+        "passed": true,
+        "structural_diff": 0.9643
+      },
+      "g1_g2_g3_met": false
+    },
+    "negative_control": {
+      "loop": "static_scaffold_loop",
+      "tau": 0.0278,
+      "tau_source": ".runs/loop_research/2026-08-06T13-35-51Z_step5_e3a5ab/run.json",
+      "g1_dev_a": {
+        "passed": true,
+        "score": 1.0
+      },
+      "g1_dev_b": {
+        "passed": false,
+        "score": 0.0
+      },
+      "g2_by_class": {
+        "link_scaled": {
+          "passed": false,
+          "structural_diff": 0.0
+        },
+        "limits_altered": {
+          "passed": false,
+          "structural_diff": 0.0
+        },
+        "dof_removed": {
+          "passed": false,
+          "structural_diff": 0.0
+        },
+        "topology_swapped": {
+          "passed": false,
+          "structural_diff": 0.0
+        }
+      },
+      "g3_dev_a_vs_dev_b": {
+        "passed": false,
+        "structural_diff": 0.0
+      },
+      "required_outcome_met": true
+    }
+  }
+}

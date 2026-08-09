@@ -53,33 +53,33 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-08** · build order: step 6's local-vs-Actions verification gap closed · steps 1–5 unchanged
+**2026-08-09** · build order: step 7 (the real loop) implemented and run for real · steps 1–6 unchanged
 
-2026-08-07 verified the full 5-service Compose stack against a real Docker daemon inside that day's
-sandbox, but the workflow itself had never executed under real GitHub Actions — `actions_list`
-showed **zero** prior runs of `.github/workflows/loop-research.yml`, on any branch, ever. Pushed a
-placeholder `experiments/queue/2026-08-08-actions-smoke.yaml` (not a real experiment — step 7 does
-not exist yet) purely to fire the workflow's `push` trigger for the first time, rather than
-continuing to infer its Actions behavior from local `docker compose config`.
+Implemented `scaffold_v1`, the real model-driven loop (`packages/research/loop_research/scaffold_loop.py`):
+generates a scaffold, rolls it out, and revises against the structured rollout evidence — termination
+histogram, contacts, joint saturation, never a bare scalar. 10 tests against a stubbed model, then run
+for real against the local `claude-code`/haiku substitute provider on `dev-a`, `dev-b`, and
+independently on each of G2's four schema permutations of `dev-a`.
 
-Result: [run #1](https://github.com/atharva789/autobot/actions/runs/31259538315), conclusion
-`success`. The `preflight` job found the queued manifest and correctly reported not-ready — its own
-log: `::warning::OPENAI_API_KEY is not set. Add it with: gh secret set OPENAI_API_KEY`, `ready=false`
-— and the downstream `experiment` job was correctly `skipped`, spending no compute. This is the
-first confirmation, from a real Actions execution rather than local inference, that the workflow
-YAML parses and runs correctly end to end up to the secret gate. Separately, a manual
-`workflow_dispatch` attempt failed with `403 Resource not accessible by integration` — this
-session's GitHub token cannot dispatch workflows directly; noted below as a new known issue. It did
-not block today's work: the actual designed trigger (`push` to `experiments/queue/**`) needs no
-such permission.
+The first two live runs crashed on real defects a stub couldn't have caught — an unbound `const.*`
+symbol that passed compilation but failed on the first rollout step, and a disallowed expression
+function whose error type wasn't caught alongside compilation errors. Both fixed in the loop's own
+code; the third run completed and produced a committed gate result:
+[`run.json`](.runs/loop_research/2026-08-09T14-00-56Z_step7_9d1e00/run.json).
 
-Honest boundaries: step 6's gate is not yet fully closed — a real `experiment` job still needs the
-human to set `OPENAI_API_KEY` (plan.md §8). This sandbox has no MuJoCo installed, unlike the
-sandboxes of prior firings that ran the physics-dependent `loop_research` test suite locally
-(last confirmed 85/85 passing, 2026-08-07), so today could not independently re-verify those tests
-and did not attempt to install MuJoCo or run physics locally — the control plane does not execute
-physics, by design (spec.md §9). Steps 7–8 remain open; `holdout-a`/`holdout-b` remain deliberately
-unwritten (spec.md §2, step 8 happens once). No model calls were made today; cost is $0.
+**G1 (dev-a): PASS, score 1.0. G2 `link_scaled`: PASS, D=0.9886. G2 `limits_altered`: PASS,
+D=0.9375. G2 `topology_swapped`: PASS, D=0.9737. G3 (dev-a vs dev-b): PASS, D=0.9643.** (tau=0.0278
+throughout, read from the committed 2026-08-06 step-5 derivation, not recomputed.) One arm — G2's
+`dof_removed` permutation — aborted without a score: the model referenced an unbound constant on
+that arm again even after the fix, so nothing was recorded for it rather than a fabricated result.
+The negative control ran the same cadence and its required outcome still held (fails G1 on `dev-b`,
+fails all four G2 classes, fails G3) — the checker-check still works.
+
+Honest boundaries: this is real, mostly-positive, **partial** evidence toward spec.md's exit
+criterion 2 ("the real loop passes G1-G3 on both dev schemas") — one of six arms did not produce a
+scoreable result, so the criterion is not yet fully met. Step 8 (held-out evaluation) remains
+untouched and one-shot by design; `holdout-a`/`holdout-b` remain deliberately unwritten. 9 real model
+calls, 0 frontier-tier escalations, $0 spend (local substitute, no OpenAI credits yet).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
