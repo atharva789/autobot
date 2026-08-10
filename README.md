@@ -53,33 +53,41 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-09** · build order: step 7 (the real loop) implemented and run for real · steps 1–6 unchanged
+**2026-08-10** · build order: step 7's remaining gap closed for real · steps 1–6 unchanged
 
-Implemented `scaffold_v1`, the real model-driven loop (`packages/research/loop_research/scaffold_loop.py`):
-generates a scaffold, rolls it out, and revises against the structured rollout evidence — termination
-histogram, contacts, joint saturation, never a bare scalar. 10 tests against a stubbed model, then run
-for real against the local `claude-code`/haiku substitute provider on `dev-a`, `dev-b`, and
-independently on each of G2's four schema permutations of `dev-a`.
+Step 0 first (`daily-loop-research.v2.md`): checked `origin/routine/experiments` and its open PR
+([#6](https://github.com/atharva789/autobot/pull/6)) before building anything. Steps 1–6 were
+already done there; 2026-08-09's row showed step 7 (the real loop) implemented but with one of six
+arms — G2's `dof_removed` permutation — aborting without a score, because the cheap-tier model kept
+referencing an unbound `const.target_height` there and the loop discarded that information instead
+of showing it back.
 
-The first two live runs crashed on real defects a stub couldn't have caught — an unbound `const.*`
-symbol that passed compilation but failed on the first rollout step, and a disallowed expression
-function whose error type wasn't caught alongside compilation errors. Both fixed in the loop's own
-code; the third run completed and produced a committed gate result:
-[`run.json`](.runs/loop_research/2026-08-09T14-00-56Z_step7_9d1e00/run.json).
+Added a bounded, same-revision compile-error repair loop to `scaffold_loop.py`
+(`max_compile_retries`, default 1): on a compile failure the loop sends one follow-up prompt
+quoting the exact failing scaffold and the exact compile error, before giving up. 12/12 step-7
+tests pass (10 prior + 2 new, one proving the repair recovers within a revision, one proving it
+still gives up honestly past the retry bound).
 
-**G1 (dev-a): PASS, score 1.0. G2 `link_scaled`: PASS, D=0.9886. G2 `limits_altered`: PASS,
-D=0.9375. G2 `topology_swapped`: PASS, D=0.9737. G3 (dev-a vs dev-b): PASS, D=0.9643.** (tau=0.0278
-throughout, read from the committed 2026-08-06 step-5 derivation, not recomputed.) One arm — G2's
-`dof_removed` permutation — aborted without a score: the model referenced an unbound constant on
-that arm again even after the fix, so nothing was recorded for it rather than a fabricated result.
-The negative control ran the same cadence and its required outcome still held (fails G1 on `dev-b`,
-fails all four G2 classes, fails G3) — the checker-check still works.
+Re-ran the specific arm that was failing, for real, against the local `claude-code`/haiku
+substitute provider (not the full six-arm grid — the other five arms' generation prompt is
+unchanged and already has real, committed evidence from 2026-08-09):
+**G2 `dof_removed`: PASS, D=0.9167 (tau=0.0278)** — the deleted-joint hard check also passed (no
+surviving symbol referenced `j_shoulder`). Evidence:
+[`run.json`](.runs/loop_research/2026-08-10T13-49-22Z_step7-dof-removed-recheck_04eacb/run.json).
+Notably, this specific live run succeeded on its first model call — the repair path wasn't
+triggered this time, so this run demonstrates the *gap is closed*, not that the *repair mechanism
+fired*; the repair mechanism's own correctness is what the two new deterministic unit tests prove.
 
-Honest boundaries: this is real, mostly-positive, **partial** evidence toward spec.md's exit
-criterion 2 ("the real loop passes G1-G3 on both dev schemas") — one of six arms did not produce a
-scoreable result, so the criterion is not yet fully met. Step 8 (held-out evaluation) remains
-untouched and one-shot by design; `holdout-a`/`holdout-b` remain deliberately unwritten. 9 real model
-calls, 0 frontier-tier escalations, $0 spend (local substitute, no OpenAI credits yet).
+Combining today's result with 2026-08-09's committed run
+(`.runs/loop_research/2026-08-09T14-00-56Z_step7_9d1e00/run.json`), all six real-loop arms now have
+a scored, passing gate result — G1 (dev-a) 1.0, G2 `link_scaled` 0.9886, `limits_altered` 0.9375,
+`topology_swapped` 0.9737, `dof_removed` 0.9167 (today), G3 (dev-a vs dev-b) 0.9643 — which reads as
+spec.md exit criterion 2 being met. Stated carefully: that reading combines **two separate run
+logs**, not one unified run, so it is not treated here as build order step 7 being declared
+complete outright. A clean single-run confirmation across all six arms is recommended before
+treating step 7 as closed and considering step 8. Step 8 (held-out evaluation) remains untouched
+and one-shot by design; `holdout-a`/`holdout-b` remain deliberately unwritten and unread. 1 real
+model call today, 0 frontier-tier escalations, $0 spend (local substitute, no OpenAI credits yet).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
