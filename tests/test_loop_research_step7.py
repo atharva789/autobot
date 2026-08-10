@@ -238,6 +238,69 @@ def test_provider_resolution_failure_raises_loop_call_error() -> None:
         scaffold_loop._invoke("not-a-valid-spec", "prompt")
 
 
+def test_compile_error_repair_recovers_within_the_same_revision() -> None:
+    """New 2026-08-10: closes step 7's remaining exit-criterion-2 gap (routines/registry.md
+    2026-08-09 -- the G2 dof_removed permutation aborted with no scaffold because a reply
+    referencing an unbound const.* was discarded with no feedback). The first reply is the same
+    unbound-const mistake as the regression test above; the second (repair) reply fixes it by
+    adding a matching randomization entry. The loop must recover within this one revision -- no
+    extra scaffold/batch, one extra logged 'cheap' call."""
+
+    bad = _initial_reply_json()
+    bad["reward_terms"][0]["expression"] = "const.table_height - site.payload_center.pos.z"
+    bad["reward_terms"][0]["symbols"] = ["const.table_height", "site.payload_center.pos.z"]
+
+    fixed = _initial_reply_json()
+    fixed["randomization"] = [
+        {"parameter": "friction.tangential", "range": [0.6, 1.2], "distribution": "uniform"},
+        {"parameter": "const.table_height", "range": [0.08, 0.1], "distribution": "uniform"},
+    ]
+    fixed["reward_terms"][0]["expression"] = "const.table_height - site.payload_center.pos.z"
+    fixed["reward_terms"][0]["symbols"] = ["const.table_height", "site.payload_center.pos.z"]
+
+    replies = iter([json.dumps(bad), json.dumps(fixed)])
+    calls_made: list[str] = []
+
+    def fake_invoke(provider_model: str, prompt: str) -> str:
+        calls_made.append(provider_model)
+        return next(replies)
+
+    config = ScaffoldLoopConfig(max_revisions=0, max_compile_retries=1)
+    with patch.object(scaffold_loop, "_invoke", side_effect=fake_invoke):
+        result = run_scaffold_loop(DEV_A_SCHEMA, _TASK, config=config)
+
+    assert result.status == "completed"
+    assert len(result.scaffolds) == 1
+    assert calls_made == ["claude-code/haiku", "claude-code/haiku"]
+    assert result.cost["calls_by_tier"]["cheap"] == 2
+    assert result.cost["calls_by_tier"]["compile_repairs"] == 1
+
+
+def test_compile_error_repair_gives_up_after_max_retries() -> None:
+    """The bound is real: a model that keeps making the same mistake past max_compile_retries
+    still ends in an honest aborted_error, not an infinite or unbounded retry loop."""
+
+    bad = _initial_reply_json()
+    bad["reward_terms"][0]["expression"] = "const.table_height - site.payload_center.pos.z"
+    bad["reward_terms"][0]["symbols"] = ["const.table_height", "site.payload_center.pos.z"]
+
+    call_count = 0
+
+    def fake_invoke(provider_model: str, prompt: str) -> str:
+        nonlocal call_count
+        call_count += 1
+        return json.dumps(bad)
+
+    config = ScaffoldLoopConfig(max_compile_retries=2)
+    with patch.object(scaffold_loop, "_invoke", side_effect=fake_invoke):
+        result = run_scaffold_loop(DEV_A_SCHEMA, _TASK, config=config)
+
+    assert result.status == "aborted_error"
+    assert result.scaffolds == ()
+    assert call_count == 3  # initial + 2 repair attempts, then give up
+    assert "2 repair attempt(s)" in result.cost["error"]
+
+
 def test_unbound_const_reference_aborts_gracefully_not_a_crash() -> None:
     """Regression: `mujoco_compiler.compile_scaffold`'s construction only compiles an
     expression's syntax tree, it does not evaluate it -- a reward term citing `const.*` with no

@@ -88,7 +88,12 @@ class ScaffoldLoopConfig:
     """contracts/loop-contract.md `ScaffoldLoopConfig` -- defaults match the contract exactly.
     A run harness may pass smaller `episodes_per_batch`/`step_budget` for local tractability (the
     same scaling step2_run.py/step5_run.py already do for their own rollouts); the *defaults*
-    below are the contract's numbers and are not edited here."""
+    below are the contract's numbers and are not edited here.
+
+    `max_compile_retries` is new (2026-08-10, closing step 7's remaining gap -- see module
+    docstring's note on the dof_removed permutation): bounds a same-revision repair loop, not an
+    extra contract field the loop-contract.md dataclass shape defines, so it defaults to a small,
+    cheap number rather than mirroring a contract default that doesn't exist."""
 
     max_revisions: int = 8
     episodes_per_batch: int = 64
@@ -98,6 +103,7 @@ class ScaffoldLoopConfig:
     frontier_model: str = "claude-code/sonnet"
     seed: int = 42
     prompt_version: str = "v1"
+    max_compile_retries: int = 1
 
 
 @dataclass(frozen=True)
@@ -192,6 +198,25 @@ above. Ground every choice in THIS robot's actuators, joints, sites and sensors 
 template."""
 
 
+_REPAIR_PROMPT = """Your last reply for this robot failed to compile. Fix ONLY the problem named
+below and return the corrected scaffold -- do not otherwise redesign it.
+
+Robot entities parsed from its schema (only these names exist; anything else will fail a static
+resolution gate):
+{entity_table}
+
+{grammar}
+
+Your last reply:
+{failed_json}
+
+Compile error (fix exactly this):
+{error}
+
+Return ONE JSON object, no prose, no code fences, with exactly these keys: "reward_terms",
+"terminations", "curriculum", "randomization" -- same shape as your last reply, corrected."""
+
+
 def _entity_lines(entities: EntityTable) -> str:
     return "\n".join(
         f"  {kind}: {', '.join(sorted(names))}"
@@ -247,6 +272,123 @@ def _generate_revision(
         tier = "frontier"
 
     return parsed, tier, calls
+
+
+def _build_candidate(
+    parsed: dict,
+    tier: ModelTier,
+    config: ScaffoldLoopConfig,
+    *,
+    schema_path: Path,
+    schema_digest: str,
+    task_text: str,
+    parent_id: str | None,
+    motivating_batch_id: str | None,
+) -> TrainingScaffold:
+    return TrainingScaffold(
+        scaffold_id=f"sc_{uuid.uuid4().hex[:12]}",
+        schema_id=schema_path.stem,
+        schema_digest=schema_digest,
+        task_text=task_text,
+        reward_terms=_parse_reward_terms(parsed.get("reward_terms", [])),
+        terminations=_parse_terminations(parsed.get("terminations", [])),
+        curriculum=_parse_curriculum(parsed.get("curriculum", [])),
+        randomization=_parse_randomization(parsed.get("randomization", [])),
+        provenance=Provenance(
+            prompt_version=config.prompt_version,
+            model_id=config.cheap_model if tier == "cheap" else config.frontier_model,
+            model_tier=tier,
+            seed=config.seed,
+            cost_usd=0.0,
+        ),
+        parent_scaffold_id=parent_id,
+        motivating_batch_id=motivating_batch_id,
+    )
+
+
+def _dry_run_compile(candidate: TrainingScaffold, model: mujoco.MjModel, entities, config: ScaffoldLoopConfig):
+    """Construction alone (mujoco_compiler.compile_scaffold) only compiles each expression's
+    syntax tree -- it does not evaluate it, so a reward/termination expression that references a
+    `const.*` symbol with no matching `randomization` entry (unbound at runtime) passes
+    construction and only fails on the first real `.step()`, deep inside a rollout. A one-step dry
+    run here catches that deterministically (the same expression tree fails on every step, not
+    just some), so it counts as this revision failing to compile (spec.md §3) rather than crashing
+    the loop the first time a rollout actually exercises it. Returns the compiled factory on
+    success; raises one of `_SCAFFOLD_COMPILE_ERRORS` on failure."""
+
+    compiled_factory = lambda c=candidate: compile_scaffold(c, model, entities)  # noqa: E731
+    probe = compiled_factory()
+    probe.reset()
+    probe.step(np.zeros(model.nu), sample_constants(candidate, np.random.default_rng(config.seed)))
+    return compiled_factory
+
+
+def _produce_compiling_candidate(
+    prompt: str,
+    config: ScaffoldLoopConfig,
+    model: mujoco.MjModel,
+    entities,
+    *,
+    allow_escalation: bool,
+    schema_path: Path,
+    schema_digest: str,
+    task_text: str,
+    parent_id: str | None,
+    motivating_batch_id: str | None,
+):
+    """Generate a scaffold that actually compiles, with a bounded, same-revision repair loop
+    (`config.max_compile_retries`) when it doesn't the first time.
+
+    Added 2026-08-10 to close step 7's remaining exit-criterion-2 gap (routines/registry.md
+    2026-08-09: the G2 `dof_removed` permutation aborted with no scaffold, twice, because the
+    cheap-tier model referenced an unbound `const.target_height` and had no way to know it had --
+    the loop discarded that information instead of showing it back. This is a loop-structure
+    change in the sense loop-contract.md's "Expected shape of a revision step" diagram describes
+    (what feedback the loop gives before deciding to abort a revision), not a hand-tuned fix for
+    one permutation: the repair prompt below is generic over any `_SCAFFOLD_COMPILE_ERRORS`
+    message, not specific to `dof_removed` or to `const.target_height`.
+
+    Repair calls never escalate to the frontier tier (kept simple and cheap -- C6 already bounds
+    the happy path to one call per revision; this only adds calls when the happy path failed) and
+    are logged in the returned `calls` list like any other call, so cost accounting stays honest.
+
+    Raises the last `_SCAFFOLD_COMPILE_ERRORS`/construction exception if every attempt fails.
+    """
+
+    parsed, tier, calls = _generate_revision(prompt, config, allow_escalation=allow_escalation)
+    attempt = 0
+    while True:
+        candidate = _build_candidate(
+            parsed,
+            tier,
+            config,
+            schema_path=schema_path,
+            schema_digest=schema_digest,
+            task_text=task_text,
+            parent_id=parent_id,
+            motivating_batch_id=motivating_batch_id,
+        )
+        try:
+            compiled_factory = _dry_run_compile(candidate, model, entities, config)
+            return candidate, compiled_factory, tier, calls, attempt
+        except _SCAFFOLD_COMPILE_ERRORS as exc:
+            if attempt >= config.max_compile_retries:
+                raise
+            attempt += 1
+            repair_prompt = _REPAIR_PROMPT.format(
+                entity_table=_entity_lines(entities),
+                grammar=_SYMBOL_GRAMMAR,
+                failed_json=json.dumps(
+                    {k: parsed.get(k, []) for k in
+                     ("reward_terms", "terminations", "curriculum", "randomization")},
+                    indent=2,
+                ),
+                error=str(exc),
+            )
+            content = _invoke(config.cheap_model, repair_prompt)
+            parsed = _parse_scaffold_json(content)
+            tier = "cheap"
+            calls = calls + ["cheap"]
 
 
 def _random_probe_policy(model: mujoco.MjModel, seed: int) -> Policy:
@@ -333,11 +475,26 @@ def run_scaffold_loop(
             )
 
         try:
-            parsed, tier, calls = _generate_revision(
-                prompt, config, allow_escalation=current is not None
+            candidate, compiled_factory, tier, calls, repairs = _produce_compiling_candidate(
+                prompt,
+                config,
+                model,
+                entities,
+                allow_escalation=current is not None,
+                schema_path=schema_path,
+                schema_digest=schema_digest,
+                task_text=task_text,
+                parent_id=parent_id,
+                motivating_batch_id=motivating_batch_id,
             )
-        except (LoopCallError, ValueError, json.JSONDecodeError) as exc:
-            return _aborted("aborted_error", error=f"revision {revision} call failed: {exc}")
+        except (LoopCallError, ValueError, json.JSONDecodeError, KeyError, TypeError) as exc:
+            if isinstance(exc, _SCAFFOLD_COMPILE_ERRORS):
+                kind = f"failed to compile (after {config.max_compile_retries} repair attempt(s))"
+            elif isinstance(exc, (LoopCallError, json.JSONDecodeError)):
+                kind = "call failed"
+            else:
+                kind = "produced an invalid scaffold"
+            return _aborted("aborted_error", error=f"revision {revision} {kind}: {exc}")
 
         for call_tier in calls:
             calls_by_tier[call_tier] += 1
@@ -345,45 +502,8 @@ def run_scaffold_loop(
         # provider's per-call spend would accumulate into cost_usd_total here instead of the
         # literal 0.0 every local call reports today.
         cost_usd_total += 0.0
-
-        try:
-            candidate = TrainingScaffold(
-                scaffold_id=f"sc_{uuid.uuid4().hex[:12]}",
-                schema_id=schema_path.stem,
-                schema_digest=schema_digest,
-                task_text=task_text,
-                reward_terms=_parse_reward_terms(parsed.get("reward_terms", [])),
-                terminations=_parse_terminations(parsed.get("terminations", [])),
-                curriculum=_parse_curriculum(parsed.get("curriculum", [])),
-                randomization=_parse_randomization(parsed.get("randomization", [])),
-                provenance=Provenance(
-                    prompt_version=config.prompt_version,
-                    model_id=config.cheap_model if tier == "cheap" else config.frontier_model,
-                    model_tier=tier,
-                    seed=config.seed,
-                    cost_usd=0.0,
-                ),
-                parent_scaffold_id=parent_id,
-                motivating_batch_id=motivating_batch_id,
-            )
-        except (ValueError, KeyError, TypeError) as exc:
-            return _aborted("aborted_error", error=f"revision {revision} produced an invalid scaffold: {exc}")
-
-        try:
-            compiled_factory = lambda c=candidate: compile_scaffold(c, model, entities)  # noqa: E731
-            # Construction alone (mujoco_compiler.compile_scaffold) only compiles each
-            # expression's syntax tree -- it does not evaluate it, so a reward/termination
-            # expression that references a `const.*` symbol with no matching `randomization`
-            # entry (unbound at runtime) passes construction and only fails on the first real
-            # `.step()`, deep inside a rollout. A one-step dry run here catches that
-            # deterministically (the same expression tree fails on every step, not just some),
-            # so it counts as this revision failing to compile (spec.md §3) rather than crashing
-            # the loop the first time a rollout actually exercises it.
-            probe = compiled_factory()
-            probe.reset()
-            probe.step(np.zeros(model.nu), sample_constants(candidate, np.random.default_rng(config.seed)))
-        except _SCAFFOLD_COMPILE_ERRORS as exc:
-            return _aborted("aborted_error", error=f"revision {revision} failed to compile: {exc}")
+        if repairs:
+            calls_by_tier["compile_repairs"] = calls_by_tier.get("compile_repairs", 0) + repairs
 
         scaffolds.append(candidate)
         current = candidate
