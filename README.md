@@ -53,27 +53,24 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-11** · build order: 7/8 steps done · step 7 closed with a clean single-run confirmation
+**2026-08-12** · build order: still 7/8 · no new evidence since 2026-08-11
 
-The one gap 2026-08-10 left open — step 7's six real-loop gate arms had passing results split
-across two separate run logs, not one unified run — is closed. A single run of the real loop
-(`scaffold_v1`) against the local `claude-code`/haiku substitute provider ($0 spend) scored all
-six arms together:
+Checked `origin/routine/experiments`/PR #6 before reading anything else (step 0), then confirmed
+rather than assumed: no new `.runs/loop_research/` entries since
+[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json), no new PR
+review comments, `evals/policy_synthesis/holdout/` still holds only its placeholder README, and
+the full `loop_research` test suite still passes — **97/97**, unchanged from 2026-08-11 — after
+installing this sandbox's missing deps (`mujoco`, `pydantic`, `langsmith`, `langchain`,
+`langchain-openai`, `python-dotenv`, `pyyaml`).
 
-**G1 (dev-a): PASS 1.0 · G2 `link_scaled`: PASS D=0.9079 · G2 `limits_altered`: PASS D=0.9432 ·
-G2 `dof_removed`: PASS D=0.6357 (deleted-joint hard check also passed) · G2 `topology_swapped`:
-PASS D=0.9432 · G3 (dev-a vs dev-b): PASS D=0.975** — all against **τ=0.0278**, read from the
-committed 2026-08-06 step-5 derivation. The negative control's required outcome held in the same
-run: passes G1 on dev-a, fails it on dev-b, fails all four G2 classes and G3. Evidence:
-[`run.json`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json),
-[`gates.json`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/gates.json).
-
-This meets spec.md §7's exit criteria 1 and 2 from one committed run. Build order (plan.md §7) is
-now 7/8: only step 8, the one-shot held-out evaluation, remains — genuinely blocked, not just
-undone. `evals/policy_synthesis/holdout/` holds only its placeholder README; the two held-out
-schemas must come from outside this loop's own development for G4 to mean anything, so this
-routine cannot supply them itself. A daily local budget check unlocks the OpenAI compute plane
-when credits exceed $500 ([`budget log`](routines/budget-log.md)); still not unlocked.
+Build order (plan.md §7) is unchanged at 7/8. Step 8 (held-out evaluation) remains blocked for the
+reason recorded 2026-08-11: the two held-out schemas must come from outside this loop's own
+development for G4 to mean anything, so this routine cannot supply them itself — that needs a
+human to drop `holdout-a.xml`/`holdout-b.xml` in. No OpenAI credits yet
+([`budget log`](routines/budget-log.md)); the live trigger still bootstraps from
+`daily-loop-research.v1.md` rather than `v2.md` (eighth consecutive firing — see
+`routines/registry.md`'s known issues). Per this project's own rule, "no new evidence" is a
+complete day's work, not a placeholder for one.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
