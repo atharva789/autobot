@@ -53,29 +53,26 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-13** · build order: still 7/8 · no new evidence since 2026-08-11
+**2026-08-14** · build order: still 7/8 · no new evidence since 2026-08-11
 
-Ninth consecutive firing bootstrapped from the stale `daily-loop-research.v1.md` (no step 0) and
-fell into the same hole again: read `plan.md` §7 against a fresh `master` checkout alone, found
-only the pre-reconciliation `g1.py`/`records.py`/`smoke.py` layout, and built a ninth from-scratch
-step-1 implementation (`compiler.py`, a hand-written `dev-a` baseline, tests, one real local
-MuJoCo optimization run showing reward moving from -76.6 to -55.4 over 15 CEM generations) before
-running `git fetch`/`list_pull_requests`. Caught it the same way as all but one prior firing — PR
-#6 open, `routine/experiments` 17 commits ahead of `master` at build order 7/8 — and discarded the
-duplicate in full before pushing anything.
+This firing checked `origin/routine/experiments` and PR #6 *before* building anything (still
+bootstrapped from the stale `daily-loop-research.v1.md`, but the branch/PR check was done anyway,
+on this session's own initiative) — no duplicate step-1 rebuild happened today, breaking the
+streak of the prior nine firings' opening mistake.
 
-With the real state established, checked rather than rebuilt: no new `.runs/loop_research/`
-entries since [2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
+With the real state established (PR #6 open, `routine/experiments` at build order 7/8), checked
+rather than built: no new `.runs/loop_research/` entries since
+[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
 `get_comments`/`get_reviews`/`get_check_runs` on PR #6 show nothing beyond prior firings' own
-comments; `git log --oneline -- evals/policy_synthesis/holdout/` shows one commit, unchanged since
-the directory's creation; the full `loop_research` suite still passes — **97/97**, unchanged from
-2026-08-12 — after installing this sandbox's missing deps.
+comments, through 2026-08-13; no `experiments/credits-ready.flag`; `routines/budget-log.md`
+unchanged since its single 2026-08-03 entry; the full `loop_research` suite still passes —
+**97/97**, unchanged from 2026-08-13 — after installing this sandbox's missing deps.
 
 Build order (plan.md §7) is unchanged at 7/8. Step 8 remains blocked for the reason recorded
 2026-08-11: held-out schemas must come from outside this loop's own development for G4 to mean
 anything, so this routine cannot supply them — that needs a human to drop
 `holdout-a.xml`/`holdout-b.xml` in. No OpenAI credits yet ([`budget log`](routines/budget-log.md));
-the live trigger still bootstraps from `daily-loop-research.v1.md` rather than `v2.md` (ninth
+the live trigger still bootstraps from `daily-loop-research.v1.md` rather than `v2.md` (tenth
 consecutive firing — see `routines/registry.md`'s known issues). Per this project's own rule, "no
 new evidence" is a complete day's work, not a placeholder for one.
 <!-- ROUTINE:END -->
