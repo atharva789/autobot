@@ -53,36 +53,33 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-18** · build order: still 7/8 · no new evidence since 2026-08-11
+**2026-08-19** · build order: still 7/8 · no new evidence since 2026-08-11
 
-This firing's bootstrap prompt still pointed at `daily-loop-research.v1.md` (no step 0), and it
-repeated the familiar mistake: read `plan.md` §7 against a fresh `master` checkout alone, found only
-`records.py`/`g1.py`/`smoke.py` (no compiler-to-MuJoCo), and built a full duplicate step-1
-implementation — compiler, safe expression evaluator, a hand-written `dev-a` baseline, 26 tests, and
-one real local CEM training-smoke run (mean population return improved -24.47 → -18.60 over 15
-generations, real MuJoCo physics) — entirely against that stale view. Unlike the cleanest recent
-firings, this was **not** caught by checking `routine/experiments`/PR #6 first; it surfaced only
-afterward, via a `git fetch origin` + `git branch -a` run out of pre-push habit, which showed
-`routine/experiments` 22+ commits ahead of `master` at build order 7/8. Discarded the duplicate in
-full before pushing anything.
+This firing's bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0), but this
+time went straight to checking `origin/routine/experiments` and PR #6 before reading the build order
+against anything else — no duplicate build, unlike 2026-08-18. `git log origin/master..origin/
+routine/experiments --oneline` confirmed this branch is far ahead of `master` (steps 1–7, build
+order 7/8); `list_pull_requests`/`pull_request_read` on PR #6 (open, draft, base `master`) showed
+`get_reviews` and `get_check_runs` both still empty, and all 17 comments traced back to prior
+routine firings (2026-08-13 through 2026-08-18) — no human comment among them.
 
-Checked rather than built, with the real branch state established: no new `.runs/loop_research/`
-entries since [2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
-`get_comments`/`get_reviews`/`get_check_runs` on PR #6 show nothing beyond the 2026-08-17 firing's
-own comment — zero human review, zero CI, **16 days since the PR opened**; no
-`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
-row; the full `loop_research` suite passes — **97/97**, unchanged from 2026-08-17 — after
-installing this sandbox's missing deps. No `evals/policy_synthesis/holdout/` path touched.
+No new `.runs/loop_research/` entries since
+[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
+`evals/policy_synthesis/holdout/` still holds only its placeholder `README.md`, untouched (checked
+via `git log`/`git ls-tree`, no file content read); `experiments/queue/` still holds only the
+2026-08-08 Actions-smoke placeholder, no `credits-ready.flag`; `routines/budget-log.md` unchanged
+since its single 2026-08-03 row. The full `loop_research` suite re-run for real: **97/97 pass**,
+unchanged from 2026-08-18.
 
 Build order (plan.md §7) is unchanged at 7/8. Step 8 remains blocked for the reason recorded
 2026-08-11: held-out schemas must come from outside this loop's own development for G4 to mean
 anything, so this routine cannot supply them — that needs a human to drop
 `holdout-a.xml`/`holdout-b.xml` in. No OpenAI credits yet ([`budget log`](routines/budget-log.md));
 the live trigger still bootstraps from `daily-loop-research.v1.md` rather than `v2.md`. No push
-notification sent today — 2026-08-15/-16/-17 already surfaced this same compound blocker (PR
-unreviewed, trigger on v1, step 8 needs human-supplied schemas) and today's own near-miss is the
-same already-flagged category, not new information. Per this project's own rule, "no new evidence"
-is a complete day's work, not a placeholder for one.
+notification sent today — the compound blocker (PR unreviewed, now **18 days** since it opened;
+trigger still on v1; step 8 needs human-supplied schemas) is unchanged in kind from what
+2026-08-15 through -18 already surfaced. Per this project's own rule, "no new evidence" is a
+complete day's work, not a placeholder for one.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
