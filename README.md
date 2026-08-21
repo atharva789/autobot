@@ -53,36 +53,34 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-20** · build order: still 7/8 · no new evidence since 2026-08-11
+**2026-08-21** · build order: still 7/8 · no new evidence since 2026-08-11
 
-Bootstrap prompt still pointed at `daily-loop-research.v1.md` (no step 0), but this firing went
-straight to `git fetch origin` + `git log origin/master..origin/routine/experiments --oneline` and
-`list_pull_requests`/`pull_request_read` on PR #6 before reading the build order against anything
-else — no duplicate build. `git log` confirmed `routine/experiments` is unchanged since 2026-08-19
-(tip still `eb83bde`), 22+ commits ahead of `master`, build order (plan.md §7) still 7/8. PR #6
-(open, draft, base `master`, head at `eb83bde`): `get_reviews` empty, `get_check_runs` empty (0
-total), `get_comments` returned all 18 entries and every one traces to a prior routine firing
-(2026-08-13 through 2026-08-19) — none from a human.
+Bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0), but this firing again
+went straight to `git fetch origin` + `git branch -a` + `git log origin/master..origin/routine/experiments --oneline`
+and `list_pull_requests`/`pull_request_read` on PR #6 before reading the build order against
+anything else — no duplicate build. Confirmed `routine/experiments` unchanged since 2026-08-20
+(tip still `0bcf35c`), 26 commits ahead of `master`, build order (plan.md §7) still 7/8. PR #6
+(open, draft, base `master`, head at `0bcf35c`): `get_reviews` empty, `get_check_runs` empty (0
+total) — still zero human engagement.
 
 No new `.runs/loop_research/` entries since
-[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
-`evals/policy_synthesis/holdout/` still holds only its placeholder `README.md`, untouched (checked
-via `git log`/`git ls-tree`, no file content read); `experiments/queue/` still holds only the
-2026-08-08 Actions-smoke placeholder, no `credits-ready.flag`; `routines/budget-log.md` unchanged
-since its single 2026-08-03 row. Installed this sandbox's missing deps (`pytest`, `mujoco`,
-`pydantic`, `langsmith`, `langchain`, `langchain-openai`, `python-dotenv`, `pyyaml`, `nbformat`) and
-re-ran the full `loop_research` suite for real: **97/97 pass**, unchanged from 2026-08-19.
+[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) (confirmed via
+`git log --format=%ad -- .runs/loop_research/`); `evals/policy_synthesis/holdout/` still holds only
+its placeholder `README.md` (`git ls-tree`, no content read); `experiments/queue/` still holds only
+the 2026-08-08 Actions-smoke placeholder, no `credits-ready.flag`; `routines/budget-log.md`
+unchanged since its single 2026-08-03 row. Installed this sandbox's missing deps (`pytest`,
+`mujoco`, `pydantic`, `langsmith`, `langchain`, `langchain-openai`, `python-dotenv`, `pyyaml`,
+`nbformat`) and re-ran the full `loop_research` suite for real: **97/97 pass**, unchanged from
+2026-08-20.
 
 Build order (plan.md §7) is unchanged at 7/8. Step 8 remains blocked for the reason recorded
 2026-08-11: held-out schemas must come from outside this loop's own development for G4 to mean
 anything, so this routine cannot supply them — that needs a human to drop
 `holdout-a.xml`/`holdout-b.xml` in. No OpenAI credits yet ([`budget log`](routines/budget-log.md));
-the live trigger still bootstraps from `daily-loop-research.v1.md` rather than `v2.md`. Sent one
-push notification today: PR #6 has now sat completely unreviewed for **18 days** (opened
-2026-08-02), tests still passing (97/97), build order still 7/8, with two human actions unblocking
-all of it — review/merge the PR, and drop `holdout-a.xml`/`holdout-b.xml` in for step 8 — and this
-is the first status nudge since 2026-08-15's, five firings ago. Per this project's own rule, "no new
-evidence" is a complete day's work, not a placeholder for one.
+the live trigger still bootstraps from `daily-loop-research.v1.md` rather than `v2.md`. PR #6 has
+now sat unreviewed for **19 days** (opened 2026-08-02); no push notification sent today since one
+went out yesterday (2026-08-20) with the same underlying facts and nothing material changed since —
+per this project's own rule, "no new evidence" is a complete day's work, not a placeholder for one.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
