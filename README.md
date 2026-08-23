@@ -53,34 +53,34 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-22** · build order: still 7/8 · no new evidence since 2026-08-11
+**2026-08-23** · build order: still 7/8 · no new evidence since 2026-08-11
 
 Bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0), but this firing again
-went straight to `git fetch origin routine/experiments` + `git ls-remote --heads` +
-`git log origin/master..origin/routine/experiments --oneline` and
-`list_pull_requests`/`pull_request_read` on PR #6 before reading the build order against
-anything else — no duplicate build. Confirmed `routine/experiments` unchanged since 2026-08-21
-(tip still `647a8de`), 27 commits ahead of `master`, build order (plan.md §7) still 7/8. PR #6
-(open, draft, base `master`, head at `647a8de`): `get_reviews` empty, all 20 PR comments are prior
-routine self-reports — no distinct human review or reply since 2026-08-03.
+went straight to `git fetch origin routine/experiments` + `git log origin/master..origin/routine/experiments --oneline`
+and `pull_request_read` (`get`, `get_reviews`, `get_comments`) on PR #6 before reading the build
+order against anything else — no duplicate build. Confirmed `routine/experiments` unchanged since
+2026-08-22 (tip still `976c078`), 28 commits ahead of `master`, build order (plan.md §7) still
+7/8. PR #6 (open, draft, base `master`, head at `976c078`, `mergeable_state: clean`): `get_reviews`
+empty (`[]`), all 20 PR comments are prior routine self-reports, `updated_at` unchanged since
+2026-08-22's push — no distinct human review or reply since 2026-08-03.
 
 No new `.runs/loop_research/` entries since
 [2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) (confirmed via
 directory listing); `evals/policy_synthesis/holdout/` still holds only its placeholder `README.md`
-(`git ls-tree`, no content read); `experiments/queue/` still holds only the 2026-08-08 Actions-smoke
+(`ls`, no content read); `experiments/queue/` still holds only the 2026-08-08 Actions-smoke
 placeholder, no `credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
 row. Installed this sandbox's missing deps (`pytest`, `mujoco`, `pydantic`, `langsmith`, `langchain`,
 `langchain-openai`, `python-dotenv`, `pyyaml`, `nbformat`) and re-ran the full `loop_research` suite
-for real: **97/97 pass**, unchanged from 2026-08-21.
+for real: **97/97 pass**, unchanged from 2026-08-22.
 
 Build order (plan.md §7) is unchanged at 7/8. Step 8 remains blocked for the reason recorded
 2026-08-11: held-out schemas must come from outside this loop's own development for G4 to mean
 anything, so this routine cannot supply them — that needs a human to drop
 `holdout-a.xml`/`holdout-b.xml` in. No OpenAI credits yet ([`budget log`](routines/budget-log.md));
 the live trigger still bootstraps from `daily-loop-research.v1.md` rather than `v2.md`. PR #6 has
-now sat unreviewed for **20 days** (opened 2026-08-02); no push notification sent today — the
-underlying facts are unchanged in kind from 2026-08-20's notification and 2026-08-21's explicit
-no-notify, and repeating the same finding daily is noise, not signal.
+now sat unreviewed for **21 days** (opened 2026-08-02); no push notification sent today — the
+underlying facts are unchanged in kind from 2026-08-20's notification, and repeating the same
+finding daily is noise, not signal.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
