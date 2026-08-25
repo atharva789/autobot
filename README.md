@@ -53,38 +53,37 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-24** · build order: still 7/8 · no new evidence since 2026-08-11
+**2026-08-25** · build order: still 7/8 · two physics defects found in committed evidence, fixed
 
-Bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0). This firing began
-building step 1 (`TrainingScaffold` + compiler-to-MuJoCo) from a fresh `master`-only checkout
-before running `git fetch origin routine/experiments` — the exact mistake v2's step 0 exists to
-prevent. Caught it via `list_pull_requests`/`git log origin/master..origin/routine/experiments`
-before pushing: found PR #6 already carries steps 1–7, discarded the duplicate work
-(`git stash drop`, nothing pushed), and switched to treating `routine/experiments` as the repo's
-true state. Filed as a lesson for `daily-loop-research.v3.md` in the registry, not a rule change
-made unilaterally.
+Bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0) — this firing repeated
+2026-08-24's exact near-miss, building a duplicate step-1 compiler against a stale `master` view
+before running `git fetch origin` and finding PR #6 already 29+ commits ahead. Caught before any
+commit; third occurrence of this same trigger-driven waste (after 2026-08-03/05 and 2026-08-24).
 
-Confirmed `routine/experiments` unchanged since 2026-08-23 (tip still `fcb9d00`), 29 commits ahead
-of `master`, build order (plan.md §7) still 7/8. PR #6 (open, draft, base `master`, head at
-`fcb9d00`, `mergeable_state` pending/no CI configured): `get_reviews` empty (`[]`), `get_status`
-returned 0 statuses — no distinct human review or reply since 2026-08-03.
+While building the discarded duplicate, found two real physics defects in the locked dev schemas,
+fixed both: `dev-a.xml`'s forearm capsule overlapped its own finger pads by ~8mm at rest — visible
+in the already-committed
+[`rb_3141606b8927.json`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/batches/rb_3141606b8927.json)
+(`contact_events: {"3_pad_left": 4, "3_pad_right": 8}`, all 4 episodes ending `GRIP_LOST` at 0%
+success) — fixed with a two-line `<contact><exclude .../>`. `dev-b.xml`'s carriage rested exactly
+at floor level, penetrating it by up to 6cm (`mj_forward`: 12 contacts, dist -0.03 to -0.06) —
+fixed by shifting its z-offset by the exact penetration depth. Verified both via `mj_forward`
+(0 contacts at rest, both schemas) and a real rollout through `baselines.py` + `run_batch`: only
+the legitimate `payload_box_table` contact remains. Neither touches gate math (G1–G3 are structural
+diffs over scaffold text, not physics); `.runs/` history is untouched (append-only) — the corrupted
+batch stays as an honest record of what actually ran. Full suite re-verified after both fixes:
+**97/97 pass**, unchanged.
 
-No new `.runs/loop_research/` entries since
-[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) (confirmed via
-directory listing); `evals/policy_synthesis/holdout/` still holds only its placeholder `README.md`
-(no content read); `experiments/queue/` still holds only the 2026-08-08 Actions-smoke placeholder,
-no `credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03 row.
-Installed this sandbox's missing deps and re-ran the full `loop_research` suite for real:
-**97/97 pass**, unchanged from 2026-08-23.
-
-Build order (plan.md §7) is unchanged at 7/8. Step 8 remains blocked for the reason recorded
-2026-08-11: held-out schemas must come from outside this loop's own development for G4 to mean
-anything, so this routine cannot supply them — that needs a human to drop
-`holdout-a.xml`/`holdout-b.xml` in. No OpenAI credits yet ([`budget log`](routines/budget-log.md));
-the live trigger still bootstraps from `daily-loop-research.v1.md` rather than `v2.md`. PR #6 has
-now sat unreviewed for **22 days** (opened 2026-08-02); no push notification sent today — the
-underlying facts are unchanged in kind from prior days' notifications, and repeating the same
-finding daily is noise, not signal.
+Everything else confirmed unchanged from 2026-08-19–24: `routine/experiments` tip `b988cad`, build
+order (plan.md §7) still 7/8. PR #6 (open, draft, head `b988cad`): `get_reviews` empty, `get_status`
+0 statuses — no distinct human review since 2026-08-03, now **23 days**. No new
+`.runs/loop_research/` entries since
+[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
+`evals/policy_synthesis/holdout/` still only `README.md`; no `credits-ready.flag`;
+`routines/budget-log.md` unchanged since 2026-08-03. Step 8 remains blocked on a human dropping
+`holdout-a.xml`/`holdout-b.xml` in. **Sent one push notification today**: a third confirmed
+trigger-driven waste incident plus a concrete, evidence-backed schema-defect finding together
+crossed the bar for a human's attention. Did not call `update_trigger` — remains a human action.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed

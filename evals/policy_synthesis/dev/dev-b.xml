@@ -18,7 +18,18 @@
         <geom type="box" size="0.02 0.25 0.02" mass="1.5"/>
         <joint name="y_slide" type="slide" axis="0 1 0" range="-0.2 0.2"/>
 
-        <body name="carriage" pos="0 0 -0.55">
+        <!-- z was -0.55, which combined with rail_y's world z (0.55) put the carriage's rest
+             pose (z_slide qpos=0, the bottom of its [0, 0.45] range) exactly at floor level,
+             so the carriage/anvil_pad/jaw_pad boxes (half-heights summing to 0.06 below the
+             carriage origin) penetrated the floor by up to 6cm at rest, not merely touched it.
+             Verified via mj_forward: 12 active contacts, dist -0.03 to -0.06, before this fix;
+             0 after. Shifted by the exact penetration depth (0.06) so z_slide=0 means "pads
+             resting flush on the floor," the evident intent (a lowered gripper ready to pick up
+             a payload sitting on the floor), not "pads buried in the floor." Found while
+             validating build-order step 1's compiler on the paired dev-a schema (2026-08-25);
+             dev-b's own hinge-vs-degree exposure is nil (all four joints here are slide, which
+             MJCF's angle="degree" default cannot mis-parse). -->
+        <body name="carriage" pos="0 0 -0.49">
           <geom type="box" size="0.03 0.03 0.03" mass="1.0"/>
           <joint name="z_slide" type="slide" axis="0 0 1" range="0 0.45"/>
 
