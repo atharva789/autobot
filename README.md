@@ -53,28 +53,30 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-26** · build order: still 7/8 · no new evidence since 2026-08-25
+**2026-08-27** · build order: still 7/8 · no new evidence since 2026-08-25
 
-Bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0) — this firing repeated the
-same near-miss a fourth time (after 2026-08-03/05, 2026-08-24, 2026-08-25): read spec/plan/registry
-against a stale `master` checkout, built a full duplicate step-1 compiler (restricted-AST expression
-evaluator + `CompiledScaffoldEnv`, 6/6 tests passing including a real MuJoCo rollout), and committed
-it locally before running `git fetch origin routine/experiments`. That fetch found PR #6 already
-38+ commits ahead — the push itself was rejected (non-fast-forward) before anything reached the
-remote, a weaker catch than the pre-commit checks in the three prior occurrences. Discarded the
-duplicate entirely (`git reset --hard origin/routine/experiments`); no repo-state cost, session-token
-cost only.
+Bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0) — **fifth occurrence** of
+the same near-miss (after 2026-08-03/05, 2026-08-24, 2026-08-25, 2026-08-26): read spec/plan against
+a stale `master` checkout and built nearly all of a duplicate step-1 compiler (whitelisted-AST
+expression evaluator, scaffold-to-MuJoCo compiler, rollout harness, a CEM baseline trainer, a
+hand-written `dev-a` scaffold, 19/19 tests passing, one real committed-style run showing CEM mean
+fitness moving -12.739→-12.597 over 5 generations) before checking this branch. Caught it via
+`list_pull_requests` before any commit — this PR was already 38+ commits ahead with steps 1–7 done
+under the canonical module layout. Discarded the entire duplicate (`git clean -fd` +
+`git checkout -B routine/experiments origin/routine/experiments`); no repo-state cost, session-token
+cost only — same category as all four prior occurrences, a better catch than 2026-08-26's
+(post-commit, push-rejection).
 
-Everything else confirmed unchanged from 2026-08-25: `routine/experiments` tip `ef2962d`, build
-order (plan.md §7) still 7/8. PR #6 (open, draft, head `ef2962d`): `get_reviews` empty, `get_status`
-0 statuses, `get_comments` 23 total (all routine self-reports) — no distinct human review since
-2026-08-03, now **24 days**. No new `.runs/loop_research/` entries since
+Everything else confirmed unchanged from 2026-08-25: `routine/experiments` tip `1b74ef4`, build
+order (plan.md §7) still 7/8. PR #6 (open, draft): `get_reviews` empty, `get_comments` 24 total (all
+routine self-reports, the 24th being 2026-08-26's own) — no distinct human review since 2026-08-03,
+now **25 days**. No new `.runs/loop_research/` entries since
 [2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
 `evals/policy_synthesis/holdout/` still only `README.md`; no `credits-ready.flag`;
 `routines/budget-log.md` unchanged since 2026-08-03. Full suite re-verified: **97/97 pass**,
 unchanged. Step 8 remains blocked on a human dropping `holdout-a.xml`/`holdout-b.xml` in. No push
-notification sent today — same already-flagged trigger issue, no new information beyond it. Did not
-call `update_trigger` — remains a human action.
+notification sent today — same already-flagged trigger issue, no new information beyond a fifth
+count. Did not call `update_trigger` — remains a human action.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
