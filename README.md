@@ -53,30 +53,34 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-27** · build order: still 7/8 · no new evidence since 2026-08-25
+**2026-08-28** · build order: still 7/8 · no new evidence since 2026-08-25
 
-Bootstrap prompt again pointed at `daily-loop-research.v1.md` (no step 0) — **fifth occurrence** of
-the same near-miss (after 2026-08-03/05, 2026-08-24, 2026-08-25, 2026-08-26): read spec/plan against
-a stale `master` checkout and built nearly all of a duplicate step-1 compiler (whitelisted-AST
-expression evaluator, scaffold-to-MuJoCo compiler, rollout harness, a CEM baseline trainer, a
-hand-written `dev-a` scaffold, 19/19 tests passing, one real committed-style run showing CEM mean
-fitness moving -12.739→-12.597 over 5 generations) before checking this branch. Caught it via
-`list_pull_requests` before any commit — this PR was already 38+ commits ahead with steps 1–7 done
-under the canonical module layout. Discarded the entire duplicate (`git clean -fd` +
-`git checkout -B routine/experiments origin/routine/experiments`); no repo-state cost, session-token
-cost only — same category as all four prior occurrences, a better catch than 2026-08-26's
-(post-commit, push-rejection).
+Ran step 0 first this time (`git fetch origin routine/experiments` + `git log --not origin/master`
++ `list_pull_requests` before reading spec/plan/registry) — no duplicate build attempted, unlike the
+five prior occurrences logged 2026-08-03 through 2026-08-27. `routine/experiments` tip confirmed
+`ac35529`, 25 days after PR #6 opened.
 
-Everything else confirmed unchanged from 2026-08-25: `routine/experiments` tip `1b74ef4`, build
-order (plan.md §7) still 7/8. PR #6 (open, draft): `get_reviews` empty, `get_comments` 24 total (all
-routine self-reports, the 24th being 2026-08-26's own) — no distinct human review since 2026-08-03,
-now **25 days**. No new `.runs/loop_research/` entries since
-[2026-08-11's run](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json);
+Closed out one flagged open question instead of re-running anything: 2026-08-25 fixed two physics
+defects in `dev-a.xml`/`dev-b.xml` and left "does step 7's committed PASS still hold" undecided.
+Read `g1.py`/`structural_gates.py` directly — `run_g1(scaffold, entities)`, `run_g2(...)`,
+`run_g3(scaffold_a, scaffold_b, tau=...)` take only scaffold text and the schema's static entity
+table, never a `RolloutBatch`. G1–G3 cannot see rollout physics at all, so the physics fix cannot
+change [2026-08-11's committed gate verdicts](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json)
+(`real_loop_g1_g3_met: true`, `control_required_outcome_met: true`) — no re-run needed to keep step
+7's result valid. The fix still leaves the *rollout* evidence in that run log physically stale
+(pre-dates the contact/floor-penetration fixes); regenerating it needs a real model-driven loop run,
+which stays undone today as a deliberate deferral, not an oversight — it doesn't unblock step 8 and
+this firing has no standing mandate to spend a live model budget on evidence that wouldn't change
+any gate outcome.
+
+Everything else confirmed unchanged from 2026-08-25: PR #6 (open, draft) `get_reviews` empty,
+`get_comments` 25 total (all routine self-reports) — no distinct human review since 2026-08-03, now
+**25 days**. No new `.runs/loop_research/` entries since 2026-08-11's run;
 `evals/policy_synthesis/holdout/` still only `README.md`; no `credits-ready.flag`;
 `routines/budget-log.md` unchanged since 2026-08-03. Full suite re-verified: **97/97 pass**,
 unchanged. Step 8 remains blocked on a human dropping `holdout-a.xml`/`holdout-b.xml` in. No push
-notification sent today — same already-flagged trigger issue, no new information beyond a fifth
-count. Did not call `update_trigger` — remains a human action.
+notification sent — same already-flagged blockers (trigger v1/v2, PR review, credits), nothing new
+for a human to act on today.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
