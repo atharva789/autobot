@@ -53,26 +53,30 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-29** · build order: still 7/8 · no new evidence since 2026-08-25
+**2026-08-30** · build order: still 7/8 · no new evidence since 2026-08-25
 
-Ran step 0 first (`git fetch origin routine/experiments` + `git log --not origin/master` +
-`list_pull_requests` before reading spec/plan/registry) — no duplicate build attempted. Bootstrap
-still names `daily-loop-research.v1.md` directly (the trigger is still not repointed to v2; flagged
-again below, not acted on unilaterally). `routine/experiments` tip confirmed `3b32b02`, 27 days
-after PR #6 opened.
+Bootstrap again named `daily-loop-research.v1.md` by filename, with no step 0. This firing read
+spec/plan/registry from a stale `master`-only checkout and rebuilt a full duplicate of step 1
+(compiler, rollout runner, hand-written baseline, 7 passing tests) before running
+`git fetch origin routine/experiments` and finding PR #6 already carries steps 1–7 — the sixth
+confirmed occurrence of the exact failure mode v2's step 0 exists to prevent. Caught before any
+commit or push (`git stash -u` then `git checkout routine/experiments` then `git stash drop`); no
+repo-state cost, session-token cost only. See "Known issues" below.
 
-Re-verified rather than re-asserted: `evals/policy_synthesis/holdout/` still holds only `README.md`
-(step 8 still structurally blocked — needs a human to drop `holdout-a.xml`/`holdout-b.xml` in); no
-`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03 row
-(the local crontab job that appends to it appears not to be running); PR #6 (open, draft, head
-`3b32b02`) `get_reviews` → `[]`, `get_comments` → 26 total, all `OWNER`-attributed routine
-self-reports — no distinct human review since the 2026-08-03 reconciliation comment, now **27
-days**. Installed this sandbox's missing test deps and ran the full `loop_research` suite fresh:
-**97/97 pass**, unchanged from 2026-08-28.
+After recovering onto `routine/experiments`, re-verified rather than re-asserted: `list_pull_requests`
+confirms PR #6 still open, draft, head `289e06a`, `get_reviews` → `[]`, no distinct human review since
+2026-08-03 — now 28 days. `actions_list` shows no workflow run since 2026-08-08 (Actions run #1).
+`evals/policy_synthesis/holdout/` still holds only `README.md` — step 8 still structurally blocked
+(needs a human to drop `holdout-a.xml`/`holdout-b.xml` in; not this routine's to author, per
+spec.md §2/§9). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its
+single 2026-08-03 row. Installed this sandbox's missing test deps and ran the full `loop_research`
+suite fresh: **97/97 pass**, unchanged from 2026-08-29 (latest run log still
+[`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json), 2026-08-11).
 
-No push notification sent — the standing blockers (trigger stuck on v1, PR unreviewed, no OpenAI
-credits, no holdout schemas) are all already flagged in prior entries and the "Known issues" table,
-and today surfaced no new fact about any of them.
+No push notification sent — everything above (trigger stuck on v1, PR unreviewed, no OpenAI credits,
+no holdout schemas) is already flagged in prior entries and the "Known issues" table; today's near-miss
+adds a data point to an already-flagged, zero-repo-cost pattern rather than a new fact needing a
+human's attention right now.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
