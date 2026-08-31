@@ -53,30 +53,39 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-30** · build order: still 7/8 · no new evidence since 2026-08-25
+**2026-08-31** · build order: still 7/8 · no new evidence since 2026-08-25
 
-Bootstrap again named `daily-loop-research.v1.md` by filename, with no step 0. This firing read
-spec/plan/registry from a stale `master`-only checkout and rebuilt a full duplicate of step 1
-(compiler, rollout runner, hand-written baseline, 7 passing tests) before running
-`git fetch origin routine/experiments` and finding PR #6 already carries steps 1–7 — the sixth
-confirmed occurrence of the exact failure mode v2's step 0 exists to prevent. Caught before any
-commit or push (`git stash -u` then `git checkout routine/experiments` then `git stash drop`); no
-repo-state cost, session-token cost only. See "Known issues" below.
+Bootstrapped from `daily-loop-research.v1.md` again, no step 0. Read spec/plan/registry against a
+fresh `master`-only checkout, found nothing under `packages/research/loop_research/` there but a
+bare `g1.py`/`records.py`/`smoke.py` slice, concluded step 1 (compiler-to-MuJoCo) was the lowest
+incomplete build-order step, and wrote a full duplicate: `compiler.py` (AST-restricted expression
+evaluator bound to live `mujoco` state), `train_baseline.py` (a CEM search), a hand-written `dev-a`
+baseline scaffold, and 15 passing tests — including finding and fixing a real bug along the way
+(`dev-a.xml` was missing `<compiler angle="radian"/>`, silently shrinking every joint range to
+~1/60th of its authored value). None of it was committed. Fetching `origin/routine/experiments`
+before pushing surfaced PR #6 already carrying steps 1–7 under a different, canonical layout — the
+**seventh** confirmed occurrence of the exact failure mode v2's step 0 exists to prevent. Discarded
+the duplicate (`git stash -u` → `git checkout routine/experiments` → `git stash drop`); no
+repo-state cost, session-token cost only. The `dev-a.xml` bug this duplicate build found was already
+fixed on `routine/experiments` on 2026-08-25 — confirmed by grep before assuming it was new. See
+"Known issues" below.
 
-After recovering onto `routine/experiments`, re-verified rather than re-asserted: `list_pull_requests`
-confirms PR #6 still open, draft, head `289e06a`, `get_reviews` → `[]`, no distinct human review since
-2026-08-03 — now 28 days. `actions_list` shows no workflow run since 2026-08-08 (Actions run #1).
-`evals/policy_synthesis/holdout/` still holds only `README.md` — step 8 still structurally blocked
-(needs a human to drop `holdout-a.xml`/`holdout-b.xml` in; not this routine's to author, per
-spec.md §2/§9). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its
-single 2026-08-03 row. Installed this sandbox's missing test deps and ran the full `loop_research`
-suite fresh: **97/97 pass**, unchanged from 2026-08-29 (latest run log still
+After recovering onto `routine/experiments` (tip `9ba4a04`), re-verified rather than re-asserted:
+`list_pull_requests`/`pull_request_read` on PR #6 — open, draft, head `9ba4a04`, `get_reviews` →
+`[]`, `get_status` → 0 statuses, no distinct human review since 2026-08-03 — now 29 days.
+`actions_list` shows no workflow run since 2026-08-08 (Actions run #1, still the only one).
+`evals/policy_synthesis/holdout/` (directory listing only) still holds only `README.md` — step 8
+still structurally blocked (needs a human to drop `holdout-a.xml`/`holdout-b.xml` in; not this
+routine's to author, per spec.md §2/§9). No `experiments/credits-ready.flag`;
+`routines/budget-log.md` unchanged since its single 2026-08-03 row. Installed this sandbox's missing
+test deps and ran the full `loop_research` suite fresh: **97/97 pass**, unchanged from 2026-08-30
+(latest run log still
 [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json), 2026-08-11).
 
 No push notification sent — everything above (trigger stuck on v1, PR unreviewed, no OpenAI credits,
-no holdout schemas) is already flagged in prior entries and the "Known issues" table; today's near-miss
-adds a data point to an already-flagged, zero-repo-cost pattern rather than a new fact needing a
-human's attention right now.
+no holdout schemas) is already flagged in prior entries and the "Known issues" table; today's
+near-miss adds a data point to an already-flagged, zero-repo-cost pattern rather than a new fact
+needing a human's attention right now.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
