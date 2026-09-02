@@ -53,30 +53,31 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-01** · build order: still 7/8 · no new evidence since 2026-08-25
+**2026-09-02** · build order: still 7/8 · no new evidence since 2026-08-25
 
-Bootstrap message still named `daily-loop-research.v1.md` by filename with no step 0 (eighth
-confirmed firing since v2 shipped without the trigger being repointed), but this firing checked
-`git branch -a` / `origin/routine/experiments` / PR #6 before reading the build order or deciding
-what to build — so it never read a stale `master`-only view and built nothing to discard. Third
-clean outcome in a row of that kind (after 2026-08-28, 08-29), now outnumbering the five near-miss
-occurrences that preceded them. See "Known issues" below — the underlying defect (trigger still
-bootstraps `v1`) is unchanged; only today's outcome was clean.
+Bootstrap message still named `daily-loop-research.v1.md` by filename with no step 0 (ninth
+confirmed firing since v2 shipped without the trigger being repointed). Followed v2's step 0
+anyway (`git fetch origin routine/experiments`, `git log --not origin/master`, `list_pull_requests`)
+before reading the build order or deciding what to build, so nothing was built to discard — fourth
+clean outcome in a row of that kind (after 2026-08-28, 08-29, 09-01), now well past the five
+near-miss occurrences that preceded them. See "Known issues" below — the underlying defect (trigger
+still bootstraps `v1`) is unchanged; only today's outcome was clean.
 
-Re-verified every standing blocker fresh from `routine/experiments` (tip `780f003`) rather than
-trusting 2026-08-31's entry: PR #6 — open, draft, `get_reviews` → `[]`, `get_status` → 0 statuses,
-`get_comments` → 29 total, each checked individually — all prior routine self-reports, no distinct
-human review or reply since 2026-08-03, now **30 days**. `actions_list` shows no workflow run since
-2026-08-08 (Actions run #1, still the only one). `evals/policy_synthesis/holdout/` (directory
-listing only) still holds only `README.md` — step 8 still structurally blocked (needs a human to
-drop `holdout-a.xml`/`holdout-b.xml` in; not this routine's to author, per spec.md §2/§9). No
+Re-verified every standing blocker fresh from `routine/experiments` (tip `8790901`) rather than
+trusting 2026-09-01's entry: PR #6 — open, draft, head unchanged at `8790901`, `get_reviews` → `[]`,
+`get_status` → 0 statuses (`pending`), `get_comments` → 30 total, each checked individually — all
+prior routine self-reports (author `atharva789`, `OWNER`), no distinct human review or reply since
+2026-08-03, now **31 days**. `actions_list list_workflow_runs` on `loop-research.yml` — still 1
+total run, from 2026-08-08, none since. `evals/policy_synthesis/holdout/` (directory listing only)
+still holds only `README.md` — step 8 still structurally blocked (needs a human to drop
+`holdout-a.xml`/`holdout-b.xml` in; not this routine's to author, per spec.md §2/§9). No
 `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
-row — the maintainer's local crontab job meant to append to it daily has evidently not run for the
-entire ~29 days since. Installed this sandbox's missing test deps and ran the full `loop_research`
-suite fresh: **97/97 pass**, unchanged since 2026-08-24 (latest run log still
+row — the maintainer's local crontab job meant to append to it daily has evidently not run for
+~30 days now. Installed this sandbox's missing test deps and ran the full `loop_research` suite
+fresh: **97/97 pass**, unchanged since 2026-08-24 (latest run log still
 [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json), 2026-08-11).
 
-No push notification sent — every fact above (trigger stuck on v1, PR unreviewed 30 days, no
+No push notification sent — every fact above (trigger stuck on v1, PR unreviewed 31 days, no
 OpenAI credits, no holdout schemas, budget-log crontab silent) is already flagged in prior entries
 and the "Known issues" table; today added no new fact requiring a human's attention right now.
 <!-- ROUTINE:END -->
