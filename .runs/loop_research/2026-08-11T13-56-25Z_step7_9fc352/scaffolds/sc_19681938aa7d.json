@@ -1,0 +1,144 @@
+{
+  "scaffold_id": "sc_19681938aa7d",
+  "schema_id": "dev-b",
+  "schema_digest": "sha256:ac4a0f25c61bc54e65bccba9bf83d7224cbdb5d5efb03e30a3eed84b5a5a2402",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "position_alignment",
+      "weight": 1.0,
+      "expression": "-(abs(site.grip_center.pos.x - site.payload_center.pos.x) + abs(site.grip_center.pos.y - site.payload_center.pos.y) + abs(site.grip_center.pos.z - site.payload_center.pos.z))",
+      "symbols": [
+        "site.grip_center.pos.x",
+        "site.payload_center.pos.x",
+        "site.grip_center.pos.y",
+        "site.payload_center.pos.y",
+        "site.grip_center.pos.z",
+        "site.payload_center.pos.z"
+      ],
+      "rationale": "L1 distance from gripper to payload; agent minimizes error in approach. Unchanged -- evidence does not implicate this term."
+    },
+    {
+      "name": "grip_contact",
+      "weight": 2.0,
+      "expression": "sensor.s_touch_jaw * (1 - clamp(abs(site.grip_center.pos.x - site.payload_center.pos.x) + abs(site.grip_center.pos.y - site.payload_center.pos.y) + abs(site.grip_center.pos.z - site.payload_center.pos.z), 0, 1))",
+      "symbols": [
+        "sensor.s_touch_jaw",
+        "site.grip_center.pos.x",
+        "site.payload_center.pos.x",
+        "site.grip_center.pos.y",
+        "site.payload_center.pos.y",
+        "site.grip_center.pos.z",
+        "site.payload_center.pos.z"
+      ],
+      "rationale": "s_touch_jaw fires on any jaw contact (floor, anvil, payload), and the high floor_jaw_pad contact count suggests the agent was collecting this bonus without approaching the payload. Gate it by proximity to payload_center so floor contact while far away yields ~0 reward, while genuine payload contact near it retains full reward."
+    },
+    {
+      "name": "lift_height",
+      "weight": 5.0,
+      "expression": "clamp(site.payload_center.pos.z, 0, site.shelf_target.pos.z) + 2 * max(site.payload_center.pos.z - site.shelf_target.pos.z, 0)",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Original term was max(z - target, 0), which is exactly zero until the payload reaches shelf height -- no gradient exists during the lift itself, matching the observed near-zero z_slide saturation and all-timeout outcomes. Replaced with a continuous shaping term that rewards rising height up to the target, plus a doubled bonus for clearing it, so the agent gets signal throughout the lift instead of only at completion."
+    },
+    {
+      "name": "control_efficiency",
+      "weight": 0.05,
+      "expression": "-(abs(actuator.a_x) + abs(actuator.a_y) + abs(actuator.a_z) + abs(actuator.a_jaw))",
+      "symbols": [
+        "actuator.a_x",
+        "actuator.a_y",
+        "actuator.a_z",
+        "actuator.a_jaw"
+      ],
+      "rationale": "Minimize actuator effort to encourage smooth, efficient motion. Unchanged -- evidence does not implicate this term."
+    }
+  ],
+  "terminations": [
+    {
+      "name": "task_success",
+      "predicate": "site.payload_center.pos.z >= site.shelf_target.pos.z",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "lift_complete"
+    },
+    {
+      "name": "payload_lost",
+      "predicate": "joint.j_payload_free.qpos >= 0.5",
+      "symbols": [
+        "joint.j_payload_free.qpos"
+      ],
+      "cause_label": "grip_failed"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "payload_placement_distance",
+      "range": [
+        0.05,
+        0.05
+      ],
+      "advance_when": "mean grip contact > 0.8 while gripper-to-payload distance < 0.05 for 200 steps"
+    },
+    {
+      "stage": 1,
+      "parameter": "payload_placement_distance",
+      "range": [
+        0.05,
+        0.3
+      ],
+      "advance_when": "grasp success rate > 0.85"
+    },
+    {
+      "stage": 2,
+      "parameter": "payload_placement_distance",
+      "range": [
+        0.3,
+        0.6
+      ],
+      "advance_when": "task success rate > 0.75"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_x_offset",
+      "range": [
+        -0.2,
+        0.2
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_y_offset",
+      "range": [
+        -0.2,
+        0.2
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "shelf_height",
+      "range": [
+        0.25,
+        0.45
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/sonnet",
+    "model_tier": "frontier",
+    "seed": 7,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": "sc_f95611529645",
+  "motivating_batch_id": "rb_c9bd02afd497"
+}

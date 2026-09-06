@@ -1,0 +1,25 @@
+{
+  "batch_id": "rb_3141606b8927",
+  "scaffold_id": "sc_c300ff23f0ca",
+  "episodes": 4,
+  "step_budget": 60,
+  "success_rate": 0.0,
+  "termination_histogram": {
+    "GRIP_LOST": 4
+  },
+  "contact_events": {
+    "3_pad_left": 4,
+    "3_pad_right": 8
+  },
+  "joint_saturation": {
+    "j_base_yaw": 0.0,
+    "j_shoulder": 0.0,
+    "j_elbow": 0.0,
+    "j_wrist": 0.0,
+    "j_finger_left": 0.25,
+    "j_finger_right": 0.0
+  },
+  "seed": 7,
+  "wall_clock_s": 0.006383041999924899,
+  "trace_uri": null
+}

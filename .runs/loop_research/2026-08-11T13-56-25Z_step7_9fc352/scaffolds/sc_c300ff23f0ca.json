@@ -1,0 +1,158 @@
+{
+  "scaffold_id": "sc_c300ff23f0ca",
+  "schema_id": "dev-a",
+  "schema_digest": "sha256:3739a537a402cb19951b2f1ca72b4f8a02647bac488ee0b74d3779337cf7cae8",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "payload_height_alignment",
+      "weight": 1.0,
+      "expression": "-clamp(abs(site.payload_center.pos.z - site.shelf_target.pos.z), 0, 0.5)",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Primary task objective: minimize vertical distance between payload center and shelf target with a soft margin to prevent reward saturation"
+    },
+    {
+      "name": "gripper_closure",
+      "weight": 0.3,
+      "expression": "-(max(0, joint.j_finger_left.qpos) + max(0, joint.j_finger_right.qpos))",
+      "symbols": [
+        "joint.j_finger_left.qpos",
+        "joint.j_finger_right.qpos"
+      ],
+      "rationale": "Encourage finger closure for secure payload grip; penalize open fingers (positive joint positions indicate open state)"
+    },
+    {
+      "name": "touch_confirmation",
+      "weight": 0.2,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Reward sustained tactile contact with payload during lift, confirming stable grip maintenance"
+    },
+    {
+      "name": "motion_smoothness",
+      "weight": 0.1,
+      "expression": "-(abs(joint.j_elbow.qvel) + abs(joint.j_shoulder.qvel) + abs(joint.j_wrist.qvel)) * 0.33",
+      "symbols": [
+        "joint.j_elbow.qvel",
+        "joint.j_shoulder.qvel",
+        "joint.j_wrist.qvel"
+      ],
+      "rationale": "Penalize jerky arm movements; smooth, controlled trajectories reduce oscillation and improve payload stability"
+    },
+    {
+      "name": "base_stability",
+      "weight": 0.05,
+      "expression": "-abs(joint.j_base_yaw.qpos)",
+      "symbols": [
+        "joint.j_base_yaw.qpos"
+      ],
+      "rationale": "Minimize unnecessary base rotation to maintain platform stability and energy efficiency during manipulation"
+    }
+  ],
+  "terminations": [
+    {
+      "name": "success_shelf_reached",
+      "predicate": "site.payload_center.pos.z >= site.shelf_target.pos.z - 0.02",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "TASK_SUCCESS"
+    },
+    {
+      "name": "grip_lost",
+      "predicate": "sensor.s_touch_left < 0.5",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "cause_label": "GRIP_LOST"
+    },
+    {
+      "name": "payload_dropped",
+      "predicate": "site.payload_center.pos.z < -0.3",
+      "symbols": [
+        "site.payload_center.pos.z"
+      ],
+      "cause_label": "PAYLOAD_FALLEN"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "friction_coefficient",
+      "range": [
+        0.6,
+        0.8
+      ],
+      "advance_when": "success_rate > 0.8"
+    },
+    {
+      "stage": 1,
+      "parameter": "friction_coefficient",
+      "range": [
+        0.3,
+        1.0
+      ],
+      "advance_when": "success_rate > 0.7"
+    },
+    {
+      "stage": 2,
+      "parameter": "friction_coefficient",
+      "range": [
+        0.1,
+        1.2
+      ],
+      "advance_when": "success_rate > 0.6"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        2.0
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "friction_coefficient",
+      "range": [
+        0.3,
+        1.0
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_initial_height",
+      "range": [
+        0.0,
+        0.05
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "shelf_height_variation",
+      "range": [
+        -0.05,
+        0.05
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 7,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

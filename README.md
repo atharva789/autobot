@@ -53,19 +53,47 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-03** · build order: steps 1–3 partially implemented · first local run recorded
+**2026-09-06** · build order: still 7/8 · no new evidence since 2026-08-25 · today was a near-miss
 
-First smoke of the loop ran locally on a substitute provider (Haiku via the repo's `claude-code`
-adapter, subscription auth, $0 API spend), pending OpenAI credits. One evidence-dense call emitted
-a 5-reward-term, 4-termination scaffold for schema `dev-a`; **G1 passed at score 1.0**
-(21/21 symbols resolved). The G1 resolver carries 6 passing tests, including proof it fails
-scaffolds with fabricated entities. Evidence:
-[`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json).
+Bootstrap message again named `daily-loop-research.v1.md` by filename with no step 0 (the live
+trigger's stored prompt is still v1, unchanged). This time it was **not** caught before building:
+read `plan.md` §7 against a bare `master` checkout, concluded step 1 (compiler-to-MuJoCo) was the
+lowest incomplete step, and wrote a full duplicate implementation — `expr.py` (whitelisted-`ast`
+expression evaluator, no `eval`/`exec`), `compiler.py` (`TrainingScaffold` → steppable MuJoCo env,
+compiled eagerly), `rollout.py` (structured `RolloutBatch` collection), `trainer.py` (a local
+cross-entropy-method search over a linear policy), a hand-written `dev-a` baseline scaffold, and 18
+new tests — committed to a local branch and pushed once (rejected, non-fast-forward) before running
+`git fetch origin routine/experiments` + `git log --oneline --not origin/master` and finding that
+branch 42 commits ahead of `master`, carrying steps 1–7 already under a different, canonical module
+layout (`scaffold.py`/`symbols.py`/`entity_table.py`/`mujoco_compiler.py`/`rollout.py`/…), in open PR
+#6. Caught by the push rejection: re-checked out `routine/experiments` from `origin`, discarding
+every file from the duplicate build, matching the discard procedure v2's step 0 specifies. This is
+the **eleventh** confirmed near-miss of this kind overall, and the fourth in a row — see "Known
+issues" below. No repo-state cost: the rejected push never reached `origin`, and nothing from the
+duplicate build was ever merged into it.
 
-Honest boundaries: no MuJoCo compilation or training has run (step 1's gate is unmet); dev-b and
-both holdout schemas do not exist yet; the negative control (step 4) is not implemented, so G1's
-pass is not yet calibrated against a cheating loop. A daily local budget check unlocks the OpenAI
-compute plane when credits exceed $500 ([`budget log`](routines/budget-log.md)).
+Having discarded that, re-verified every standing blocker fresh from `routine/experiments` (tip
+`4c77f23`) rather than trusting 2026-09-05's entry: PR #6 — open, draft, head unchanged at
+`4c77f23`, `get_reviews` → `[]`, `get_status` → 0 statuses (`pending`), newest comments (through
+2026-09-05) all routine self-reports, no distinct human review or reply since 2026-08-03, now
+**35 days**. `actions_list list_workflow_runs` on `loop-research.yml` — still 1 total run, from
+2026-08-08, none since. `evals/policy_synthesis/holdout/` (directory listing only) still holds only
+`README.md` — step 8 still structurally blocked (needs a human to drop `holdout-a.xml`/
+`holdout-b.xml` in; not this routine's to author, per spec.md §2/§9). No
+`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
+row — the maintainer's local crontab job has now evidently not run for ~35 days. `origin/master`
+unchanged at `d2e853c`. The live trigger's stored prompt was independently re-checked
+(`list_triggers`) and confirmed still v1 verbatim; a second, separate trigger ("PR #6 check-in",
+hourly, bound to its own persistent session) now also exists, created minutes before this firing —
+new since yesterday, not something this firing created or controls. Installed this sandbox's
+missing test deps and ran the full `loop_research` suite fresh: **97/97 pass**, unchanged since
+2026-08-24 (latest run log still
+[`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json), 2026-08-11).
+
+No push notification sent — the near-miss cost session tokens only, and every standing fact above
+(trigger stuck on v1, PR unreviewed 35 days, no OpenAI credits, no holdout schemas) is already
+flagged in prior entries and the "Known issues" table; today added no new fact requiring a human's
+attention right now beyond one more data point on an already-escalated pattern.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
@@ -230,7 +258,9 @@ Next.js + optional Electron shell                    FastAPI + RobotWorkspaceSDK
                                                         |
                                              packages/research
                                              strategies, prompts,
-                                             experiments, metrics, storage
+                                             experiments, metrics, storage,
+                                             loop_research (spec 012 — schema-conditioned
+                                             policy synthesis, self-contained)
 ```
 
 Allowed dependency directions:
@@ -328,10 +358,13 @@ apps/
 packages/
 ├── pipeline/                    shared deterministic robotics kernel
 └── research/                    loops, strategies, experiments, metrics, prompts, agent eval POC
+    └── loop_research/           spec 012 — TrainingScaffold, MuJoCo compiler, G1-G4 gates
 
 specs/                           Spec Kit feature directories and acceptance contracts
 tests/                           backend, pipeline, research, and frontend-contract tests
 evals/                           protected robot-design tasks plus trace/loop evaluation tooling
+├── policy_synthesis/dev/        spec 012 development schemas (dev-a; dev-b not yet added)
+└── policy_synthesis/holdout/    spec 012 held-out schemas — generalization test, untouched by design
 supabase/migrations/             hosted schema history and grammar catalog migrations
 docs/                            detailed GitBook-compatible documentation
 ```
