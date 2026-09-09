@@ -53,41 +53,41 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-08** · build order: still 7/8 · no new evidence since 2026-08-25 · today was a near-miss
+**2026-09-09** · build order: still 7/8 · no new evidence since 2026-08-25 · today was a near-miss
 
-Bootstrap message again named `daily-loop-research.v1.md` by filename with no step 0 (the live
-trigger's stored prompt is still v1, independently reconfirmed via `list_triggers`). Read spec.md/
-plan.md/contracts against a bare `master` checkout, found only `g1.py`/`records.py`/`smoke.py` and a
-single `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was the lowest incomplete step, and wrote
-a full duplicate: `expr.py` (a whitelisted-`ast` expression evaluator, no `eval`/`exec`), `compiler.py`
-(a `validate()` half needing no MuJoCo import plus a `compile_to_env()` half that does), a
-hand-written `dev-a` baseline scaffold, and 23 new tests. `mujoco` happened to be pip-installable in
-this sandbox, so this wasn't purely speculative: ran the baseline against real MuJoCo physics and got
-a genuine result — the compiled `payload_drop` termination correctly fires when the payload's qpos is
-forced below the floor — real evidence, just for the wrong branch. Only then ran
-`git fetch origin routine/experiments` and found PR #6 already open, 44 commits ahead of `master`,
-carrying steps 1–7 under this branch's own canonical module layout. Discarded the entire duplicate
-build before ever running `git add` or `git commit`. This is the **thirteenth** confirmed near-miss
-of this kind overall, and the sixth in a row — see "Known issues" below. Zero repo-state cost.
+Bootstrap message again named `daily-loop-research.v1.md` by filename with no step 0 (this sandbox
+had no `list_triggers`-equivalent tool to independently re-confirm the live trigger's stored prompt,
+but the bootstrap message's own content — pointing at v1.md, no step-0 instruction — matches every
+prior confirmed occurrence). Read spec.md/plan.md/contracts against a bare `master` checkout, found
+only `g1.py`/`records.py`/`smoke.py` and a single `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo)
+was the lowest incomplete step, and wrote a full duplicate: `compiler.py` (a whitelisted-`ast`
+expression evaluator, no `eval`/`exec`, binding `joint`/`body`/`site`/`actuator`/`sensor` symbols to
+live `mujoco.MjModel`/`MjData` state), `rollout.py`, `io.py`, `baseline_run.py`, a hand-written
+`dev-a` baseline scaffold, and 9 new tests. `mujoco`/`numpy`/`pytest` were all pip-installable in
+this sandbox, so this wasn't purely speculative: ran the baseline for 16 episodes against real
+MuJoCo physics and got a genuine result — all 16 ended `timeout` under bounded random actuation, no
+success claimed or earned — real evidence, just for the wrong branch. Only then ran
+`git fetch origin routine/experiments` + `git diff master origin/routine/experiments --stat` and
+found PR #6 already open, far ahead of `master` (109 files, +12382/-251), carrying steps 1–7 under
+this branch's own canonical module layout. Discarded the entire duplicate build before ever running
+`git add` or `git commit`. This is the **fourteenth** confirmed near-miss of this kind overall, and
+the seventh in a row — see "Known issues" below. Zero repo-state cost.
 
 Having discarded that, re-verified every standing blocker fresh from `routine/experiments` (tip
-`d2c49f4`) rather than trusting 2026-09-07's entry: PR #6 — open, draft, head unchanged at
-`d2c49f4`, `get_reviews` → `[]`, `get_status` → 0 statuses (`pending`), `comments: 36`, no distinct
-human review or reply since 2026-08-03, now **37 days**. `actions_list list_workflow_runs` on
-`loop-research.yml` — still 1 total run, from 2026-08-08, none since. `evals/policy_synthesis/holdout/`
-(directory listing only) still holds only `README.md` — step 8 still structurally blocked (needs a
-human to drop `holdout-a.xml`/`holdout-b.xml` in; not this routine's to author, per spec.md §2/§9).
-No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
-row — the maintainer's local crontab job has now evidently not run for ~37 days. `origin/master`
-unchanged at `d2e853c`. The live trigger's stored prompt was independently re-checked
-(`list_triggers`) and confirmed still v1 verbatim; the separate hourly "PR #6 check-in" trigger is
-still active (self-re-arming, bound to the same persistent session as prior firings). Installed this
-sandbox's missing test deps and ran the full `loop_research` suite fresh: **97/97 pass**, unchanged
-since 2026-08-24 (latest run log still
+`b7df54b`) rather than trusting 2026-09-08's entry: PR #6 — open, draft, head unchanged at
+`b7df54b`, `get_reviews` → `[]`, `comments: 36`, no distinct human review or reply since 2026-08-03,
+now **38 days**. `actions_list list_workflow_runs` on `loop-research.yml` — still 1 total run, from
+2026-08-08, none since. `evals/policy_synthesis/holdout/` (directory listing only) still holds only
+`README.md` — step 8 still structurally blocked (needs a human to drop `holdout-a.xml`/
+`holdout-b.xml` in; not this routine's to author, per spec.md §2/§9). No
+`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
+row — the maintainer's local crontab job has now evidently not run for ~38 days. `origin/master`
+unchanged at `d2e853c`. Installed this sandbox's missing test deps and ran the full `loop_research`
+suite fresh: **97/97 pass**, unchanged since 2026-08-24 (latest run log still
 [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json), 2026-08-11).
 
 No push notification sent — the near-miss cost session tokens only, and every standing fact above
-(trigger stuck on v1, PR unreviewed 37 days, no OpenAI credits, no holdout schemas) is already
+(trigger stuck on v1, PR unreviewed 38 days, no OpenAI credits, no holdout schemas) is already
 flagged in prior entries and the "Known issues" table; today added no new fact requiring a human's
 attention right now beyond one more data point on an already-escalated pattern.
 <!-- ROUTINE:END -->
