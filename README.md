@@ -53,43 +53,34 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-10** · build order: still 7/8 · no new evidence since 2026-08-25 · today was a near-miss
+**2026-09-11** · build order: still 7/8 · no new evidence since 2026-08-11 · no near-miss today
 
-Bootstrap message again named `daily-loop-research.v1.md` by filename with no step 0, independently
+Bootstrap message again named `daily-loop-research.v1.md` by filename with no step 0 (independently
 confirmed via `list_triggers`: trigger `trig_012k5hZBEfTpeyTjTaJ2aGcb`'s stored prompt is still v1
-verbatim. Read spec.md/plan.md/contracts against a bare `master` checkout, found only
-`g1.py`/`records.py`/`smoke.py` and a single `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was
-the lowest incomplete step, and wrote a full duplicate: `compiler.py` (a whitelisted-`ast` expression
-evaluator, no `eval`/`exec`, compiling reward/termination expressions against an abstract `state`
-mapping rather than live MuJoCo — the control plane has no MuJoCo by design — then adding the one
-check G1 doesn't do: an expression's symbol reads must be a subset of that term's declared
-`symbols`), a hand-written `dev-a` baseline scaffold, and 15 new tests (21/21 passing alongside the
-existing 6 G1 tests). No physics run this time — the duplicate stayed code-and-tests only. Only then
-ran `git fetch origin routine/experiments` + `git diff origin/master origin/routine/experiments
---stat` and found PR #6 already open, far ahead of `master` (109 files, +12383/-251), carrying steps
-1–7 under this branch's own canonical module layout. Discarded the entire duplicate build
-(`git stash -u` / `git stash drop`) before ever running `git add` or `git commit`. This is the
-**fifteenth** confirmed near-miss of this kind overall, and the eighth in a row — see "Known issues"
-below. Zero repo-state cost.
+verbatim, unchanged since 2026-08-02). Unlike the last several firings, this one checked
+`origin/routine/experiments` and its open PR *before* writing any code — no duplicate step-1 build
+was produced today, so there is nothing to discard and no near-miss to add to the count below.
+Confirmed `spec.md`/`plan.md` are byte-identical between `master` and `routine/experiments`.
 
-Having discarded that, re-verified every standing blocker fresh from `routine/experiments` (tip
-`6cb94ce`) rather than trusting 2026-09-09's entry: PR #6 — open, draft, head unchanged at
-`6cb94ce`, `get_reviews` → `[]`, `comments: 37`, no distinct human review or reply since 2026-08-03,
-now **38 days**. `actions_list list_workflow_runs` on `loop-research.yml` — still 1 total run, from
-2026-08-08, none since. `evals/policy_synthesis/holdout/` (directory listing only) still holds only
-`README.md` — step 8 still structurally blocked (needs a human to drop `holdout-a.xml`/
-`holdout-b.xml` in; not this routine's to author, per spec.md §2/§9). No
-`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
-row — the maintainer's local crontab job has now evidently not run for ~38 days. `origin/master`
-unchanged at `d2e853c`; `plan.md`/`spec.md` on `routine/experiments` diffed byte-identical against
-`master`'s copies. Installed this sandbox's missing test deps and ran the eight
-`test_loop_research_*.py` files fresh: **97/97 pass**, unchanged since 2026-08-24 (latest run log
-still [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json), 2026-08-11).
+From `routine/experiments` (tip `980f5f6`): build order (plan.md §7) still 7/8, structurally blocked
+on step 8 — `evals/policy_synthesis/holdout/` (directory listing only) still holds only `README.md`;
+authoring those schemas is not this routine's to do, per spec.md §2/§9. PR #6 — open, draft, head
+`980f5f6`, `get_reviews` → `[]`, `get_status` → 0 statuses, 38 comments (all routine self-reports),
+no distinct human review or reply since 2026-08-03 — now **40 days**. `loop-research.yml` — still 1
+total Actions run, from 2026-08-08, none since. No `experiments/credits-ready.flag`;
+`routines/budget-log.md` unchanged since its single 2026-08-03 row. `.runs/loop_research/` newest
+entry still 2026-08-11's [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json)
+run. Installed this sandbox's missing test deps and ran all eight `test_loop_research_*.py` files
+fresh: **97/97 pass**, unchanged.
 
-No push notification sent — the near-miss cost session tokens only, and every standing fact above
-(trigger stuck on v1, PR unreviewed 38 days, no OpenAI credits, no holdout schemas) is already
-flagged in prior entries and the "Known issues" table; today added no new fact requiring a human's
-attention right now beyond one more data point on an already-escalated pattern.
+One new, non-actionable fact: a separate hourly trigger ("PR #6 check-in", bound to a persistent
+session) now exists, created 2026-09-11T12:34:32Z, ~36 minutes before this firing — set up outside
+this routine to babysit PR #6 on its own cadence. This routine did not create it and takes no action
+on it.
+
+No push notification sent — every standing blocker (trigger stuck on v1, PR unreviewed 40 days, no
+OpenAI credits, no holdout schemas) is already flagged in prior entries and the "Known issues"
+table; today added no new fact requiring a human's attention right now.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
