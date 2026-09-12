@@ -53,19 +53,28 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-03** · build order: steps 1–3 partially implemented · first local run recorded
+**2026-09-12** · build order: still 7/8 · no new evidence since 2026-08-11 · no near-miss today
 
-First smoke of the loop ran locally on a substitute provider (Haiku via the repo's `claude-code`
-adapter, subscription auth, $0 API spend), pending OpenAI credits. One evidence-dense call emitted
-a 5-reward-term, 4-termination scaffold for schema `dev-a`; **G1 passed at score 1.0**
-(21/21 symbols resolved). The G1 resolver carries 6 passing tests, including proof it fails
-scaffolds with fabricated entities. Evidence:
-[`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json).
+Step 0 run before reading anything: fetched `master` and `routine/experiments`, diffed them (35
+commits ahead, unchanged since yesterday's `13db2a1`), checked out `routine/experiments`. No
+duplicate build risked.
 
-Honest boundaries: no MuJoCo compilation or training has run (step 1's gate is unmet); dev-b and
-both holdout schemas do not exist yet; the negative control (step 4) is not implemented, so G1's
-pass is not yet calibrated against a cheating loop. A daily local budget check unlocks the OpenAI
-compute plane when credits exceed $500 ([`budget log`](routines/budget-log.md)).
+Re-verified every standing blocker directly rather than trusting yesterday's entry: PR #6 —
+`list_pull_requests` → open, draft; `get_reviews` → `[]`; `get_status` → 0 statuses; `get_comments`
+spot-check → every comment `author_association: OWNER` (this routine's own self-reports), no
+distinct human reply — unreviewed since creation on 2026-08-02. Build order (plan.md §7) still 7/8:
+`evals/policy_synthesis/holdout/` (directory listing only) still holds only `README.md` — step 8
+needs held-out schemas this routine may not author, per spec.md §2/§9. No
+`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03 row.
+`.runs/loop_research/` newest entry still 2026-08-11's
+[`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json).
+
+Installed this sandbox's missing test deps fresh and reran the full suite myself: **97/97
+`test_loop_research_*.py` pass**, unchanged.
+
+No push notification sent and no new PR comment posted — nothing changed since yesterday, a separate
+hourly "PR #6 check-in" trigger already covers that exact signal, and a 39th self-report with no new
+fact would be noise rather than information.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
@@ -230,7 +239,9 @@ Next.js + optional Electron shell                    FastAPI + RobotWorkspaceSDK
                                                         |
                                              packages/research
                                              strategies, prompts,
-                                             experiments, metrics, storage
+                                             experiments, metrics, storage,
+                                             loop_research (spec 012 — schema-conditioned
+                                             policy synthesis, self-contained)
 ```
 
 Allowed dependency directions:
@@ -328,10 +339,13 @@ apps/
 packages/
 ├── pipeline/                    shared deterministic robotics kernel
 └── research/                    loops, strategies, experiments, metrics, prompts, agent eval POC
+    └── loop_research/           spec 012 — TrainingScaffold, MuJoCo compiler, G1-G4 gates
 
 specs/                           Spec Kit feature directories and acceptance contracts
 tests/                           backend, pipeline, research, and frontend-contract tests
 evals/                           protected robot-design tasks plus trace/loop evaluation tooling
+├── policy_synthesis/dev/        spec 012 development schemas (dev-a; dev-b not yet added)
+└── policy_synthesis/holdout/    spec 012 held-out schemas — generalization test, untouched by design
 supabase/migrations/             hosted schema history and grammar catalog migrations
 docs/                            detailed GitBook-compatible documentation
 ```

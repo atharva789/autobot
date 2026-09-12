@@ -2,7 +2,29 @@
      Development schema for spec 012. Structurally paired against dev-b
      (different topology/actuation) per spec.md §2. -->
 <mujoco model="dev-a">
+  <!-- Explicit: MuJoCo's compiler default is angle="degree", which would silently
+       reinterpret every joint range below (written in radians, e.g. +-3.1 for a
+       full-turn yaw) as degrees, shrinking every range by a factor of about 57
+       and freezing the arm to a few degrees of motion. Found while building the
+       G2 ablation permutations (plan.md §7 step 5): a "limits_altered" mutation
+       is meaningless against a joint that already can't move. -->
+  <compiler angle="radian"/>
   <option timestep="0.002" gravity="0 0 -9.81"/>
+
+  <!-- The forearm capsule's rounded end cap (radius 0.025) overlaps the finger pads by ~8mm at
+       rest: the pads sit 0.02/0.04 out from the wrist, which is mounted flush at the forearm's
+       tip. Uncorrected this shows up as real contact_events in every rollout batch
+       (see .runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/batches/rb_3141606b8927.json,
+       geom "3" = this forearm geom, paired against pad_left/pad_right) even when the gripper is
+       nowhere near the payload, and the resulting constraint force can absorb most of an
+       actuator's applied torque; found while validating build-order step 1's compiler
+       (2026-08-25). Excluding only this pair, not a broader contype/conaffinity scheme: the
+       overlap is a geometry authoring artifact, not evidence any other robot-vs-robot contact
+       should be disabled. -->
+  <contact>
+    <exclude body1="forearm" body2="finger_left"/>
+    <exclude body1="forearm" body2="finger_right"/>
+  </contact>
 
   <worldbody>
     <geom name="table" type="plane" size="1 1 0.05"/>

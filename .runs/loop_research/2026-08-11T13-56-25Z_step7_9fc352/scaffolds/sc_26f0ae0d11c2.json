@@ -1,0 +1,178 @@
+{
+  "scaffold_id": "sc_26f0ae0d11c2",
+  "schema_id": "dev-a.topology_swapped",
+  "schema_digest": "sha256:e4e8631bba3eb2a9386a7c778ea4b4f641ad1d7386ddaa184aa68443be0f1589",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "height_progress",
+      "weight": 1.5,
+      "expression": "clamp(0.1 - abs(body.payload.pos.z - site.shelf_target.pos.z), 0, 0.1)",
+      "symbols": [
+        "body.payload.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Core objective: reward when payload height approaches shelf height. Clamp bounds the bonus to encourage precision within tolerance."
+    },
+    {
+      "name": "grasp_contact",
+      "weight": 0.5,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Encourage maintaining tactile contact with the payload via left finger touch sensor to enable stable grasping."
+    },
+    {
+      "name": "smooth_motion",
+      "weight": -0.002,
+      "expression": "abs(joint.j_shoulder.qvel) + abs(joint.j_elbow.qvel) + abs(joint.j_wrist.qvel)",
+      "symbols": [
+        "joint.j_shoulder.qvel",
+        "joint.j_elbow.qvel",
+        "joint.j_wrist.qvel"
+      ],
+      "rationale": "Penalize high joint velocities in primary lifting joints to discourage jerky movements and promote controlled lifting."
+    },
+    {
+      "name": "finger_grip_state",
+      "weight": 0.3,
+      "expression": "clamp(0.1 - abs(joint.j_finger_left.qpos - 0.25), 0, 0.1) + clamp(0.1 - abs(joint.j_finger_right.qpos - 0.25), 0, 0.1)",
+      "symbols": [
+        "joint.j_finger_left.qpos",
+        "joint.j_finger_right.qpos"
+      ],
+      "rationale": "Encourage both fingers to maintain a mid-range closure (~0.25 rad) that reflects stable grasping posture without over-clamping."
+    },
+    {
+      "name": "horizontal_alignment",
+      "weight": 0.5,
+      "expression": "(abs(body.payload.pos.x - site.shelf_target.pos.x) + abs(body.payload.pos.y - site.shelf_target.pos.y)) * -0.2",
+      "symbols": [
+        "body.payload.pos.x",
+        "body.payload.pos.y",
+        "site.shelf_target.pos.x",
+        "site.shelf_target.pos.y"
+      ],
+      "rationale": "Penalize lateral displacement to keep payload centered on the shelf target and prevent placement errors."
+    }
+  ],
+  "terminations": [
+    {
+      "name": "success",
+      "predicate": "abs(body.payload.pos.z - site.shelf_target.pos.z) < 0.03",
+      "symbols": [
+        "body.payload.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "task_success"
+    },
+    {
+      "name": "payload_dropped",
+      "predicate": "body.payload.pos.z < 0.05",
+      "symbols": [
+        "body.payload.pos.z"
+      ],
+      "cause_label": "dropped_below_safe_height"
+    },
+    {
+      "name": "grip_failure",
+      "predicate": "sensor.s_touch_left < 0.1",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "cause_label": "loss_of_contact"
+    },
+    {
+      "name": "out_of_reach",
+      "predicate": "abs(body.payload.pos.x - site.shelf_target.pos.x) > 0.8",
+      "symbols": [
+        "body.payload.pos.x",
+        "site.shelf_target.pos.x"
+      ],
+      "cause_label": "payload_unreachable"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "payload_mass",
+      "range": [
+        2.5,
+        3.5
+      ],
+      "advance_when": "success_rate > 0.85 for 500 episodes"
+    },
+    {
+      "stage": 1,
+      "parameter": "friction",
+      "range": [
+        0.3,
+        0.7
+      ],
+      "advance_when": "success_rate > 0.80 for 500 episodes"
+    },
+    {
+      "stage": 2,
+      "parameter": "payload_mass",
+      "range": [
+        1.0,
+        2.0
+      ],
+      "advance_when": "success_rate > 0.80 for 500 episodes"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_init_x_offset",
+      "range": [
+        -0.2,
+        0.2
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_init_y_offset",
+      "range": [
+        -0.15,
+        0.15
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_mass",
+      "range": [
+        1.0,
+        5.0
+      ],
+      "distribution": "log_uniform"
+    },
+    {
+      "parameter": "friction",
+      "range": [
+        0.3,
+        1.5
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "shelf_target_z_offset",
+      "range": [
+        -0.05,
+        0.05
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 11,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

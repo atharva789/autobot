@@ -88,6 +88,11 @@ services:
       ARTIFACTS_ENDPOINT: http://artifacts:9000
       ARTIFACTS_KEY: loop
       ARTIFACTS_SECRET: looploop
+      # The image has no .git directory (only the loop_research package and schemas are
+      # copied in), so orchestrator.py's own `git rev-parse HEAD` always fails in-container --
+      # verified by running the image. The workflow sets this from `github.sha`; local runs
+      # without it fall back to "unknown", same as before this existed.
+      GIT_SHA: ${GIT_SHA:-}
       # Supplied by the GitHub Actions secret store. Never present in the
       # Claude routine's session — the control plane makes no OpenAI calls.
       OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY must be set}
@@ -105,6 +110,12 @@ services:
       LOOP_USE_BATCH_API: ${LOOP_USE_BATCH_API:-1}
       LOOP_MANIFEST: ${LOOP_MANIFEST:?LOOP_MANIFEST must point at an experiments/queue entry}
       LOOP_RUN_ID: ${LOOP_RUN_ID:?LOOP_RUN_ID must be set}
+    working_dir: /app
     volumes:
-      - ../../.runs/loop_research:/out:rw   # JSON export lands here, then gets committed
+      # orchestrator.py writes to ".runs/loop_research" relative to its own cwd (data-model.md's
+      # "Files on disk" convention, same path step2_run/step4_run/step5_run already use) -- this
+      # must be /app/.runs/loop_research, matching Dockerfile.orchestrator's WORKDIR, not an
+      # unrelated /out the code never writes to. Verified locally: mounting to /out left it empty
+      # while a real run.json landed under /app/.runs/loop_research every time.
+      - ../../.runs/loop_research:/app/.runs/loop_research:rw
     command: ["python", "-m", "packages.research.loop_research.orchestrator"]

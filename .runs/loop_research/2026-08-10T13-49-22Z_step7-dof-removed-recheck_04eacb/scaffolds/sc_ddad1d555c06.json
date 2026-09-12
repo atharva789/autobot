@@ -1,0 +1,166 @@
+{
+  "scaffold_id": "sc_ddad1d555c06",
+  "schema_id": "_scratch_dof_removed_recheck",
+  "schema_digest": "sha256:7b383e0acd7f2fb8be52fb0d0efde9cb1b68517ab3e15aaf7729b70d21cce0e1",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "lift_height",
+      "weight": 2.0,
+      "expression": "site.payload_center.pos.z",
+      "symbols": [
+        "site.payload_center.pos.z"
+      ],
+      "rationale": "Encourage lifting the payload upward; provides basic height progression signal"
+    },
+    {
+      "name": "shelf_height_reach",
+      "weight": 10.0,
+      "expression": "max(0, 1 - 5 * abs(site.payload_center.pos.z - site.shelf_target.pos.z))",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Primary task objective; exponentially rewards proximity to shelf target height, peaks when payload is at shelf_target z-position"
+    },
+    {
+      "name": "grasp_contact",
+      "weight": 5.0,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Encourage and maintain finger contact with payload; essential prerequisite for any lifting"
+    },
+    {
+      "name": "horizontal_alignment",
+      "weight": 1.0,
+      "expression": "-(abs(site.payload_center.pos.x - site.shelf_target.pos.x) + abs(site.payload_center.pos.y - site.shelf_target.pos.y))",
+      "symbols": [
+        "site.payload_center.pos.x",
+        "site.payload_center.pos.y",
+        "site.shelf_target.pos.x",
+        "site.shelf_target.pos.y"
+      ],
+      "rationale": "Penalty for horizontal misalignment; guides agent to position payload directly above shelf_target before lifting"
+    }
+  ],
+  "terminations": [
+    {
+      "name": "success_payload_on_shelf",
+      "predicate": "abs(site.payload_center.pos.z - site.shelf_target.pos.z) < 0.05",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "task_success"
+    },
+    {
+      "name": "failure_grasp_lost",
+      "predicate": "sensor.s_touch_left < 0.5",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "cause_label": "grasp_lost_during_task"
+    },
+    {
+      "name": "failure_out_of_bounds",
+      "predicate": "site.payload_center.pos.z < -0.1",
+      "symbols": [
+        "site.payload_center.pos.z"
+      ],
+      "cause_label": "payload_fell_below_workspace"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "payload_start_height",
+      "range": [
+        0.05,
+        0.1
+      ],
+      "advance_when": "sensor.s_touch_left > 0.7"
+    },
+    {
+      "stage": 1,
+      "parameter": "payload_start_height",
+      "range": [
+        0.1,
+        0.2
+      ],
+      "advance_when": "site.payload_center.pos.z > 0.3"
+    },
+    {
+      "stage": 2,
+      "parameter": "payload_start_height",
+      "range": [
+        0.2,
+        0.3
+      ],
+      "advance_when": "site.payload_center.pos.z > 0.5"
+    },
+    {
+      "stage": 3,
+      "parameter": "payload_start_height",
+      "range": [
+        0.25,
+        0.3
+      ],
+      "advance_when": "abs(site.payload_center.pos.z - site.shelf_target.pos.z) < 0.05"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_start_height",
+      "range": [
+        0.05,
+        0.3
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_start_x",
+      "range": [
+        -0.15,
+        0.15
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_start_y",
+      "range": [
+        -0.1,
+        0.1
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        2.0
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "actuator_noise_scale",
+      "range": [
+        0.0,
+        0.02
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 11,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

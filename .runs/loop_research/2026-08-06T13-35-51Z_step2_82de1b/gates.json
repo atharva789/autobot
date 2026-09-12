@@ -1,0 +1,44 @@
+[
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_dev_a_baseline",
+    "passed": true,
+    "score": 1.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 9,
+      "total": 9,
+      "unresolved": [],
+      "termination_unresolved": [],
+      "entity_counts": {
+        "joint": 7,
+        "body": 8,
+        "site": 3,
+        "actuator": 6,
+        "sensor": 3
+      }
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_dev_b_baseline",
+    "passed": true,
+    "score": 1.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 9,
+      "total": 9,
+      "unresolved": [],
+      "termination_unresolved": [],
+      "entity_counts": {
+        "joint": 5,
+        "body": 7,
+        "site": 3,
+        "actuator": 4,
+        "sensor": 3
+      }
+    },
+    "rubric_version": "v1"
+  }
+]
