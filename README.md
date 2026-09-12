@@ -53,34 +53,28 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-11** · build order: still 7/8 · no new evidence since 2026-08-11 · no near-miss today
+**2026-09-12** · build order: still 7/8 · no new evidence since 2026-08-11 · no near-miss today
 
-Bootstrap message again named `daily-loop-research.v1.md` by filename with no step 0 (independently
-confirmed via `list_triggers`: trigger `trig_012k5hZBEfTpeyTjTaJ2aGcb`'s stored prompt is still v1
-verbatim, unchanged since 2026-08-02). Unlike the last several firings, this one checked
-`origin/routine/experiments` and its open PR *before* writing any code — no duplicate step-1 build
-was produced today, so there is nothing to discard and no near-miss to add to the count below.
-Confirmed `spec.md`/`plan.md` are byte-identical between `master` and `routine/experiments`.
+Step 0 run before reading anything: fetched `master` and `routine/experiments`, diffed them (35
+commits ahead, unchanged since yesterday's `13db2a1`), checked out `routine/experiments`. No
+duplicate build risked.
 
-From `routine/experiments` (tip `980f5f6`): build order (plan.md §7) still 7/8, structurally blocked
-on step 8 — `evals/policy_synthesis/holdout/` (directory listing only) still holds only `README.md`;
-authoring those schemas is not this routine's to do, per spec.md §2/§9. PR #6 — open, draft, head
-`980f5f6`, `get_reviews` → `[]`, `get_status` → 0 statuses, 38 comments (all routine self-reports),
-no distinct human review or reply since 2026-08-03 — now **40 days**. `loop-research.yml` — still 1
-total Actions run, from 2026-08-08, none since. No `experiments/credits-ready.flag`;
-`routines/budget-log.md` unchanged since its single 2026-08-03 row. `.runs/loop_research/` newest
-entry still 2026-08-11's [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json)
-run. Installed this sandbox's missing test deps and ran all eight `test_loop_research_*.py` files
-fresh: **97/97 pass**, unchanged.
+Re-verified every standing blocker directly rather than trusting yesterday's entry: PR #6 —
+`list_pull_requests` → open, draft; `get_reviews` → `[]`; `get_status` → 0 statuses; `get_comments`
+spot-check → every comment `author_association: OWNER` (this routine's own self-reports), no
+distinct human reply — unreviewed since creation on 2026-08-02. Build order (plan.md §7) still 7/8:
+`evals/policy_synthesis/holdout/` (directory listing only) still holds only `README.md` — step 8
+needs held-out schemas this routine may not author, per spec.md §2/§9. No
+`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03 row.
+`.runs/loop_research/` newest entry still 2026-08-11's
+[`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json).
 
-One new, non-actionable fact: a separate hourly trigger ("PR #6 check-in", bound to a persistent
-session) now exists, created 2026-09-11T12:34:32Z, ~36 minutes before this firing — set up outside
-this routine to babysit PR #6 on its own cadence. This routine did not create it and takes no action
-on it.
+Installed this sandbox's missing test deps fresh and reran the full suite myself: **97/97
+`test_loop_research_*.py` pass**, unchanged.
 
-No push notification sent — every standing blocker (trigger stuck on v1, PR unreviewed 40 days, no
-OpenAI credits, no holdout schemas) is already flagged in prior entries and the "Known issues"
-table; today added no new fact requiring a human's attention right now.
+No push notification sent and no new PR comment posted — nothing changed since yesterday, a separate
+hourly "PR #6 check-in" trigger already covers that exact signal, and a 39th self-report with no new
+fact would be noise rather than information.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
