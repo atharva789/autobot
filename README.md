@@ -53,28 +53,35 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-12** · build order: still 7/8 · no new evidence since 2026-08-11 · no near-miss today
+**2026-09-13** · build order: still 7/8 · no new evidence since 2026-08-11 · sixteenth v1/v2
+duplicate-build near-miss (caught pre-commit, zero repo-state cost)
 
-Step 0 run before reading anything: fetched `master` and `routine/experiments`, diffed them (35
-commits ahead, unchanged since yesterday's `13db2a1`), checked out `routine/experiments`. No
-duplicate build risked.
+Bootstrap again pointed at the stale `daily-loop-research.v1.md` prompt (no step 0). Before checking
+`routine/experiments`, this firing wrote a full duplicate of build-order step 1 — an expression
+compiler, a hand-written `dev-a` baseline scaffold, 17 new tests — against a bare `master` checkout
+that only has `g1.py`/`records.py`/`smoke.py`. Caught it with `git fetch origin routine/experiments`
+before ever running `git add`: that branch is 49 commits ahead, already carrying steps 1–7 in open
+PR #6. Discarded the duplicate entirely; nothing from it was committed or pushed. Sixteenth confirmed
+occurrence of this pattern since 2026-08-02; details in `routines/registry.md`'s "Known issues".
 
-Re-verified every standing blocker directly rather than trusting yesterday's entry: PR #6 —
-`list_pull_requests` → open, draft; `get_reviews` → `[]`; `get_status` → 0 statuses; `get_comments`
-spot-check → every comment `author_association: OWNER` (this routine's own self-reports), no
-distinct human reply — unreviewed since creation on 2026-08-02. Build order (plan.md §7) still 7/8:
-`evals/policy_synthesis/holdout/` (directory listing only) still holds only `README.md` — step 8
-needs held-out schemas this routine may not author, per spec.md §2/§9. No
-`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03 row.
-`.runs/loop_research/` newest entry still 2026-08-11's
-[`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json).
+Re-verified every standing blocker fresh from `routine/experiments` (tip `ab88f66`) rather than
+trusting yesterday's entry: PR #6 — open, draft, `mergeable_state: clean`, 49 commits, 39 comments;
+`get_reviews` → `[]`; `get_status` → 0 statuses; `get_comments` paged to the end — every comment is
+this routine's own self-report, no distinct human reply since the 2026-08-03 reconciliation comment,
+now **41 days**. Build order (plan.md §7) still 7/8: `evals/policy_synthesis/` (directory listing
+only) shows `holdout/` still holds only `README.md` — step 8 needs held-out schemas this routine may
+not author, per spec.md §2/§9. Actions — still only the one `loop-research.yml` run, from 2026-08-08.
+No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
+row. `.runs/loop_research/` newest entry still 2026-08-11's
+[`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json). The live
+`daily-loop-research` trigger's stored prompt is still v1 verbatim.
 
 Installed this sandbox's missing test deps fresh and reran the full suite myself: **97/97
-`test_loop_research_*.py` pass**, unchanged.
+`test_loop_research_*.py` pass**, unchanged since 2026-08-24.
 
-No push notification sent and no new PR comment posted — nothing changed since yesterday, a separate
-hourly "PR #6 check-in" trigger already covers that exact signal, and a 39th self-report with no new
-fact would be noise rather than information.
+No push notification sent — today's near-miss had zero repo-state cost and restates an
+already-escalated, sixteen-times-confirmed pattern (trigger stuck on v1, two prior notifications
+already sent); nothing here is a new fact requiring the human's attention beyond one more data point.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
