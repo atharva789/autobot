@@ -53,51 +53,45 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-16** · build order: still 7/8 · no new evidence since 2026-08-11 · nineteenth v1/v2
+**2026-09-17** · build order: still 7/8 · no new evidence since 2026-08-11 · twentieth v1/v2
 duplicate-build near-miss (caught pre-commit, zero repo-state cost)
 
-Bootstrap again pointed at the stale `daily-loop-research.v1.md` prompt (no step 0, independently
-confirmed via `list_triggers`: `trig_012k5hZBEfTpeyTjTaJ2aGcb`'s stored prompt is still v1 verbatim).
-Before checking `routine/experiments`, this firing read the build order against a bare `master`
-checkout, concluded step 1 (compiler-to-MuJoCo) was next, and wrote a full duplicate: `compiler.py`
-binding a `TrainingScaffold`'s reward/termination expressions to live `mujoco.MjData` (an
-`ast`-validated grammar — `body.<n>.pos.{x,y,z}`, `site.<n>.pos.*`, `joint.<n>.qpos/qvel`,
-`actuator.<n>.ctrl/force`, `sensor.<n>[.axis]`, `const.<n>` — evaluated with `eval()` under an empty
-`__builtins__`), a hand-written frozen `dev-a` baseline scaffold, `train_smoke.py` (an open-loop CEM
-search against the compiled scaffold's own reward), and 20 passing tests, including a reward term
-checked against a value computed independently from MuJoCo ground truth, a termination predicate
-forced via direct sim state to prove it isn't passing by luck, and a CEM run showing mean reward
-improving monotonically across 6 iterations. All of it against `master`'s `g1.py`/`records.py`/
-`smoke.py` only, unaware `routine/experiments` existed. Caught it with `git fetch origin
-routine/experiments` before ever running `git add`: that branch is 56 commits ahead of `master`,
-already carrying steps 1–7 in open PR #6 under its own canonical module layout
+Bootstrap again pointed at the stale `daily-loop-research.v1.md` prompt (no step 0). Before checking
+`routine/experiments`, this firing read the build order against a bare `master` checkout, found only
+`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was next,
+and wrote a full duplicate: `compiler.py` (an `ast`-whitelist expression validator resolving declared
+`symbols` against the schema's entity table, reusing `g1.build_entity_table`, plus a check G1 itself
+doesn't do — that every symbol an expression actually references is present in its own `symbols`
+list), a frozen hand-written `dev-a` baseline scaffold, and 6 new tests, all passing (12/12 against
+`master`'s existing G1 suite). No physics attempted — correctly reported `physics_checked: False`
+since this sandbox has no `mujoco` installed and plan.md §1 says the control plane shouldn't run
+physics. All of it against `master` alone, before checking `routine/experiments`. Caught it with
+`git fetch origin` + `git ls-remote --heads origin` before ever running `git add`: that branch is far
+ahead of `master`, already carrying steps 1–7 in open PR #6 under its own canonical module layout
 (`scaffold.py`/`mujoco_compiler.py`/`rollout.py`/etc., 97 passing tests). Discarded the duplicate
-entirely (`git stash push -u` then `git stash drop`); nothing from it was committed or pushed.
-Nineteenth confirmed occurrence of this pattern since 2026-08-02; details in
-`routines/registry.md`'s "Known issues".
+entirely (`git stash -u` then `git stash drop`); nothing from it was committed or pushed. Twentieth
+confirmed occurrence of this pattern since 2026-08-02; details in `routines/registry.md`'s
+"Known issues".
 
-Re-verified every standing blocker fresh from `routine/experiments` (tip `06bb6e9`) rather than
-trusting yesterday's entry: PR #6 — open, draft, `mergeable_state: clean`, 56 commits, 42 comments,
-base sha unchanged and matching `master`'s tip (`d2e853c`); `get_reviews` → `[]`; `get_status` →
-0 statuses; last comment `2026-09-15T13:26:03Z` — every comment is this routine's own self-report,
-no distinct human reply since the 2026-08-03 reconciliation comment, now **44 days**. Build order
-(plan.md §7 — byte-identical between `master` and `routine/experiments`, diffed to confirm) still
-7/8: `evals/policy_synthesis/holdout/` still holds only `README.md` — step 8 needs held-out schemas
-this routine may not author, per spec.md §2/§9. No `experiments/credits-ready.flag`;
-`routines/budget-log.md` unchanged since its single 2026-08-03 row. `.runs/loop_research/` newest
-entry still 2026-08-11's
+Re-verified every standing blocker fresh from `routine/experiments` (tip `291a424`) rather than
+trusting yesterday's entry: PR #6 — open, draft, `mergeable_state: clean`, base sha unchanged and
+matching `master`'s tip (`d2e853c`); `get_reviews` → `[]`; `get_comments` → 42 total, all this
+routine's own self-reports, last comment `2026-09-15T13:26:03Z` (2026-09-16's firing did not post
+one) — no distinct human reply since the 2026-08-03 reconciliation comment, now **45 days**. Build
+order (plan.md §7) still 7/8: step 8 needs held-out schemas this routine may not author, per
+spec.md §2/§9. Actions: still exactly 1 `loop-research.yml` run total, from 2026-08-08. No
+`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
+row. `.runs/loop_research/` newest entry still 2026-08-11's
 [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json).
 
-Installed this sandbox's missing test deps fresh (`mujoco`, `pytest`, `pydantic`, `langsmith`,
-`langchain`, `langchain-openai`, `python-dotenv`, `pyyaml`, `fastapi`) and reran the full suite
-myself: **97/97 `test_loop_research_*.py` pass**, unchanged since 2026-08-24.
+Installed this sandbox's missing test deps fresh (`mujoco`, `pydantic`, `langsmith`, `langchain`,
+`langchain-openai`, `python-dotenv`, `pyyaml`, `fastapi`) and reran the full suite myself:
+**97/97 `test_loop_research_*.py` pass**, unchanged since 2026-08-24.
 
-Noticed, not acted on: a freshly self-scheduled hourly "PR #6 check-in" trigger
-(`trig_01TsLVMHnP8AimeMGZyLCUc8`, next run 13:47 UTC today) already covers the human-reply/CI/
-mergeability signal between daily firings — no push notification sent today either, for the same
-reason that trigger and nineteen prior registry rows already give: today's near-miss had zero
-repo-state cost and restates an already-escalated, already-understood pattern (trigger stuck on v1,
-two prior notifications already sent); nothing here is a new fact.
+No push notification sent today either, for the same reason twenty prior registry rows already
+give: today's near-miss had zero repo-state cost and restates an already-escalated,
+already-understood pattern (trigger stuck on v1, two prior notifications already sent); nothing here
+is a new fact.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
