@@ -53,45 +53,35 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-17** · build order: still 7/8 · no new evidence since 2026-08-11 · twentieth v1/v2
-duplicate-build near-miss (caught pre-commit, zero repo-state cost)
+**2026-09-18** · build order: still 7/8 · no new evidence since 2026-08-11 · clean firing (checked
+`routine/experiments` before reading the build order — no duplicate build this time)
 
-Bootstrap again pointed at the stale `daily-loop-research.v1.md` prompt (no step 0). Before checking
-`routine/experiments`, this firing read the build order against a bare `master` checkout, found only
-`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was next,
-and wrote a full duplicate: `compiler.py` (an `ast`-whitelist expression validator resolving declared
-`symbols` against the schema's entity table, reusing `g1.build_entity_table`, plus a check G1 itself
-doesn't do — that every symbol an expression actually references is present in its own `symbols`
-list), a frozen hand-written `dev-a` baseline scaffold, and 6 new tests, all passing (12/12 against
-`master`'s existing G1 suite). No physics attempted — correctly reported `physics_checked: False`
-since this sandbox has no `mujoco` installed and plan.md §1 says the control plane shouldn't run
-physics. All of it against `master` alone, before checking `routine/experiments`. Caught it with
-`git fetch origin` + `git ls-remote --heads origin` before ever running `git add`: that branch is far
-ahead of `master`, already carrying steps 1–7 in open PR #6 under its own canonical module layout
-(`scaffold.py`/`mujoco_compiler.py`/`rollout.py`/etc., 97 passing tests). Discarded the duplicate
-entirely (`git stash -u` then `git stash drop`); nothing from it was committed or pushed. Twentieth
-confirmed occurrence of this pattern since 2026-08-02; details in `routines/registry.md`'s
-"Known issues".
+Bootstrap again named `daily-loop-research.v1.md` verbatim with no step 0; independently confirmed
+via `list_triggers` that trigger `trig_012k5hZBEfTpeyTjTaJ2aGcb`'s stored prompt is still v1 word
+for word. This firing ran `git fetch origin routine/experiments` and checked out that branch, and
+`list_pull_requests`, *before* reading the build order — so, unlike the twenty prior occurrences
+recorded in `routines/registry.md`'s "Known issues", no duplicate step-1 implementation was written
+against a stale `master` checkout this time.
 
-Re-verified every standing blocker fresh from `routine/experiments` (tip `291a424`) rather than
-trusting yesterday's entry: PR #6 — open, draft, `mergeable_state: clean`, base sha unchanged and
-matching `master`'s tip (`d2e853c`); `get_reviews` → `[]`; `get_comments` → 42 total, all this
-routine's own self-reports, last comment `2026-09-15T13:26:03Z` (2026-09-16's firing did not post
-one) — no distinct human reply since the 2026-08-03 reconciliation comment, now **45 days**. Build
-order (plan.md §7) still 7/8: step 8 needs held-out schemas this routine may not author, per
-spec.md §2/§9. Actions: still exactly 1 `loop-research.yml` run total, from 2026-08-08. No
-`experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
-row. `.runs/loop_research/` newest entry still 2026-08-11's
-[`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json).
+Re-verified every standing blocker fresh from this branch (tip `ddbcc9d`, 54 commits ahead of
+`master`):
+- PR #6 — open, draft, `mergeable_state: clean`, 43 comments, all this routine's own self-reports
+  (`get_reviews` → `[]`, `get_status` → 0 statuses). No distinct human reply since the 2026-08-03
+  reconciliation comment — now **46 days**.
+- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` still holds only its
+  placeholder `README.md` — step 8 needs held-out schemas this routine may not author, per
+  spec.md §2/§9.
+- Actions: still exactly 1 `loop-research.yml` run total, from 2026-08-08. No
+  `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
+  row. `.runs/loop_research/` newest entry still 2026-08-11's
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json). `master` tip unchanged
+  (`d2e853c`).
+- Reinstalled this sandbox's missing test deps fresh (`mujoco`, `pydantic`, `langsmith`, `langchain`,
+  `langchain-openai`, `python-dotenv`, `pyyaml`, `fastapi`) and reran the full suite myself:
+  **97/97 `test_loop_research_*.py` pass**, unchanged since 2026-08-24.
 
-Installed this sandbox's missing test deps fresh (`mujoco`, `pydantic`, `langsmith`, `langchain`,
-`langchain-openai`, `python-dotenv`, `pyyaml`, `fastapi`) and reran the full suite myself:
-**97/97 `test_loop_research_*.py` pass**, unchanged since 2026-08-24.
-
-No push notification sent today either, for the same reason twenty prior registry rows already
-give: today's near-miss had zero repo-state cost and restates an already-escalated,
-already-understood pattern (trigger stuck on v1, two prior notifications already sent); nothing here
-is a new fact.
+No push notification sent: nothing here is a new fact beyond the already-escalated trigger issue
+(two prior notifications, 2026-08-10 and 2026-08-25) and the already-escalated 46-day PR silence.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
