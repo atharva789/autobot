@@ -53,22 +53,30 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-21** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (clean firing —
-checked `routine/experiments`/PR #6 before writing any code, zero duplicate-build cost)
+**2026-09-22** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (**twenty-second**
+v1/v2 near-miss, caught pre-commit — no repo-state cost)
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim with no step 0; `list_triggers`
 independently confirms the trigger's stored prompt is still v1 word for word. This sandbox's
-checkout started detached at bare `master`, and reading spec.md/plan.md against it alone found only
-`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml` — but this firing ran `git fetch` + `git
-ls-remote --heads origin` and `list_pull_requests` (finding open draft PR #6) *before* writing any
-code, so — unlike twenty-two prior firings — no duplicate step-1 implementation was built or
-discarded today. Switched straight to `routine/experiments`.
+checkout started detached at bare `master`; reading spec.md/plan.md against it alone found only
+`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was next,
+and built a full duplicate before checking the other branch: `expr.py` (an AST-walking safe
+evaluator — no `eval()` — with per-value attribute whitelisting), `compiler.py` (binds a scaffold to
+a live `mujoco.MjModel`/`MjData` pair), a hand-written `dev-a` baseline scaffold, `compile_smoke.py`,
+and 23 passing tests. This sandbox had network access to install `mujoco` fresh, so this duplicate
+was actually run against real physics — 8 episodes, mean return -5.2587, all terminating in cause
+`drop` under uniform-random control — before `git fetch origin` + `git log origin/routine/experiments
+--not origin/master` surfaced that branch 58 commits ahead, already carrying steps 1–7 in open draft
+PR #6. Discarded the entire duplicate, run log included (`git stash -u` / `git stash drop`), before
+any `git add`; twenty-second confirmed occurrence of the v1/v2 pattern since 2026-08-02. Switched to
+`routine/experiments`.
 
-Re-verified every standing blocker fresh from that branch (tip `10c4025`, matching PR #6's head
+Re-verified every standing blocker fresh from that branch (tip `03b7ae5`, matching PR #6's head
 sha):
-- PR #6 — open, draft, `mergeable_state: clean`, 46 comments, all under the `atharva789` account
-  (`get_reviews` → `[]`, `get_status` → `{"state":"pending","total_count":0}`, no CI configured). No
-  distinct human reply since the 2026-08-03 reconciliation comment — now **49 days**.
+- PR #6 — open, draft, `mergeable_state: clean`, 58 commits, 47 comments, all under the `atharva789`
+  account (`get_reviews` → `[]`, `get_status` → `{"state":"pending","total_count":0}`, no CI
+  configured). No distinct human reply since the 2026-08-03 reconciliation comment — now
+  **50 days**.
 - Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` still holds only its
   placeholder `README.md` (listed by filename+size only via `ls -la`, not opened) — step 8 needs
   held-out schemas this routine may not author, per spec.md §2/§9.
@@ -77,18 +85,17 @@ sha):
   row. `.runs/loop_research/` newest entry still 2026-08-11's
   [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) (12 run dirs total,
   unchanged). `master` tip unchanged (`d2e853c`).
-- Reinstalled this sandbox's missing test deps fresh (`mujoco`, `pytest`, `pydantic`, `langsmith`,
+- Reinstalled this sandbox's missing test deps fresh (`pytest`, `mujoco`, `pydantic`, `langsmith`,
   `langchain`, `langchain-openai`, `python-dotenv`, `pyyaml`, `fastapi`, `jsonschema`) and reran the
   full suite myself: **97/97 `test_loop_research_*.py` pass**, unchanged since 2026-08-24.
 - Trigger's stored prompt confirmed still v1 verbatim via `list_triggers` (this session's own id is
-  its `last_run`, next scheduled 2026-09-22). A fresh hourly PR #6 check-in trigger exists
-  (`trig_01LfWrPcEkuCEGf6Zf8Qua6B`, created 12:14 UTC today, next fire 13:15 UTC) — a different id
-  than yesterday's row recorded, consistent with a one-shot reminder that re-arms itself hourly
-  rather than a bug. Not created or modified by this firing.
+  its `last_run`). A separate hourly PR #6 check-in trigger already covers between-firing signal and
+  had refreshed its own cached counts (58 commits, 47 comments) earlier this morning; not created or
+  modified by this firing.
 
 No push notification sent: nothing here is a new fact beyond the already-escalated trigger issue
-(two prior notifications, 2026-08-10 and 2026-08-25) and the already-escalated 49-day PR silence;
-today's firing cost zero repo-state beyond this README/registry update.
+(two prior notifications, 2026-08-10 and 2026-08-25) and the already-escalated 50-day PR silence;
+today's near-miss cost zero repo-state (discarded before any push).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
