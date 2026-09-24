@@ -53,33 +53,27 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-23** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (**twenty-third**
-v1/v2 near-miss, caught pre-commit — no repo-state cost)
+**2026-09-24** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (clean firing —
+checked `routine/experiments`/PR #6 before writing any code, zero duplicate-build cost)
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim with no step 0; `list_triggers`
 independently confirms the trigger's stored prompt is still v1 word for word. This sandbox's
 checkout started detached at bare `master`; reading spec.md/plan.md against it alone found only
-`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was next,
-and built a full duplicate before checking the other branch: `compiler.py` (an `ast`-whitelisted
-expression evaluator bound to a live `mujoco.MjModel`/`MjData` pair — no `eval()`), a hand-written
-`dev-a` baseline scaffold, `train_smoke.py` (a from-scratch CEM policy search), and 12 new passing
-tests. This sandbox had network access to install `mujoco` fresh, so this duplicate was actually run
-against real physics — CEM over a linear tanh policy, 20 generations × 24 episodes/generation,
-200-step budget: elite-mean return improved monotonically from -79.44 to -63.02, while success_rate
-stayed 0.000 throughout (task unsolved at this budget — out of scope per spec.md §2, not a hidden
-gap). The draft evaluator's own tests caught a real gap before it was used further: a flat
-`ast.walk` node-type whitelist doesn't see *where* an allowed type appears, so
-`__import__('os').system(...)`-shaped calls parsed clean; fixed by checking every `ast.Call`'s
-function name explicitly. Then `git fetch origin` + `git log origin/routine/experiments --not
-origin/master` surfaced that branch 59 commits ahead, already carrying steps 1–7 in open draft PR
-#6. Discarded the entire duplicate via `rm`, before any `git add`; twenty-third confirmed occurrence
-of the v1/v2 pattern since 2026-08-02. Switched to `routine/experiments`.
+`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, the same starting point that misled the prior
+twenty-three firings, and began designing a step-1 compiler-to-MuJoCo — installed `mujoco` fresh via
+`pip`, confirmed `dev-a.xml` loads and steps under real physics, sketched a whitelisted-AST symbol
+resolver/expression evaluator on paper. No file was ever written to disk: before touching `Write`
+or `Edit`, ran `git fetch origin routine/experiments` + `git log origin/routine/experiments --not
+origin/master`, which surfaced that branch 60 commits ahead of `master`, already carrying steps 1–7
+in open draft PR #6. Abandoned the design with zero repo-state cost and zero throwaway code — one
+step earlier than any prior firing's "caught pre-`git add`" near-misses. Switched to
+`routine/experiments`.
 
 Re-verified every standing blocker fresh from that branch rather than trusting yesterday's entry:
-- PR #6 — open, draft, `mergeable_state: clean`, 59 commits, 48 comments, all under the `atharva789`
+- PR #6 — open, draft, `mergeable_state: clean`, 60 commits, 49 comments, all under the `atharva789`
   account (`get_reviews` → `[]`, `get_status` → `{"state":"pending","total_count":0}`, no CI
   configured). No distinct human reply since the 2026-08-03 reconciliation comment — now
-  **52 days**.
+  **52 days** (computed fresh via date arithmetic).
 - Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` still holds only its
   placeholder `README.md` (listed by filename+size only via `ls -la`, not opened) — step 8 needs
   held-out schemas this routine may not author, per spec.md §2/§9.
@@ -88,17 +82,18 @@ Re-verified every standing blocker fresh from that branch rather than trusting y
   row. `.runs/loop_research/` newest entry still 2026-08-11's
   [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json). `master` tip unchanged
   (`d2e853c`).
-- Reinstalled this sandbox's missing test deps fresh (`mujoco`, `pydantic`, `langsmith`, `langchain`,
-  `langchain-openai`, `python-dotenv`, `pyyaml`, `jsonschema`, `fastapi`) and reran the full suite
-  myself: **97/97 `test_loop_research_*.py` pass**, unchanged since 2026-08-24.
+- Reinstalled this sandbox's missing test deps fresh (`mujoco`, `pytest`, `pydantic`, `langsmith`,
+  `langchain`, `langchain-openai`, `python-dotenv`, `pyyaml`, `nbformat`, `jsonschema`, `fastapi`,
+  `httpx`, `click`) and reran the full suite myself: **97/97 `test_loop_research_*.py` pass**,
+  unchanged since 2026-08-24.
 - Trigger's stored prompt confirmed still v1 verbatim via `list_triggers` (this session's own id is
-  its `last_run`). Checked the real `packages/research/loop_research/expr.py` for the same
-  whitelist-gap class found in today's discarded draft — it does not apply there (per-`Call`
-  whitelisting is structural, not a flat node-type scan).
+  its `last_run`). A separate hourly PR #6 check-in trigger exists
+  (`trig_0172j84Npa5s58dTAwLktoBR`, next fire 13:59 UTC today) — not created or modified by this
+  firing.
 
 No push notification sent: nothing here is a new fact beyond the already-escalated trigger issue
 (two prior notifications, 2026-08-10 and 2026-08-25) and the already-escalated 52-day PR silence;
-today's near-miss cost zero repo-state (discarded before any push).
+today's firing cost zero repo-state beyond this README/registry update.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
