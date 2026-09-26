@@ -1,0 +1,133 @@
+{
+  "scaffold_id": "sc_0d7651f82069",
+  "schema_id": "dev-a.topology_swapped",
+  "schema_digest": "sha256:e4e8631bba3eb2a9386a7c778ea4b4f641ad1d7386ddaa184aa68443be0f1589",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "height_tracking",
+      "weight": 1.0,
+      "expression": "-abs(body.payload.pos.z - site.shelf_target.pos.z)",
+      "symbols": [
+        "body.payload.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Primary objective: minimize vertical distance between payload and shelf target height"
+    },
+    {
+      "name": "grasp_contact",
+      "weight": 0.1,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Maintain gripper contact with payload; touch sensor indicates successful grasp during lift"
+    },
+    {
+      "name": "action_efficiency",
+      "weight": 0.01,
+      "expression": "-(abs(actuator.m_shoulder.ctrl) + abs(actuator.m_elbow.ctrl) + abs(actuator.m_wrist.ctrl))",
+      "symbols": [
+        "actuator.m_shoulder.ctrl",
+        "actuator.m_elbow.ctrl",
+        "actuator.m_wrist.ctrl"
+      ],
+      "rationale": "Penalize excessive control magnitude in arm actuators to encourage smooth, efficient motion"
+    },
+    {
+      "name": "upward_motion_bonus",
+      "weight": 0.05,
+      "expression": "max(0, joint.j_shoulder.qvel) + max(0, joint.j_elbow.qvel)",
+      "symbols": [
+        "joint.j_shoulder.qvel",
+        "joint.j_elbow.qvel"
+      ],
+      "rationale": "Encourage positive velocity in primary lifting joints; only reward upward motion"
+    }
+  ],
+  "terminations": [
+    {
+      "name": "success",
+      "predicate": "abs(body.payload.pos.z - site.shelf_target.pos.z) < 0.05",
+      "symbols": [
+        "body.payload.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "success"
+    },
+    {
+      "name": "payload_dropped",
+      "predicate": "body.payload.pos.z < 0.05",
+      "symbols": [
+        "body.payload.pos.z"
+      ],
+      "cause_label": "payload_dropped"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "target_height",
+      "range": [
+        0.5,
+        0.6
+      ],
+      "advance_when": "mean_episode_return > -1.0 over last 50 episodes"
+    },
+    {
+      "stage": 1,
+      "parameter": "target_height",
+      "range": [
+        0.9,
+        1.0
+      ],
+      "advance_when": "mean_episode_return > -0.5 over last 50 episodes"
+    },
+    {
+      "stage": 2,
+      "parameter": "target_height",
+      "range": [
+        1.4,
+        1.5
+      ],
+      "advance_when": "terminal stage"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        2.0
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "initial_payload_x",
+      "range": [
+        -0.1,
+        0.1
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "initial_payload_y",
+      "range": [
+        -0.1,
+        0.1
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 11,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

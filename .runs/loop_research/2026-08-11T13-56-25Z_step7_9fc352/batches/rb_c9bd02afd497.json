@@ -1,0 +1,25 @@
+{
+  "batch_id": "rb_c9bd02afd497",
+  "scaffold_id": "sc_f95611529645",
+  "episodes": 4,
+  "step_budget": 60,
+  "success_rate": 0.0,
+  "termination_histogram": {
+    "timeout": 4
+  },
+  "contact_events": {
+    "3_floor": 212,
+    "anvil_pad_floor": 324,
+    "floor_jaw_pad": 324,
+    "floor_payload_box": 384
+  },
+  "joint_saturation": {
+    "x_slide": 0.0,
+    "y_slide": 0.0,
+    "z_slide": 0.016666666666666666,
+    "jaw_slide": 0.17500000000000002
+  },
+  "seed": 7,
+  "wall_clock_s": 0.04477489999999307,
+  "trace_uri": null
+}

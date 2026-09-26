@@ -1,0 +1,53 @@
+[
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": true,
+    "score": 1.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 4,
+      "total": 4,
+      "unresolved": [],
+      "termination_unresolved": [],
+      "entity_counts": {
+        "joint": 7,
+        "body": 8,
+        "site": 3,
+        "actuator": 6,
+        "sensor": 3
+      },
+      "schema_id": "dev-a"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": false,
+    "score": 0.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 0,
+      "total": 4,
+      "unresolved": [
+        "body.wrist.pos.z",
+        "joint.j_elbow.qpos",
+        "joint.j_shoulder.qpos",
+        "sensor.s_touch_left"
+      ],
+      "termination_unresolved": [
+        "body.finger_left.pos.z"
+      ],
+      "entity_counts": {
+        "joint": 5,
+        "body": 7,
+        "site": 3,
+        "actuator": 4,
+        "sensor": 3
+      },
+      "schema_id": "dev-b"
+    },
+    "rubric_version": "v1"
+  }
+]
