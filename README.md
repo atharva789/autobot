@@ -53,34 +53,38 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-27** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (clean firing —
-step 0 followed, identical state to 2026-09-26) · no push notification (nothing new since
-yesterday's, which already covered this)
+**2026-09-28** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (another v1/v2
+near-miss, caught before anything was pushed) · no push notification (nothing new since 2026-09-26's)
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim — the trigger is still not repointed to
-v2, now **48 days** since v2 shipped. This firing followed step 0 before touching any code: fetched
-`routine/experiments`, read `routines/registry.md`'s tail, and checked out that branch's existing tip
-`786489c` (already pushed by yesterday's firing) before reading `plan.md` §7 against it. No
-duplicate-build near-miss. Every standing blocker was re-verified fresh rather than carried forward:
+v2, now **54 days** since v2 shipped. This firing started from a fresh checkout detached at bare
+`master` and, before checking `routine/experiments`, wrote a duplicate compiler
+(`packages/research/loop_research/compiler.py`, a hand-written `dev-a` baseline, 17 passing tests) —
+the same stale-`master`-view mistake v2's step 0 exists to prevent. Caught it by fetching
+`routine/experiments` and running `list_pull_requests`, which surfaced PR #6 already carrying build
+order steps 1–7. Per the v2 prompt's explicit instruction, discarded the duplicate entirely
+(`git stash` then `git stash drop` — never committed or pushed) rather than merging or reconciling it
+myself, and re-did this firing from `routine/experiments` as the true state. Every standing blocker
+re-verified fresh:
 
-- PR #6 — open, draft, head `786489c` matches this branch's tip exactly, base `master` unchanged.
-  `get_reviews` → `[]`; `get_comments` → 52 (one more than yesterday, all of it yesterday's own
-  registry-update comment), all under the repo owner's account. No distinct human reviewer since the
-  2026-08-03 reconciliation comment — now **55 days**.
+- PR #6 — open, draft, `mergeable_state: clean`, 52 comments (unchanged since 2026-09-27), all under
+  the repo owner's account. `get_reviews` → `[]`. No distinct human reviewer since the 2026-08-03
+  reconciliation comment — now **56 days**.
 - Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` still holds only its
-  placeholder `README.md` (`ls -la` metadata only) — step 8 needs held-out schemas this routine may
-  not author or read, per spec.md §2/§9.
+  placeholder `README.md` — step 8 needs held-out schemas this routine may not author or read, per
+  spec.md §2/§9.
 - Actions: still exactly 1 `loop-research.yml` run total, from 2026-08-08 (`success`). No
   `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
-  row. `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json).
+  row; `experiments/queue/` still only the 2026-08-08 placeholder. `.runs/loop_research/` newest entry
+  still 2026-08-11's
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **48 days** with no new
+  run.
 - No source under `packages/research/loop_research/` or `tests/` changed since the 2026-09-26 run
-  that last confirmed 97/97 passing, so the suite was not rerun today — it would cost tokens without
-  producing new evidence.
+  that last confirmed 97/97 passing, so the suite was not rerun today.
 
-**No push notification**: yesterday's firing already sent one (the third) naming the exact same
-three blockers — PR #6 unreviewed, trigger still on v1, step 8 needs externally-supplied holdout
-schemas. Nothing about that state changed in the last 24 hours, so a repeat would only be noise.
+**No push notification**: 2026-09-26's is the most recent (third overall) and named the same three
+blockers this entry reconfirms (PR #6 unreviewed, trigger still on v1, step 8 needs
+externally-supplied holdout schemas). Two days without change is not a new fact worth a repeat ping.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
