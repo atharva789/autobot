@@ -53,34 +53,37 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-09-29** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (yet another
+**2026-09-30** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (yet another
 v1/v2 near-miss, caught before anything was pushed) · no push notification (nothing new since
 2026-09-26's)
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim — the trigger is still not repointed to
-v2, now **55 days** since v2 shipped. This firing again started from a fresh checkout detached at
-bare `master` and, before checking `routine/experiments`, wrote a duplicate compiler
-(`packages/research/loop_research/{expr,compiler}.py`, a hand-written `dev-a` baseline, 28 passing
-tests, even a committed infra-check run log) — the same stale-`master`-view mistake v2's step 0
-exists to prevent, now caught for at least the third time in a row. Caught it by fetching
+v2, now **56 days** since v2 shipped. This firing again started from a fresh checkout detached at
+bare `master` and, before checking `routine/experiments`, wrote a full duplicate compiler-to-MuJoCo
+(`packages/research/loop_research/{expr,compiler,rollout,baselines,train_baseline}.py`, a
+hand-written `dev-a` baseline scaffold, 30 passing tests, and a real CEM training run — elite
+population fitness moved -129.52 → -113.91 over 20 iterations, success_rate 0.0 throughout) — the
+same stale-`master`-view mistake v2's step 0 exists to prevent. Caught it by fetching
 `routine/experiments` and running `list_pull_requests`, which surfaced PR #6 already carrying build
-order steps 1–7. Discarded the duplicate entirely (`git reset --hard origin/routine/experiments` —
-never pushed; the discarded diff is not part of this branch's history) rather than merging or
-reconciling it myself, and re-did this firing from `routine/experiments` as the true state. Every
-standing blocker re-verified fresh via direct tool calls, not copied from yesterday's entry:
+order steps 1–7 at materially greater completeness (real loop, negative control, G2/G3, the
+Actions/Compose stack). Discarded the duplicate entirely (`git checkout --` + `git clean -fd` —
+nothing was ever staged, committed, or pushed) rather than merging or reconciling it myself, and
+re-did this firing from `routine/experiments` as the true state. Every standing blocker re-verified
+fresh via direct tool calls, not copied from yesterday's entry:
 
-- PR #6 — open, draft, `mergeable_state: clean`, **52 comments, unchanged since 2026-09-27**, every
-  one under the repo owner's account and ending in a Claude Code signature (no distinct human
-  reply). `get_reviews` → `[]`, `get_status` → 0 statuses. No human reviewer since the 2026-08-03
-  reconciliation comment — now **57 days**.
+- PR #6 — open, draft, head `58b4ac5` matching this branch's tip, **52 comments, unchanged since
+  2026-09-27**, every one under the repo owner's account, none from a distinct human reviewer.
+  `get_reviews` → `[]`. No human reviewer since the 2026-08-03 reconciliation comment — now
+  **58 days**.
 - Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` still holds only its
   placeholder `README.md` — step 8 needs held-out schemas this routine may not author or read, per
-  spec.md §2/§9.
+  spec.md §2/§9. (This firing's stale-`master` survey phase touched that path only as a filename
+  glob that matched nothing there — no content read.)
 - Actions: still exactly 1 `loop-research.yml` run total, from 2026-08-08 (`success`). No
   `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single 2026-08-03
   row; `experiments/queue/` still only the 2026-08-08 placeholder. `.runs/loop_research/` newest
   entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **49 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **50 days** with no
   new run.
 - No source under `packages/research/loop_research/` or `tests/` changed since the 2026-09-26 run
   that last confirmed 97/97 passing, so the suite was not rerun today.
@@ -88,7 +91,7 @@ standing blocker re-verified fresh via direct tool calls, not copied from yester
 **No push notification**: 2026-09-26's is still the most recent (third overall) and named the same
 three blockers this entry reconfirms (PR #6 unreviewed, trigger still on v1, step 8 needs
 externally-supplied holdout schemas). Confirmed today's checks produced no new fact — zero delta
-from 2026-09-28 on every one of them — so a fourth identical ping would be noise, not information.
+from 2026-09-29 on every one of them — so a fifth identical ping would be noise, not information.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
