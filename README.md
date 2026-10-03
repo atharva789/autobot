@@ -53,29 +53,23 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-02** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (yet another
-v1/v2 near-miss, caught before anything was pushed) · no push notification (nothing new since
-2026-09-26's)
+**2026-10-03** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (clean this
+time — no duplicate build to discard) · no push notification (nothing new since 2026-09-26's)
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim — the trigger is still not repointed to
-v2, now **58 days** since v2 shipped (confirmed by reading the trigger's own stored prompt directly
-via `get_trigger`, not inferred). This firing again started from a `master` checkout and, before
-checking `routine/experiments`, built a step-1 compiler-to-MuJoCo from that stale view (a
-restricted-AST reward/termination expression evaluator, a hand-written `dev-a` baseline scaffold,
-a CEM-based "trains" proof, and 14 passing tests) — the same stale-`master`-view mistake v2's step 0
-exists to prevent, and the 23rd+ confirmed recurrence of it. Caught it by running `git fetch origin`
-+ `git branch -a`, which surfaced `routine/experiments` carrying build order steps 1–7 at materially
-greater completeness (real loop, negative control, G2/G3, the Actions/Compose stack, `dev-b`).
-Discarded the duplicate (`git stash -u`; `git stash drop` was then blocked by this sandbox's own
-destructive-action permission guard and left orphaned rather than forced through — harmless, since
-the container is ephemeral and nothing was ever committed or pushed) rather than merging or
-reconciling it myself, and re-did this firing from `routine/experiments` as the true state. Every
-standing blocker re-verified fresh via direct tool calls, not copied from yesterday's entry:
+v2, now **59 days** since v2 shipped (confirmed by reading the trigger's own stored prompt directly
+via `get_trigger`, not inferred). This firing again started from a `master` checkout and began
+planning a step-1 compiler-to-MuJoCo from that stale view — but ran `git fetch origin` +
+`git log --oneline --all` before writing a single file, which surfaced `routine/experiments` 69
+commits ahead of `master`, carrying build order steps 1–7 at materially greater completeness (real
+loop, negative control, G2/G3, the Actions/Compose stack, `dev-b`). Unlike every prior near-miss
+recorded here, nothing was ever written to disk from the stale view, so there was no duplicate to
+discard and no `git stash` needed. Re-did this firing from `routine/experiments` as the true state.
+Every standing blocker re-verified fresh via direct tool calls, not copied from yesterday's entry:
 
-- PR #6 — open, draft, `mergeable_state: clean`, head `cb809c5` matching this branch's tip, **52
-  comments, unchanged since 2026-09-26**, every one under the repo owner's account (`get_comments`
-  spot-checked both ends of the page range), `get_reviews` → `[]`. No human reviewer since the
-  2026-08-03 reconciliation comment — now **60 days**.
+- PR #6 — open, draft, `mergeable_state: clean`, head `fc7e602` matching this branch's tip, **53
+  comments** (the 53rd is yesterday's own self-report, not a human reply), `get_reviews` → `[]`. No
+  human reviewer since the 2026-08-03 reconciliation comment — now **61 days**.
 - Build order (plan.md §7) still 7/8: `ls -la evals/policy_synthesis/holdout/` (listing only, no
   content read) still shows only `README.md` (414 bytes) — step 8 needs held-out schemas this
   routine may not author or read, per spec.md §2/§9.
@@ -83,15 +77,16 @@ standing blocker re-verified fresh via direct tool calls, not copied from yester
   2026-08-08 (`success`). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged
   since its single 2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder.
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **52 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **53 days** with no
   new run.
-- Reinstalled this sandbox's test deps fresh and reran the full `loop_research` suite today (not
-  skipped on the "nothing changed" assumption): **97/97 pass**, unchanged since 2026-08-24.
+- `git log --since 2026-08-12` on `packages/research/loop_research/` and
+  `tests/test_loop_research_*.py` returned nothing, so the suite wasn't rerun today; last actually
+  observed count stands at **97/97**, confirmed 2026-10-02.
 
 **No push notification**: 2026-09-26's is still the most recent (third overall) and named the same
 three blockers this entry reconfirms (PR #6 unreviewed, trigger still on v1, step 8 needs
-externally-supplied holdout schemas). Today's checks produced no new fact on any of them, so a
-seventh identical ping would be noise, not information.
+externally-supplied holdout schemas). Today's checks produced no new fact on any of them, so an
+eighth identical ping would be noise, not information.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
