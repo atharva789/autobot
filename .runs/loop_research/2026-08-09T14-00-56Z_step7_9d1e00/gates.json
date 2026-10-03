@@ -1,0 +1,216 @@
+[
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_4fa98a9c1ce8",
+    "passed": true,
+    "score": 1.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 11,
+      "total": 11,
+      "unresolved": [],
+      "termination_unresolved": [],
+      "entity_counts": {
+        "joint": 7,
+        "body": 8,
+        "site": 3,
+        "actuator": 6,
+        "sensor": 3
+      }
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_c13a2843c0b9",
+    "passed": true,
+    "score": 0.9886,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "link_scaled",
+      "structural_diff": 0.9886,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_9a69529415bb",
+      "mutant_scaffold_id": "sc_c13a2843c0b9"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_550a81339676",
+    "passed": true,
+    "score": 0.9375,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "limits_altered",
+      "structural_diff": 0.9375,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_9a69529415bb",
+      "mutant_scaffold_id": "sc_550a81339676"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_0d7651f82069",
+    "passed": true,
+    "score": 0.9737,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "topology_swapped",
+      "structural_diff": 0.9737,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_9a69529415bb",
+      "mutant_scaffold_id": "sc_0d7651f82069"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G3",
+    "scaffold_id": "sc_4fa98a9c1ce8",
+    "passed": true,
+    "score": 0.9643,
+    "threshold": 0.0278,
+    "detail": {
+      "schema_a": "dev-a",
+      "schema_b": "dev-b",
+      "structural_diff": 0.9643,
+      "tau": 0.0278,
+      "scaffold_a_id": "sc_4fa98a9c1ce8",
+      "scaffold_b_id": "sc_3c2ce96dbc5c"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": false,
+    "score": 0.0,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "link_scaled",
+      "structural_diff": 0.0,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_static_control_v1",
+      "mutant_scaffold_id": "sc_static_control_v1"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": false,
+    "score": 0.0,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "limits_altered",
+      "structural_diff": 0.0,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_static_control_v1",
+      "mutant_scaffold_id": "sc_static_control_v1"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": false,
+    "score": 0.0,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "dof_removed",
+      "structural_diff": 0.0,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_static_control_v1",
+      "mutant_scaffold_id": "sc_static_control_v1",
+      "dof_removed_hard_check": {
+        "deleted_joint": "j_shoulder",
+        "offending_symbols": [
+          "joint.j_shoulder.qpos"
+        ],
+        "passed": false
+      }
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": false,
+    "score": 0.0,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "topology_swapped",
+      "structural_diff": 0.0,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_static_control_v1",
+      "mutant_scaffold_id": "sc_static_control_v1"
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": true,
+    "score": 1.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 4,
+      "total": 4,
+      "unresolved": [],
+      "termination_unresolved": [],
+      "entity_counts": {
+        "joint": 7,
+        "body": 8,
+        "site": 3,
+        "actuator": 6,
+        "sensor": 3
+      }
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G1",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": false,
+    "score": 0.0,
+    "threshold": 0.8,
+    "detail": {
+      "resolved": 0,
+      "total": 4,
+      "unresolved": [
+        "body.wrist.pos.z",
+        "joint.j_elbow.qpos",
+        "joint.j_shoulder.qpos",
+        "sensor.s_touch_left"
+      ],
+      "termination_unresolved": [
+        "body.finger_left.pos.z"
+      ],
+      "entity_counts": {
+        "joint": 5,
+        "body": 7,
+        "site": 3,
+        "actuator": 4,
+        "sensor": 3
+      }
+    },
+    "rubric_version": "v1"
+  },
+  {
+    "gate": "G3",
+    "scaffold_id": "sc_static_control_v1",
+    "passed": false,
+    "score": 0.0,
+    "threshold": 0.0278,
+    "detail": {
+      "schema_a": "dev-a",
+      "schema_b": "dev-a",
+      "structural_diff": 0.0,
+      "tau": 0.0278,
+      "scaffold_a_id": "sc_static_control_v1",
+      "scaffold_b_id": "sc_static_control_v1"
+    },
+    "rubric_version": "v1"
+  }
+]

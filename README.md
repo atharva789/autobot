@@ -53,19 +53,40 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-03** · build order: steps 1–3 partially implemented · first local run recorded
+**2026-10-03** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (clean this
+time — no duplicate build to discard) · no push notification (nothing new since 2026-09-26's)
 
-First smoke of the loop ran locally on a substitute provider (Haiku via the repo's `claude-code`
-adapter, subscription auth, $0 API spend), pending OpenAI credits. One evidence-dense call emitted
-a 5-reward-term, 4-termination scaffold for schema `dev-a`; **G1 passed at score 1.0**
-(21/21 symbols resolved). The G1 resolver carries 6 passing tests, including proof it fails
-scaffolds with fabricated entities. Evidence:
-[`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json).
+Bootstrap again named `daily-loop-research.v1.md` verbatim — the trigger is still not repointed to
+v2, now **59 days** since v2 shipped (confirmed by reading the trigger's own stored prompt directly
+via `get_trigger`, not inferred). This firing again started from a `master` checkout and began
+planning a step-1 compiler-to-MuJoCo from that stale view — but ran `git fetch origin` +
+`git log --oneline --all` before writing a single file, which surfaced `routine/experiments` 69
+commits ahead of `master`, carrying build order steps 1–7 at materially greater completeness (real
+loop, negative control, G2/G3, the Actions/Compose stack, `dev-b`). Unlike every prior near-miss
+recorded here, nothing was ever written to disk from the stale view, so there was no duplicate to
+discard and no `git stash` needed. Re-did this firing from `routine/experiments` as the true state.
+Every standing blocker re-verified fresh via direct tool calls, not copied from yesterday's entry:
 
-Honest boundaries: no MuJoCo compilation or training has run (step 1's gate is unmet); dev-b and
-both holdout schemas do not exist yet; the negative control (step 4) is not implemented, so G1's
-pass is not yet calibrated against a cheating loop. A daily local budget check unlocks the OpenAI
-compute plane when credits exceed $500 ([`budget log`](routines/budget-log.md)).
+- PR #6 — open, draft, `mergeable_state: clean`, head `fc7e602` matching this branch's tip, **53
+  comments** (the 53rd is yesterday's own self-report, not a human reply), `get_reviews` → `[]`. No
+  human reviewer since the 2026-08-03 reconciliation comment — now **61 days**.
+- Build order (plan.md §7) still 7/8: `ls -la evals/policy_synthesis/holdout/` (listing only, no
+  content read) still shows only `README.md` (414 bytes) — step 8 needs held-out schemas this
+  routine may not author or read, per spec.md §2/§9.
+- Actions (`actions_list list_workflow_runs`): still exactly 1 `loop-research.yml` run total, from
+  2026-08-08 (`success`). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged
+  since its single 2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder.
+  `.runs/loop_research/` newest entry still 2026-08-11's
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **53 days** with no
+  new run.
+- `git log --since 2026-08-12` on `packages/research/loop_research/` and
+  `tests/test_loop_research_*.py` returned nothing, so the suite wasn't rerun today; last actually
+  observed count stands at **97/97**, confirmed 2026-10-02.
+
+**No push notification**: 2026-09-26's is still the most recent (third overall) and named the same
+three blockers this entry reconfirms (PR #6 unreviewed, trigger still on v1, step 8 needs
+externally-supplied holdout schemas). Today's checks produced no new fact on any of them, so an
+eighth identical ping would be noise, not information.
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
@@ -230,7 +251,9 @@ Next.js + optional Electron shell                    FastAPI + RobotWorkspaceSDK
                                                         |
                                              packages/research
                                              strategies, prompts,
-                                             experiments, metrics, storage
+                                             experiments, metrics, storage,
+                                             loop_research (spec 012 — schema-conditioned
+                                             policy synthesis, self-contained)
 ```
 
 Allowed dependency directions:
@@ -328,10 +351,13 @@ apps/
 packages/
 ├── pipeline/                    shared deterministic robotics kernel
 └── research/                    loops, strategies, experiments, metrics, prompts, agent eval POC
+    └── loop_research/           spec 012 — TrainingScaffold, MuJoCo compiler, G1-G4 gates
 
 specs/                           Spec Kit feature directories and acceptance contracts
 tests/                           backend, pipeline, research, and frontend-contract tests
 evals/                           protected robot-design tasks plus trace/loop evaluation tooling
+├── policy_synthesis/dev/        spec 012 development schemas (dev-a; dev-b not yet added)
+└── policy_synthesis/holdout/    spec 012 held-out schemas — generalization test, untouched by design
 supabase/migrations/             hosted schema history and grammar catalog migrations
 docs/                            detailed GitBook-compatible documentation
 ```

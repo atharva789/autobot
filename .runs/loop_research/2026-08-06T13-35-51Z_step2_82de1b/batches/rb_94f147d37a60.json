@@ -1,0 +1,26 @@
+{
+  "batch_id": "rb_94f147d37a60",
+  "scaffold_id": "sc_dev_b_baseline",
+  "episodes": 8,
+  "step_budget": 300,
+  "success_rate": 0.0,
+  "termination_histogram": {
+    "timeout": 8
+  },
+  "contact_events": {
+    "3_floor": 480,
+    "anvil_pad_floor": 1376,
+    "floor_jaw_pad": 1376,
+    "floor_payload_box": 6296,
+    "anvil_pad_payload_box": 816
+  },
+  "joint_saturation": {
+    "x_slide": 0.0,
+    "y_slide": 0.0,
+    "z_slide": 0.006666666666666667,
+    "jaw_slide": 0.5966666666666667
+  },
+  "seed": 7,
+  "wall_clock_s": 0.3249627209997925,
+  "trace_uri": null
+}

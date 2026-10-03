@@ -1,0 +1,75 @@
+{
+  "run_id": "2026-08-03T13-39-19Z_step2_ce8fd4",
+  "git_sha": "27f15ccf5a958d2bd700343e69c535b7700f0bdb",
+  "trigger": "routine",
+  "status": "completed",
+  "scaffolds": [
+    "sc_dev_a_baseline",
+    "sc_dev_b_baseline"
+  ],
+  "batches": [
+    "rb_345e061f568f",
+    "rb_b7984194d18c"
+  ],
+  "gates": [
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_dev_a_baseline",
+      "passed": true,
+      "score": 1.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 9,
+        "total": 9,
+        "unresolved": [],
+        "termination_unresolved": [],
+        "entity_counts": {
+          "joint": 7,
+          "body": 8,
+          "site": 3,
+          "actuator": 6,
+          "sensor": 3
+        }
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_dev_b_baseline",
+      "passed": true,
+      "score": 1.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 9,
+        "total": 9,
+        "unresolved": [],
+        "termination_unresolved": [],
+        "entity_counts": {
+          "joint": 5,
+          "body": 7,
+          "site": 3,
+          "actuator": 4,
+          "sensor": 3
+        }
+      },
+      "rubric_version": "v1"
+    }
+  ],
+  "cost": {
+    "usd_total": 0.0,
+    "usd_ceiling": 0.0,
+    "ceiling_hit": false,
+    "note": "hand-written baselines, no model calls; rollouts run locally, no OpenAI spend"
+  },
+  "replay": {
+    "dev_a_schema_digest": "sha256:5de2f0cdc712871799bb05c8d2fc76149bc9f98ed12757a62b273b969c5b8c0d",
+    "dev_b_schema_digest": "sha256:ac4a0f25c61bc54e65bccba9bf83d7224cbdb5d5efb03e30a3eed84b5a5a2402",
+    "prompt_version": "n/a",
+    "model_id": "human",
+    "seed": 7
+  },
+  "manifest_path": null,
+  "control": {
+    "note": "negative control not yet implemented (build order step 4)"
+  }
+}

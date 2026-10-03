@@ -1,0 +1,24 @@
+{
+  "batch_id": "rb_46adab5b304f",
+  "scaffold_id": "sc_59592391940d",
+  "episodes": 4,
+  "step_budget": 60,
+  "success_rate": 0.0,
+  "termination_histogram": {
+    "failure_lost_contact": 4
+  },
+  "contact_events": {
+    "3_floor": 16,
+    "anvil_pad_floor": 16,
+    "floor_jaw_pad": 16
+  },
+  "joint_saturation": {
+    "x_slide": 0.0,
+    "y_slide": 0.0,
+    "z_slide": 1.0,
+    "jaw_slide": 1.0
+  },
+  "seed": 7,
+  "wall_clock_s": 0.014385097999820573,
+  "trace_uri": null
+}
