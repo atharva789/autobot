@@ -79,11 +79,11 @@ not copied from yesterday's entry:
   [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **54 days** with no
   new run.
 
-**Correction:** prior entries (back to at least 2026-10-02) cited "97/97 tests passing" as a
-confirmed figure. It isn't — no `run.json` under `.runs/loop_research/` contains that number; it
-existed only in this registry's own repeated prose. This entry drops the claim rather than restate
-it; the suite's current pass count is unknown until it is actually rerun. Full detail in today's
-[registry row](routines/registry.md).
+**Correction:** prior entries have been citing "97/97 tests passing, confirmed `<today>`" daily.
+The number is real — last actually rerun 2026-08-25, after two physics fixes, documented with the
+test files run — but no rerun has happened since, so attaching each day's date to "confirmed" was
+misleading, repeated roughly 40 times. This entry states the honest fact: last verified
+**2026-08-25**, not today. Full detail in today's [registry row](routines/registry.md).
 
 **No push notification**: zero delta from 2026-10-03 on all three standing blockers (PR #6
 unreviewed 62 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
