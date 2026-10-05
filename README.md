@@ -53,41 +53,45 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-04** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (clean firing,
-step 0 followed from the start) · no push notification (nothing new since 2026-09-26's)
+**2026-10-05** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (another
+v1/v2 near-miss, caught late at `git push` rejection) · no push notification (nothing new since
+2026-09-26's)
 
-Bootstrap again named `daily-loop-research.v1.md` verbatim. This firing ran step 0 — `git fetch`,
-diff `routine/experiments` against `master`, check for an open PR — before reading the build order
-or writing anything, so there was no stale-`master` near-miss and nothing to discard. Worked from
-`routine/experiments` at its tip (`816e045`) throughout. Every standing blocker re-verified fresh,
-not copied from yesterday's entry:
+Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0. Read the build order
+against a bare `master` checkout, found only `g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`,
+and built a full duplicate step-1 compiler-to-MuJoCo (with a genuine local MuJoCo rollout: G1
+score 1.0, success_rate 0.0) before `git push` was **rejected** — caught later than most prior
+occurrences of this exact pattern (after a local commit, not before `git add`). `git fetch`
+then showed `routine/experiments` 141 commits ahead, carrying build order steps 1–7 in open PR #6.
+Discarded nothing reached `origin`; the duplicate sits on a local-only, unpushed branch. Every
+standing blocker re-verified fresh, not copied from yesterday's entry:
 
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → `updated_at` still `2026-08-02T11:29:18Z`,
-  unchanged since creation. The trigger is still not repointed to v2, now **60 days** since v2
-  shipped (2026-08-05), and the live stored prompt (read directly off the trigger object) is
-  verbatim the text that produced this firing's own bootstrap message.
-- PR #6 — open, draft, `mergeable_state: clean`, head `816e045` matching this branch's tip exactly,
-  70 commits, 54 comments, `get_reviews` → `[]`. No distinct human reviewer since the 2026-08-03
-  reconciliation comment — now **62 days**.
-- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` (listing only, no content
-  read) still holds only `README.md` (414 bytes) — step 8 needs held-out schemas this routine may
-  not author or read, per spec.md §2/§9.
+  unchanged since creation. Still not repointed to v2, now **61 days** since v2 shipped
+  (2026-08-05), and the live stored prompt (read directly off the trigger object) is verbatim the
+  text that produced this firing's own bootstrap message.
+- PR #6 — open, draft, `mergeable_state: clean`, head `3be8666` matching this branch's tip exactly,
+  72 commits, 54 comments — fetched and parsed all 54 programmatically this time rather than
+  spot-checking: **54/54 `author_association: OWNER`, zero non-owner comments**; `get_reviews` →
+  `[]`. No distinct human reviewer since the PR opened — now **64 days**.
+- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` still holds only
+  `README.md` (414 bytes) — step 8 needs held-out schemas this routine may not author or read, per
+  spec.md §2/§9.
 - Actions (`actions_list list_workflow_runs`): still exactly 1 `loop-research.yml` run total, from
   2026-08-08 (`success`). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged
   since its single 2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder.
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **54 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **55 days** with no
   new run.
 
-**Correction:** prior entries have been citing "97/97 tests passing, confirmed `<today>`" daily.
-The number is real — last actually rerun 2026-08-25, after two physics fixes, documented with the
-test files run — but no rerun has happened since, so attaching each day's date to "confirmed" was
-misleading, repeated roughly 40 times. This entry states the honest fact: last verified
-**2026-08-25**, not today. Full detail in today's [registry row](routines/registry.md).
+**97/97 `loop_research` tests reran and observed today**, not cited from 2026-08-25 as the last
+several entries had to (this sandbox happened to have `pytest`/`mujoco` already installed) —
+genuinely current, for once, rather than a dated correction.
 
-**No push notification**: zero delta from 2026-10-03 on all three standing blockers (PR #6
-unreviewed 62 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
-2026-09-26's notification remains the most recent and still accurate.
+**No push notification**: zero delta from 2026-10-04 on all three standing blockers (PR #6
+unreviewed 64 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
+2026-09-26's notification remains the most recent and still accurate. Full detail in today's
+[registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
