@@ -53,43 +53,45 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-05** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (another
-v1/v2 near-miss, caught late at `git push` rejection) · no push notification (nothing new since
-2026-09-26's)
+**2026-10-06** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (another
+v1/v2 near-miss, caught cleanly this time — at `git fetch`, before any local commit or push) ·
+no push notification (nothing new since 2026-09-26's)
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0. Read the build order
 against a bare `master` checkout, found only `g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`,
-and built a full duplicate step-1 compiler-to-MuJoCo (with a genuine local MuJoCo rollout: G1
-score 1.0, success_rate 0.0) before `git push` was **rejected** — caught later than most prior
-occurrences of this exact pattern (after a local commit, not before `git add`). `git fetch`
-then showed `routine/experiments` 141 commits ahead, carrying build order steps 1–7 in open PR #6.
-Discarded nothing reached `origin`; the duplicate sits on a local-only, unpushed branch. Every
-standing blocker re-verified fresh, not copied from yesterday's entry:
+and built a full duplicate step-1 compiler-to-MuJoCo plus a CEM training demo against it (real
+measured numbers: population-mean reward -25.1516 → -24.9520, elite-mean -23.8185 → -23.7705 over
+14 generations — small, noisy, reported as such) before running `git fetch`, which surfaced
+`routine/experiments` 72 commits ahead, carrying build order steps 1–7 in open PR #6. Caught at the
+cleanest point this pattern allows — before any local commit or push — so nothing reached
+`origin`; the duplicate sits stashed, locally, unpushed. Every standing blocker re-verified fresh,
+not copied from yesterday's entry:
 
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → `updated_at` still `2026-08-02T11:29:18Z`,
-  unchanged since creation. Still not repointed to v2, now **61 days** since v2 shipped
+  unchanged since creation. Still not repointed to v2, now **62 days** since v2 shipped
   (2026-08-05), and the live stored prompt (read directly off the trigger object) is verbatim the
   text that produced this firing's own bootstrap message.
-- PR #6 — open, draft, `mergeable_state: clean`, head `3be8666` matching this branch's tip exactly,
-  72 commits, 54 comments — fetched and parsed all 54 programmatically this time rather than
-  spot-checking: **54/54 `author_association: OWNER`, zero non-owner comments**; `get_reviews` →
-  `[]`. No distinct human reviewer since the PR opened — now **64 days**.
-- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` still holds only
-  `README.md` (414 bytes) — step 8 needs held-out schemas this routine may not author or read, per
+- PR #6 — open, draft, `mergeable_state: clean`, head `3a081fb` matching this branch's tip exactly,
+  73 commits, 54 comments — fetched and parsed all 54 programmatically: **54/54
+  `author_association: OWNER`, zero non-owner comments**, latest dated 2026-10-03; `get_reviews` →
+  `[]`. No distinct human reviewer since the PR opened — now **65 days**.
+- Build order (plan.md §7) still 7/8: `dev-a.xml`/`dev-b.xml` both present under
+  `evals/policy_synthesis/dev/`; `evals/policy_synthesis/holdout/` still holds only
+  `README.md` — step 8 needs held-out schemas this routine may not author or read, per
   spec.md §2/§9.
 - Actions (`actions_list list_workflow_runs`): still exactly 1 `loop-research.yml` run total, from
   2026-08-08 (`success`). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged
   since its single 2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder.
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **55 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **56 days** with no
   new run.
 
-**97/97 `loop_research` tests reran and observed today**, not cited from 2026-08-25 as the last
-several entries had to (this sandbox happened to have `pytest`/`mujoco` already installed) —
-genuinely current, for once, rather than a dated correction.
+**97/97 `loop_research` tests reran and observed today**, against `routine/experiments` (this
+sandbox needed `mujoco`/`pytest`/`numpy`/`pydantic`/`python-dotenv`/`langsmith`/`langchain`/
+`langchain-openai`/`pyyaml` installed fresh — none were preinstalled).
 
-**No push notification**: zero delta from 2026-10-04 on all three standing blockers (PR #6
-unreviewed 64 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
+**No push notification**: zero delta from 2026-10-05 on all three standing blockers (PR #6
+unreviewed 65 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
 2026-09-26's notification remains the most recent and still accurate. Full detail in today's
 [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
