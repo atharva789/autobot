@@ -53,52 +53,43 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-08** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op (another v1/v2
-near-miss, caught before any commit via a pre-push remote check) · no push notification (nothing
-new since 2026-09-26's)
+**2026-10-09** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op, clean firing
+(zero delta from 2026-10-08) · no push notification (nothing new since 2026-09-26's)
 
-Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0. This firing read the build
-order against a bare `master` checkout alone, concluded step 1 (compiler-to-MuJoCo) was next, and
-built a full duplicate — expression compiler, scaffold-to-MuJoCo binder, a hand-written `dev-a`
-baseline, 26 passing tests, one `.runs/loop_research/` entry — before running `git status` /
-`git ls-remote` as part of the "Ship it" step's own pre-push checks, which surfaced
-`routine/experiments` already carrying build order steps 1–7 in open draft PR #6, 109 files ahead
-of `master`. Caught before any local commit: `git stash push -u`, then checked out the real tip.
-Every standing blocker was then re-verified fresh from `routine/experiments`, not copied from
-yesterday's entry:
+Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0. Started a `git checkout -B
+routine/experiments` from bare `origin/master` before writing any file, but caught it immediately —
+before touching a single file — via a GitHub PR lookup (`list_pull_requests
+head:"atharva789:routine/experiments"`), which surfaced open draft PR #6 already 76 commits ahead
+of `master`. Reset to `origin/routine/experiments` and re-verified every standing blocker fresh,
+not copied from yesterday's entry:
 
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → `updated_at` still `2026-08-02T11:29:18Z`,
-  unchanged since creation. Still not repointed to v2, now **64 days** since v2 shipped
-  (2026-08-05), and the live stored prompt (read directly off the trigger object) is verbatim the
-  v1 text this firing's own bootstrap carried.
-- PR #6 — open, draft, `mergeable_state: clean`, head `d19668a` matching this branch's tip exactly,
-  75 commits, 54 comments (unchanged since 2026-10-03, the last one actually posted, 54/54
-  `author_association: OWNER`); `get_reviews` → `[]`. No distinct human reviewer since the PR
-  opened (`created_at` 2026-08-02) — now **67 days**.
+  stored prompt still v1 verbatim — not repointed to v2, now **65 days** since v2 shipped
+  (2026-08-05).
+- PR #6 — open, draft, `mergeable_state: clean`, head `17e4b76` matching this branch's tip exactly,
+  76 commits, 55 comments (unchanged since 2026-10-08, the last one actually posted);
+  `get_reviews` → `[]`. No distinct human reviewer since the PR opened (`created_at` 2026-08-02) —
+  now **68 days**.
 - Build order (plan.md §7) still 7/8: `dev-a.xml`/`dev-b.xml` both present under
-  `evals/policy_synthesis/dev/`; `ls -la evals/policy_synthesis/holdout/` (listing only, no content
-  read) still shows only `README.md` (414 bytes) — step 8 needs held-out schemas this routine may
-  not author or read, per spec.md §2/§9.
+  `evals/policy_synthesis/dev/`; `holdout/` (listing only, no content read) still shows only
+  `README.md` (414 bytes) — step 8 needs held-out schemas this routine may not author or read, per
+  spec.md §2/§9.
 - Actions (`actions_list list_workflow_runs`): still exactly 1 `loop-research.yml` run total, from
   2026-08-08 (`success`). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged
   since its single 2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder.
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **58 days** with no
-  new run. That run's own `run.json` records real cost to date: `usd_total: 0.0` against a
-  `usd_ceiling` of `5.0` (local claude-code/haiku substitute provider, subscription auth, no API
-  spend) — the only cost figure that exists in a committed file.
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **59 days** with no
+  new run.
 
-**`loop_research` test suite reran today**: this sandbox happened to have `mujoco`/`pytest`
-installable, so after installing the remaining import-chain deps (`pydantic`, `langsmith`,
-`langchain`, `langchain-openai`, `python-dotenv`, `nbformat`, `jsonschema`, `fastapi`, `httpx`,
-`click`), the full suite ran directly against `routine/experiments` —
-**97/97 `loop_research` tests pass, genuinely reran and observed today**, unchanged from
-2026-10-06's rerun (`git log --since 2026-10-06` on the source paths confirmed no change).
+`loop_research` test suite not rerun today — this sandbox has no `mujoco`/`pytest` preinstalled,
+and `git log --since 2026-10-08` on the source paths shows no change, so the last
+actually-observed count (**97/97, confirmed 2026-10-08**) stands rather than being restated under
+today's date.
 
-**No push notification**: zero delta from 2026-10-07 on all three standing blockers (PR #6
-unreviewed 67 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
-2026-09-26's notification remains the most recent and still accurate. Full detail in today's
-[registry row](routines/registry.md).
+**No push notification**: zero delta from 2026-10-08 on all three standing blockers (PR #6
+unreviewed 68 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
+2026-09-26's notification remains the most recent and still accurate, now 13 days old. Full detail
+in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
