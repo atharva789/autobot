@@ -1,0 +1,25 @@
+{
+  "batch_id": "rb_9ec0dcb504ce",
+  "scaffold_id": "sc_805a6d9ea1ca",
+  "episodes": 4,
+  "step_budget": 60,
+  "success_rate": 0.0,
+  "termination_histogram": {
+    "Payload dropped due to loss of grip contact": 4
+  },
+  "contact_events": {
+    "3_pad_left": 4,
+    "3_pad_right": 8
+  },
+  "joint_saturation": {
+    "j_base_yaw": 0.0,
+    "j_shoulder": 0.0,
+    "j_elbow": 0.0,
+    "j_wrist": 0.0,
+    "j_finger_left": 0.25,
+    "j_finger_right": 0.0
+  },
+  "seed": 7,
+  "wall_clock_s": 0.010080353999910585,
+  "trace_uri": null
+}

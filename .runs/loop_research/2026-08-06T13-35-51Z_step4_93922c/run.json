@@ -1,0 +1,96 @@
+{
+  "run_id": "2026-08-06T13-35-51Z_step4_93922c",
+  "git_sha": "5f3e74527fbb32b66d0568c2daefb2a8a0274de3",
+  "trigger": "routine",
+  "status": "completed",
+  "scaffolds": [
+    "sc_static_control_v1"
+  ],
+  "batches": [],
+  "gates": [
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": true,
+      "score": 1.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 4,
+        "total": 4,
+        "unresolved": [],
+        "termination_unresolved": [],
+        "entity_counts": {
+          "joint": 7,
+          "body": 8,
+          "site": 3,
+          "actuator": 6,
+          "sensor": 3
+        },
+        "schema_id": "dev-a"
+      },
+      "rubric_version": "v1"
+    },
+    {
+      "gate": "G1",
+      "scaffold_id": "sc_static_control_v1",
+      "passed": false,
+      "score": 0.0,
+      "threshold": 0.8,
+      "detail": {
+        "resolved": 0,
+        "total": 4,
+        "unresolved": [
+          "body.wrist.pos.z",
+          "joint.j_elbow.qpos",
+          "joint.j_shoulder.qpos",
+          "sensor.s_touch_left"
+        ],
+        "termination_unresolved": [
+          "body.finger_left.pos.z"
+        ],
+        "entity_counts": {
+          "joint": 5,
+          "body": 7,
+          "site": 3,
+          "actuator": 4,
+          "sensor": 3
+        },
+        "schema_id": "dev-b"
+      },
+      "rubric_version": "v1"
+    }
+  ],
+  "cost": {
+    "usd_total": 0.0,
+    "usd_ceiling": 0.0,
+    "ceiling_hit": false,
+    "note": "static control makes no model calls; G1 is a static parse, no OpenAI spend"
+  },
+  "replay": {
+    "dev_a_schema_digest": "sha256:3739a537a402cb19951b2f1ca72b4f8a02647bac488ee0b74d3779337cf7cae8",
+    "prompt_version": "n/a",
+    "model_id": "static_scaffold_loop",
+    "seed": 0
+  },
+  "manifest_path": null,
+  "control": {
+    "loop": "static_scaffold_loop",
+    "gates": [
+      {
+        "gate": "G1",
+        "schema_id": "dev-a",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "gate": "G1",
+        "schema_id": "dev-b",
+        "passed": false,
+        "score": 0.0
+      }
+    ],
+    "g2_g3": "not computed: structural diff D(a, b) is build-order step 5, not yet implemented. tests/test_loop_research_step4.py asserts the control returns an identical scaffold object for different (schema_path, task_text) inputs, which makes D = 0 under every term of eval-contract.md's formula by construction -- this is a structural fact, not a measured score, and no numeric G2/G3 result is claimed here.",
+    "g4": "not run -- G1 already fails on dev-b, per eval-contract.md's required outcome table",
+    "required_outcome_met": true
+  }
+}
