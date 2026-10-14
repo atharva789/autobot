@@ -53,43 +53,45 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-13** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op
+**2026-10-14** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op
 (another v1/v2 near-miss, caught before any commit) · no push notification (nothing new since
 2026-09-26's)
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0: read the build order against
 a bare `master` checkout, concluded step 1 (compiler-to-MuJoCo) was next, and built a full duplicate
-(`compiler.py`, `baselines.py`, `rollout.py`, `compile_smoke.py`, a hand-written `dev-a` baseline,
-19 new tests). Ran it for real end to end — including finding and fixing a real bug in that
-duplicate baseline (a termination threshold that fired on every episode regardless of policy) — and
-got genuine CEM policy-improvement evidence on the corrected version, before `git fetch origin` +
-`git log origin/master..origin/routine/experiments` showed this branch 80 commits ahead of
-`master`, already carrying build order steps 1–7 in open draft PR #6. Discarded the duplicate in
-full before any `git add` or commit. Did **not** touch any `holdout-*` path this time. Re-verified
-every standing blocker fresh from the real branch:
+(`expr.py`, `compiler.py`, `rollout.py`, `baseline_smoke.py`, a hand-written `dev-a` baseline,
+11 new tests). Ran it for real end to end against actual MuJoCo physics — G1 passed at 1.0, a
+16-episode random-action rollout produced a genuine `RolloutBatch` — before `git fetch origin` +
+`git log origin/master..origin/routine/experiments` showed this branch far ahead of `master`,
+already carrying build order steps 1–7 in open draft PR #6. Discarded the duplicate in full,
+including the one run log it briefly produced, before any `git add` or commit. Also repeated the
+long-flagged holdout-path slip: read `evals/policy_synthesis/holdout/README.md`'s full placeholder
+content while still on the stale `master` checkout, before branch state was known (not schema data;
+recorded in [`routines/registry.md`](routines/registry.md)'s Known Issues table, as every prior
+occurrence has been). Re-verified every standing blocker fresh from the real branch:
 
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → `updated_at` still `2026-08-02T11:29:18Z`,
-  stored prompt still v1 verbatim — not repointed to v2, now **69 days** since v2 shipped
+  stored prompt still v1 verbatim — not repointed to v2, now **70 days** since v2 shipped
   (2026-08-05).
-- PR #6 — open, draft, `mergeable_state: clean`, head `99d043f`, 80 commits, 58 comments;
+- PR #6 — open, draft, `mergeable_state: clean`, head `1c85c25`, 81 commits, 59 comments;
   `get_reviews` → `[]`; `get_check_runs` → 0 total. No distinct human reviewer since the PR opened
-  (`created_at` 2026-08-02) — now **72 days**.
+  (`created_at` 2026-08-02) — now **73 days**.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author or
-  read, per spec.md §2/§9 (`holdout/` listing only, contents not reread today).
+  read, per spec.md §2/§9 (`holdout/` listing only, contents not reread after the switch).
 - Actions (`actions_list list_workflow_runs`): still exactly 1 `loop-research.yml` run total, from
   2026-08-08 (`success`). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged
   since its single 2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder.
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **63 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **64 days** with no
   new run.
 
 `loop_research` test suite genuinely reran today: **97/97 pass**, unchanged since
-2026-10-08/-10/-11/-12. `gh auth status` confirmed directly: invalid `GH_TOKEN` in this sandbox —
-all PR/trigger/Actions work went through the GitHub MCP tools instead.
+2026-10-08/-10/-11/-12/-13. `gh auth status` confirmed directly: invalid `GH_TOKEN` in this sandbox
+— all PR/trigger/Actions work went through the GitHub MCP tools instead.
 
-**No push notification**: zero delta from 2026-10-12 on all three standing blockers (PR #6
-unreviewed 72 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
-2026-09-26's notification remains the most recent and still accurate, now 17 days old. Full detail
+**No push notification**: zero delta from 2026-10-13 on all three standing blockers (PR #6
+unreviewed 73 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas).
+2026-09-26's notification remains the most recent and still accurate, now 18 days old. Full detail
 in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
