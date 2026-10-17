@@ -1,0 +1,159 @@
+{
+  "scaffold_id": "sc_805a6d9ea1ca",
+  "schema_id": "dev-a",
+  "schema_digest": "sha256:3739a537a402cb19951b2f1ca72b4f8a02647bac488ee0b74d3779337cf7cae8",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "height_progress",
+      "weight": 2.0,
+      "expression": "max(0, site.payload_center.pos.z - 0.1)",
+      "symbols": [
+        "site.payload_center.pos.z"
+      ],
+      "rationale": "Reward lifting payload above initial resting height"
+    },
+    {
+      "name": "shelf_approach",
+      "weight": 1.5,
+      "expression": "-abs(site.payload_center.pos.z - site.shelf_target.pos.z)",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Penalize distance from target shelf height to encourage precise reach"
+    },
+    {
+      "name": "success_bonus",
+      "weight": 3.0,
+      "expression": "max(0, min(site.payload_center.pos.z - site.shelf_target.pos.z + 0.1, 0.1))",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Bonus when payload reaches and stays within 10cm of shelf target"
+    },
+    {
+      "name": "grip_maintenance",
+      "weight": 0.8,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Maintain contact between left gripper finger and payload to prevent dropping"
+    },
+    {
+      "name": "motion_smoothness",
+      "weight": 0.1,
+      "expression": "-abs(joint.j_shoulder.qvel) - abs(joint.j_elbow.qvel) - abs(joint.j_wrist.qvel) - abs(joint.j_base_yaw.qvel)",
+      "symbols": [
+        "joint.j_shoulder.qvel",
+        "joint.j_elbow.qvel",
+        "joint.j_wrist.qvel",
+        "joint.j_base_yaw.qvel"
+      ],
+      "rationale": "Penalize high joint velocities to encourage controlled motion"
+    }
+  ],
+  "terminations": [
+    {
+      "name": "grip_lost",
+      "predicate": "sensor.s_touch_left < 0.1",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "cause_label": "Payload dropped due to loss of grip contact"
+    },
+    {
+      "name": "task_success",
+      "predicate": "site.payload_center.pos.z >= site.shelf_target.pos.z - 0.05",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "Payload successfully lifted to shelf height"
+    },
+    {
+      "name": "payload_fallen",
+      "predicate": "site.payload_center.pos.z < 0.08",
+      "symbols": [
+        "site.payload_center.pos.z"
+      ],
+      "cause_label": "Payload fell below starting height"
+    },
+    {
+      "name": "shoulder_joint_limit",
+      "predicate": "abs(joint.j_shoulder.qpos) > 1.57",
+      "symbols": [
+        "joint.j_shoulder.qpos"
+      ],
+      "cause_label": "Shoulder joint exceeded safe range"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "target_height",
+      "range": [
+        0.25,
+        0.25
+      ],
+      "advance_when": "mean_episode_reward > 80 over 50 consecutive episodes"
+    },
+    {
+      "stage": 1,
+      "parameter": "target_height",
+      "range": [
+        0.38,
+        0.38
+      ],
+      "advance_when": "mean_episode_reward > 85 over 50 consecutive episodes"
+    },
+    {
+      "stage": 2,
+      "parameter": "target_height",
+      "range": [
+        0.52,
+        0.52
+      ],
+      "advance_when": "training converges"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        2.0
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "initial_payload_offset_y",
+      "range": [
+        -0.04,
+        0.04
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "gripper_friction",
+      "range": [
+        0.4,
+        1.0
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 7,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

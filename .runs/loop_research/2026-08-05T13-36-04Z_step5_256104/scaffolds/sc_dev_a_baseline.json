@@ -1,0 +1,93 @@
+{
+  "scaffold_id": "sc_dev_a_baseline",
+  "schema_id": "dev-a",
+  "schema_digest": "sha256:3739a537a402cb19951b2f1ca72b4f8a02647bac488ee0b74d3779337cf7cae8",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "reach",
+      "weight": 0.3,
+      "expression": "-(abs(site.grip_center.pos.x - site.payload_center.pos.x) + abs(site.grip_center.pos.y - site.payload_center.pos.y) + abs(site.grip_center.pos.z - site.payload_center.pos.z))",
+      "symbols": [
+        "site.grip_center.pos.x",
+        "site.payload_center.pos.x",
+        "site.grip_center.pos.y",
+        "site.payload_center.pos.y",
+        "site.grip_center.pos.z",
+        "site.payload_center.pos.z"
+      ],
+      "rationale": "The gripper must close the gap to the payload before any lift is possible."
+    },
+    {
+      "name": "lift",
+      "weight": 0.5,
+      "expression": "-abs(site.payload_center.pos.z - site.shelf_target.pos.z)",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Primary task objective (spec.md \u00a72): payload height must match the target height."
+    },
+    {
+      "name": "grip_engaged",
+      "weight": 0.2,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Rewards sustained gripper-payload contact once the reach term has closed the gap."
+    }
+  ],
+  "terminations": [
+    {
+      "name": "success",
+      "predicate": "abs(site.payload_center.pos.z - site.shelf_target.pos.z) < 0.03",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "success"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "payload_mass",
+      "range": [
+        0.3,
+        0.5
+      ],
+      "advance_when": "success_rate > 0.6 over 32 episodes"
+    },
+    {
+      "stage": 1,
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        1.0
+      ],
+      "advance_when": "success_rate > 0.6 over 32 episodes"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "friction.tangential",
+      "range": [
+        0.6,
+        1.2
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "n/a",
+    "model_id": "human",
+    "model_tier": "cheap",
+    "seed": 42,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}
