@@ -53,49 +53,50 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-16** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op
-(another v1/v2 near-miss, caught before any commit; also a holdout-path README full-read slip) ·
-no push notification (hourly PR-6 watchdog already reconfirmed zero delta minutes before this
+**2026-10-17** · build order: still 7/8 · no new evidence since 2026-08-11 · no-op
+(another v1/v2 near-miss, caught before any commit; no holdout-path slip this time) ·
+no push notification (hourly PR-6 watchdog already reconfirmed zero delta 35 minutes before this
 firing) · no new PR comment
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0: read the build order against
 a bare `master` checkout, concluded step 1 (compiler-to-MuJoCo) was next, and built a full duplicate
-(`expr.py`, `compiler.py`, a hand-written `dev-a` baseline scaffold, 6 new tests). Also repeated the
-long-flagged holdout-path slip while on that stale `master` checkout: read
-`evals/policy_synthesis/holdout/README.md`'s full content (the placeholder notice itself, not
-schema data) before branch state was known. Ran the duplicate for real end to end against actual
-MuJoCo physics — 24/24 tests passed (6 new + the pre-existing G1 suite), including a 4-iteration
-elitist-CEM check that the compiled reward is optimizable — before `git fetch origin` +
-`git branch -a` + `git log origin/routine/experiments --oneline` showed this branch 152 commits
-deep with **open draft PR #6** already carrying build order through step 7. Discarded the duplicate
-in full before any `git add` or commit, then switched to `routine/experiments` properly (tip
-`b65eb68`). Re-verified every standing blocker fresh from the real branch:
+(`compiler.py`, `curriculum.py`, a hand-written `dev-a` baseline scaffold, 9 new tests). Ran the
+duplicate for real end to end against actual MuJoCo physics — 15/15 tests passed (9 new + the
+pre-existing 6-test G1 suite), including a 10-generation hill-climbing check that the compiled
+baseline's reward signal is optimizable — before `git fetch origin` + `git branch -a` +
+`git log origin/master..origin/routine/experiments --oneline` showed this branch 84 commits ahead
+of `master` with **open draft PR #6** already carrying build order through step 7. Discarded the
+duplicate in full before any `git add` or commit, then switched to `routine/experiments` properly
+(tip `48ad054`). Did not read or list any `holdout-*` path before discovering the branch this time.
+Re-verified every standing blocker fresh from the real branch:
 
-- `get_trigger` → `daily-loop-research`'s stored prompt still v1 verbatim, unchanged since
-  2026-08-02 — not repointed to v2, now **72 days** since v2 shipped (2026-08-05).
-- PR #6 — open, draft, `mergeable_state: clean`, head `b65eb68`, 83 commits, 60 comments;
+- `list_triggers` → `daily-loop-research`'s stored prompt still v1 verbatim, unchanged since
+  2026-08-02 — not repointed to v2, now **73 days** since v2 shipped (2026-08-05).
+- PR #6 — open, draft, `mergeable_state: clean`, head `48ad054`, 84 commits, 60 comments;
   `get_reviews` → `[]`. No distinct human reviewer since the PR opened (`created_at` 2026-08-02) —
-  now **75 days**. A self-re-arming hourly "Re-check PR #6 CI/mergeability" watchdog independently
-  re-confirmed this exact zero-delta state at 13:01 UTC today, minutes before this firing started.
+  now **76 days**. The self-re-arming hourly "Re-check PR #6 CI/mergeability" watchdog independently
+  re-confirmed this exact zero-delta state at 12:39 UTC today, 35 minutes before this firing started.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author or
-  read, per spec.md §2/§9 (`holdout/` listing only post-switch, contents not re-read).
+  read, per spec.md §2/§9 (`holdout/` listing only post-switch, contents not read).
 - Actions (`actions_list list_workflow_runs`): still exactly 1 `loop-research.yml` run total, from
   2026-08-08 (`success`). No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged
   since its single 2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder.
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **66 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **67 days** with no
   new run.
+- Spot-checked `structural_diff.py`/`tau.py`/`g1.py` against `contracts/eval-contract.md`'s
+  coefficients, τ formula, and 0.80/100% thresholds — unchanged, faithful to the contract.
 
 `loop_research` test suite genuinely reran today: **97/97 pass**, unchanged since 2026-10-08
-through -15. `gh auth status` confirmed directly: invalid `GH_TOKEN` in this sandbox — all
+through -16. `gh auth status` confirmed directly: invalid `GH_TOKEN` in this sandbox — all
 PR/trigger/Actions work went through the GitHub MCP tools instead.
 
-**No push notification**: zero delta from 2026-10-14 on all three standing blockers (PR #6
-unreviewed 74 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas),
-and the dedicated hourly watchdog already re-confirmed the same state today and independently chose
-not to notify — a second notification through this channel would be redundant. 2026-09-26's
-notification remains the most recent substantive one, now 19 days old. Full detail in today's
-[registry row](routines/registry.md).
+**No push notification**: zero delta from 2026-10-16's row on all three standing blockers (PR #6
+unreviewed 76 days, trigger still on v1, step 8 blocked on externally-supplied holdout schemas),
+and the dedicated hourly watchdog already re-confirmed the same state 35 minutes before this firing
+and independently chose not to notify — a second notification through this channel would add
+nothing. 2026-09-26's notification remains the most recent substantive one, now 21 days old. Full
+detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
