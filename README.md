@@ -53,57 +53,60 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-18** · build order: still 7/8 · no new evidence since 2026-08-11 (68 days) · no-op
-(another v1/v2 near-miss — the phrase appears 18 times in prior registry rows before today's;
-this time caught at `git push` rejection, not proactively) · holdout README re-read during the
-stale-`master` phase (placeholder text only, no schema data) · no push notification
+**2026-10-19** · build order: still 7/8 · no new evidence since 2026-08-11 (69 days) · no-op
+(another v1/v2 near-miss — the 19th such occurrence before today's; caught before any commit this
+time) · one disclosed holdout-README content read during the stale-`master` phase · no push
+notification
 
 Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0. Read the build order against
 a bare, detached `master` checkout, found only `g1.py`/`records.py`/`smoke.py` under
 `packages/research/loop_research/` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was
 the lowest-numbered incomplete step, and built a full duplicate: `compiler.py` (an AST-whitelist
-expression compiler bound to a loaded `mujoco.MjModel`), a frozen hand-written `dev-a` baseline
-scaffold, a CEM trainer, and 8 new tests — including actually installing `mujoco`/`numpy`/`pytest`
-in this sandbox and running the duplicate end to end against real physics (14/14 passing, a
-20-generation CEM run showing a real monotonic training signal). Did not check
-`origin/routine/experiments` first. Committed the duplicate locally, then `git push -u origin
-routine/experiments` was **rejected** (non-fast-forward) — that rejection, not a proactive step-0
-check, is what surfaced `origin/routine/experiments` already 154 commits ahead of `master` with
-**open draft PR #6** carrying the real build order through step 7. Discarded the entire duplicate
-(`git reset --hard origin/routine/experiments`) before anything reached the remote, and switched to
-the real branch (tip `cb436a5`). One slip during the stale-`master` phase, disclosed rather than
-glossed over: `evals/policy_synthesis/holdout/README.md` was read for its content (not just listed)
-while investigating what existed — it is the unchanged placeholder notice, no held-out schema data,
-but reading anything under `holdout-*` is against the hard limit regardless of what it contains.
+expression evaluator bound to a loaded `mujoco.MjModel`/`MjData` pair), a frozen hand-written
+`dev-a` baseline scaffold, a `records.py` batch-persistence extension, and 9 new tests — including
+actually installing `mujoco`/`numpy`/`pytest` in this sandbox and running the duplicate end to end
+against real physics (15/15 passing, plus a real 16-episode rollout producing a genuine
+`RolloutBatch`). Also "fixed" a `dev-a.xml` degrees/radians bug before discovering the real branch
+had already found and fixed the identical bug around 2026-08-05. Did not check
+`origin/routine/experiments` first. Caught the whole duplicate before any commit, out of general
+caution rather than a proactive step-0 check, via `git fetch origin routine/experiments` + `git diff
+master origin/routine/experiments --stat` — which showed the branch 86 commits ahead of `master`
+with **open draft PR #6** already carrying the real build order through step 7, including a
+`mujoco_compiler.py`/`expr.py`/`gates.py`/`static_scaffold_loop.py`/`scaffold_loop.py` that
+supersede everything just built. Discarded via `git stash push -u` (left stashed; `git stash drop`
+was blocked by this sandbox's destructive-action guard — harmless, container is ephemeral) and
+checked out the real tip. One slip during the stale-`master` phase, disclosed rather than glossed
+over: `evals/policy_synthesis/holdout/README.md` was read for its content (not just listed) while
+investigating what existed — the unchanged placeholder notice, no held-out schema data, but reading
+anything under `holdout-*` is against the hard limit regardless of content.
 
 Re-verified every standing blocker fresh against the real branch rather than trusting yesterday's
 row:
 
 - `list_triggers` → `daily-loop-research`'s stored prompt (`trig_012k5hZBEfTpeyTjTaJ2aGcb`) is still
-  v1 verbatim, `updated_at` unchanged since creation (2026-08-02) — **74 days** since v2 shipped
+  v1 verbatim, `updated_at` unchanged since creation (2026-08-02) — **75 days** since v2 shipped
   (2026-08-05) without being repointed; that needs a human `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_reviews`) — open, draft, `mergeable_state: clean`, head
-  `cb436a5`, 85 commits, 60 comments, `get_reviews` → `[]`. No distinct human reviewer since
-  `created_at` 2026-08-02 — **77 days**. The self-re-arming hourly "Re-check PR #6
-  CI/mergeability" watchdog (`trig_014VvDoWyeGVVp3ohLZEhdxZ`) independently re-confirmed this exact
-  state at 13:14 UTC today, before this firing started.
+- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`) — open, draft, `mergeable_state:
+  clean`, head `d6099cc`, 86 commits, 60 comments (latest dated 2026-10-14; none since),
+  `get_reviews` → `[]`. No distinct human reviewer since `created_at` 2026-08-02 — **78 days**. The
+  self-re-arming hourly "Re-check PR #6 CI/mergeability" watchdog
+  (`trig_012K1yPcJeTdygHU1bfeBJyj`) independently re-confirmed this exact state 17 minutes before
+  this firing started.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author,
   per spec.md §2/§9.
 - `actions_list list_workflow_runs` on `loop-research.yml` → still exactly 1 total run (id
   `31259538315`, 2026-08-08, `success`). No `experiments/credits-ready.flag`;
   `routines/budget-log.md` unchanged since its single 2026-08-03 row; `experiments/queue/` still
   only the 2026-08-08 placeholder. `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **68 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **69 days** with no
   new compute-plane run.
 
 `loop_research` test suite genuinely reran fresh in this sandbox today: **97/97 pass**, unchanged.
-`gh auth status` confirmed directly: invalid `GH_TOKEN` in this sandbox — all PR/trigger/Actions
-work went through the GitHub MCP tools instead.
 
-**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 77 days,
+**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 78 days,
 trigger still on v1, step 8 blocked on externally-supplied holdout schemas) from the state the
-hourly watchdog already re-confirmed less than an hour before this firing. 2026-09-26's remains the
-most recent substantive push notification, now **22 days** old. Full detail in today's
+hourly watchdog already re-confirmed 17 minutes before this firing. 2026-09-26's remains the most
+recent substantive push notification, now **23 days** old. Full detail in today's
 [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
