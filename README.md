@@ -53,60 +53,44 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-19** · build order: still 7/8 · no new evidence since 2026-08-11 (69 days) · no-op
-(another v1/v2 near-miss — the 19th such occurrence before today's; caught before any commit this
-time) · one disclosed holdout-README content read during the stale-`master` phase · no push
-notification
+**2026-10-20** · build order: still 7/8 · no new evidence since 2026-08-11 (70 days) · no-op
+(clean firing — step 0 run first this time, no v1/v2 near-miss, no holdout-path content read) · no
+push notification
 
-Bootstrap again named `daily-loop-research.v1.md` verbatim, no step 0. Read the build order against
-a bare, detached `master` checkout, found only `g1.py`/`records.py`/`smoke.py` under
-`packages/research/loop_research/` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was
-the lowest-numbered incomplete step, and built a full duplicate: `compiler.py` (an AST-whitelist
-expression evaluator bound to a loaded `mujoco.MjModel`/`MjData` pair), a frozen hand-written
-`dev-a` baseline scaffold, a `records.py` batch-persistence extension, and 9 new tests — including
-actually installing `mujoco`/`numpy`/`pytest` in this sandbox and running the duplicate end to end
-against real physics (15/15 passing, plus a real 16-episode rollout producing a genuine
-`RolloutBatch`). Also "fixed" a `dev-a.xml` degrees/radians bug before discovering the real branch
-had already found and fixed the identical bug around 2026-08-05. Did not check
-`origin/routine/experiments` first. Caught the whole duplicate before any commit, out of general
-caution rather than a proactive step-0 check, via `git fetch origin routine/experiments` + `git diff
-master origin/routine/experiments --stat` — which showed the branch 86 commits ahead of `master`
-with **open draft PR #6** already carrying the real build order through step 7, including a
-`mujoco_compiler.py`/`expr.py`/`gates.py`/`static_scaffold_loop.py`/`scaffold_loop.py` that
-supersede everything just built. Discarded via `git stash push -u` (left stashed; `git stash drop`
-was blocked by this sandbox's destructive-action guard — harmless, container is ephemeral) and
-checked out the real tip. One slip during the stale-`master` phase, disclosed rather than glossed
-over: `evals/policy_synthesis/holdout/README.md` was read for its content (not just listed) while
-investigating what existed — the unchanged placeholder notice, no held-out schema data, but reading
-anything under `holdout-*` is against the hard limit regardless of content.
+Bootstrap again named `daily-loop-research.v1.md` verbatim (`list_triggers` confirms the trigger's
+stored prompt is still v1 word for word, unchanged since 2026-08-02). Unlike the prior ~20 firings,
+this one ran v2's step 0 *before* reading the build order: `git fetch origin` + `git diff --stat
+origin/master origin/routine/experiments` immediately showed `routine/experiments` 109 files /
+12,444 insertions ahead of `master`, so it was checked out (tip `a1da952`) and treated as the repo's
+true state from the start. Result: no duplicate step-1 build this time — the first clean step-0
+pass in recent registry history.
 
-Re-verified every standing blocker fresh against the real branch rather than trusting yesterday's
-row:
+Re-verified every standing blocker fresh rather than trusting yesterday's numbers:
 
 - `list_triggers` → `daily-loop-research`'s stored prompt (`trig_012k5hZBEfTpeyTjTaJ2aGcb`) is still
-  v1 verbatim, `updated_at` unchanged since creation (2026-08-02) — **75 days** since v2 shipped
+  v1 verbatim, `updated_at` unchanged since creation (2026-08-02) — **76 days** since v2 shipped
   (2026-08-05) without being repointed; that needs a human `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`) — open, draft, `mergeable_state:
-  clean`, head `d6099cc`, 86 commits, 60 comments (latest dated 2026-10-14; none since),
-  `get_reviews` → `[]`. No distinct human reviewer since `created_at` 2026-08-02 — **78 days**. The
-  self-re-arming hourly "Re-check PR #6 CI/mergeability" watchdog
-  (`trig_012K1yPcJeTdygHU1bfeBJyj`) independently re-confirmed this exact state 17 minutes before
-  this firing started.
+- PR #6 (`pull_request_read` `get`/`get_reviews`) — open, draft, `mergeable_state: clean`, head
+  `a1da952`, 87 commits, 60 comments, `updated_at` unchanged since yesterday's push, `get_reviews` →
+  `[]`. No distinct human reviewer since `created_at` 2026-08-02 — **79 days**. The self-re-arming
+  hourly "Re-check PR #6 CI/mergeability" watchdog (`trig_01XDaK8AQrx4QNhotjrqmp8C`) independently
+  re-confirmed this exact state 36 minutes before this firing started and chose to re-arm silently.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author,
-  per spec.md §2/§9.
+  per spec.md §2/§9 — confirmed via a filename/size-only `holdout/` listing (no content read).
 - `actions_list list_workflow_runs` on `loop-research.yml` → still exactly 1 total run (id
   `31259538315`, 2026-08-08, `success`). No `experiments/credits-ready.flag`;
   `routines/budget-log.md` unchanged since its single 2026-08-03 row; `experiments/queue/` still
   only the 2026-08-08 placeholder. `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **69 days** with no
-  new compute-plane run.
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **70 days** with no
+  new compute-plane run. Its gate figures re-read fresh and unchanged: G1 1.0 (threshold 0.80), G2
+  permutations 0.636–0.943 (threshold τ 0.0278).
 
 `loop_research` test suite genuinely reran fresh in this sandbox today: **97/97 pass**, unchanged.
 
-**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 78 days,
+**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 79 days,
 trigger still on v1, step 8 blocked on externally-supplied holdout schemas) from the state the
-hourly watchdog already re-confirmed 17 minutes before this firing. 2026-09-26's remains the most
-recent substantive push notification, now **23 days** old. Full detail in today's
+hourly watchdog already re-confirmed 36 minutes before this firing. 2026-09-26's remains the most
+recent substantive push notification, now **24 days** old. Full detail in today's
 [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
