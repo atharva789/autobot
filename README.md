@@ -53,42 +53,44 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-23** · build order: still 7/8 · no new evidence since 2026-08-11 (73 days) · no-op
-(clean firing — step 0 run first, fourth consecutive day with no v1/v2 near-miss, no holdout-path
-content read) · no push notification
+**2026-10-24** · build order: still 7/8 · no new evidence since 2026-08-11 (74 days) · no-op
+(another v1/v2 near-miss, caught before any commit) · no push notification
 
-Bootstrap again named `daily-loop-research.v1.md` verbatim. Ran step 0 before reading the build
-order: `git status`, `git branch -a`, `git fetch origin routine/experiments master`,
-`git log origin/routine/experiments --oneline --not origin/master` immediately showed
-`routine/experiments` 90 commits / 109 files ahead of `master`, so it was checked out (tip
-`1116cc6`) and treated as the repo's true state throughout — fourth consecutive clean step-0 pass.
+The live trigger still bootstraps `daily-loop-research.v1.md` verbatim, which has no step 0. This
+firing read `plan.md`§7 against a fresh `master` checkout exactly as v1 instructs, concluded step 1
+was the lowest incomplete step, and built a full duplicate implementation (compiler, baseline
+scaffold, 13 tests, verified against real MuJoCo) before checking `routine/experiments` at all.
+`git log origin/routine/experiments --not origin/master` then showed 91 commits / 109 files ahead
+of `master`, and PR #6 already carries a more mature version of the same step plus steps 2–7.
+Per v2 step 0, the duplicate was discarded unpushed — no merge or reconciliation attempted, that
+call belongs to a human — and the firing switched to treating `routine/experiments` (tip `6a893fe`)
+as the repo's true state for everything else below. This is the cost of the trigger still running
+v1: real budget spent re-deriving work that already exists.
 
-Re-verified every standing blocker fresh rather than trusting yesterday's numbers:
+Re-verified every standing blocker fresh:
 
 - `get_trigger` on this very trigger (`trig_012k5hZBEfTpeyTjTaJ2aGcb`) → stored prompt still v1
-  verbatim, `updated_at` unchanged since creation (2026-08-02T11:29:18Z) — **79 days** since v2
+  verbatim, `updated_at` unchanged since creation (2026-08-02T11:29:18Z) — **80 days** since v2
   shipped (2026-08-05) without being repointed; that needs a human `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_check_runs`/`get_comments`) — open, draft,
-  `mergeable_state: clean`, head `1116cc6`, 90 commits, 60 comments (all under `atharva789`, this
-  routine's own prior status comments, last comment 2026-10-14, no distinct human reply),
+- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_check_runs`) — open, draft,
+  `mergeable_state: clean`, head `6a893fe`, 91 commits, 60 comments (no new human comment),
   `get_reviews` → `[]`, `get_check_runs` → 0. No human reviewer and no CI configured since
-  `created_at` 2026-08-02 — **82 days**.
+  `created_at` 2026-08-02 — **83 days**.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author,
   per spec.md §2/§9 — confirmed via a filename-only `holdout/` listing (just the warning README,
   414 bytes, no schema content read).
 - No `experiments/credits-ready.flag`; `routines/budget-log.md` unchanged since its single
   2026-08-03 row; `experiments/queue/` still only the 2026-08-08 placeholder. `.runs/loop_research/`
   newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **73 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **74 days** with no
   new compute-plane run.
 
-`loop_research` test suite reran fresh in this sandbox today (no python version mismatch this
-time): **97/97 pass**, unchanged.
+`loop_research` test suite reran fresh in this sandbox today: **97/97 pass**, unchanged.
 
-**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 82 days,
-trigger still on v1, step 8 blocked on externally-supplied holdout schemas) from 2026-10-22's
+**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 83 days,
+trigger still on v1, step 8 blocked on externally-supplied holdout schemas) from 2026-10-23's
 fully-reported state. 2026-09-26's remains the most recent substantive push notification, now
-**27 days** old — inside this routine's own established re-notify cadence (2026-08-10 →
+**28 days** old — inside this routine's own established re-notify cadence (2026-08-10 →
 2026-08-25 → 2026-09-26, roughly 32 days apart each time), so held rather than repeated early on an
 unchanged state. Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
