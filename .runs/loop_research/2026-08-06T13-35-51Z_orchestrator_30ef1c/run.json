@@ -1,0 +1,51 @@
+{
+  "run_id": "2026-08-06T13-35-51Z_orchestrator_30ef1c",
+  "git_sha": "5f3e74527fbb32b66d0568c2daefb2a8a0274de3",
+  "trigger": "routine",
+  "status": "completed",
+  "scaffolds": [],
+  "batches": [],
+  "gates": [],
+  "cost": {
+    "usd_total": 0.0,
+    "usd_ceiling": 0.0,
+    "ceiling_hit": false,
+    "note": "orchestrator re-runs steps 1-5's own no-model-call generators; no OpenAI spend"
+  },
+  "replay": {
+    "prompt_version": "n/a",
+    "model_id": "n/a",
+    "seed": 0
+  },
+  "manifest_path": null,
+  "control": {
+    "orchestrator": {
+      "wall_clock_s": 0.68,
+      "all_passed": true,
+      "steps": [
+        {
+          "step": "step2",
+          "exit_code": 0,
+          "passed": true,
+          "error": null,
+          "run_dir": "2026-08-06T13-35-51Z_step2_82de1b"
+        },
+        {
+          "step": "step4",
+          "exit_code": 0,
+          "passed": true,
+          "error": null,
+          "run_dir": "2026-08-06T13-35-51Z_step4_93922c"
+        },
+        {
+          "step": "step5",
+          "exit_code": 0,
+          "passed": true,
+          "error": null,
+          "run_dir": "2026-08-06T13-35-51Z_step5_e3a5ab"
+        }
+      ],
+      "note": "step 7 (the real loop) is not implemented; this run exercises steps 1-5 only, per build order step 6's own scope."
+    }
+  }
+}
