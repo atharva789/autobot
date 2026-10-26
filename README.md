@@ -53,36 +53,36 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-25** · build order: still 7/8 · no new evidence since 2026-08-11 (75 days) · no-op,
+**2026-10-26** · build order: still 7/8 · no new evidence since 2026-08-11 (76 days) · no-op,
 clean firing (step 0 run first, no v1/v2 near-miss) · no push notification
 
 Ran `git fetch origin routine/experiments` and diffed it against `origin/master` before reading
-the build order against anything: this branch is 92 commits / 109 files ahead of `master`, so it
+the build order against anything: this branch is 93 commits / 109 files ahead of `master`, so it
 was checked out and treated as the repo's true state throughout. No duplicate step-1 build was
 attempted today.
 
-Re-verified every standing blocker fresh rather than trusting 2026-10-24's row:
+Re-verified every standing blocker fresh rather than trusting 2026-10-25's row:
 
 - `get_trigger` on this very trigger (`trig_012k5hZBEfTpeyTjTaJ2aGcb`) → stored prompt still v1
-  verbatim, `updated_at` unchanged since creation (2026-08-02T11:29:18Z) — **81 days** since v2
+  verbatim, `updated_at` unchanged since creation (2026-08-02T11:29:18Z) — **82 days** since v2
   shipped (2026-08-05) without being repointed; that needs a human `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_comments`/`get_reviews`) — open, draft,
-  `mergeable_state: clean`, head `0cd9564`, 92 commits, 60 comments (no new comment since
-  2026-10-14), `get_reviews` → `[]`. No distinct human reviewer since `created_at` 2026-08-02 —
-  **84 days**.
+- PR #6 (`pull_request_read` `get`/`get_check_runs`/`get_reviews`) — open, draft,
+  `mergeable_state: clean`, head `9e4ca84`, 93 commits, 60 comments (no new comment since
+  2026-10-14), `get_reviews` → `[]`, `get_check_runs` → 0 total. No distinct human reviewer since
+  `created_at` 2026-08-02 — **85 days**.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author,
   per spec.md §2/§9 — confirmed via a filename-only `holdout/` listing (just the warning README,
   no schema content read).
 - Actions (`loop-research.yml`) still exactly 1 total run (2026-08-08, success).
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **75 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **76 days** with no
   new compute-plane run.
 
 `loop_research` test suite reran fresh in this sandbox today: **97/97 pass**, unchanged.
 
-**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 84 days,
-trigger still on v1, step 8 blocked on externally-supplied holdout schemas) from 2026-10-24's
-state. 2026-09-26's remains the most recent substantive push notification, now **29 days** old —
+**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 85 days,
+trigger still on v1, step 8 blocked on externally-supplied holdout schemas) from 2026-10-25's
+state. 2026-09-26's remains the most recent substantive push notification, now **30 days** old —
 inside this routine's own established re-notify cadence (2026-08-10 → 2026-08-25 → 2026-09-26,
 roughly 32 days apart each time), so held rather than repeated early on an unchanged state. If
 nothing changes, that cadence puts the next one due around 2026-10-28. Full detail in today's
