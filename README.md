@@ -53,40 +53,42 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-26** · build order: still 7/8 · no new evidence since 2026-08-11 (76 days) · no-op,
-clean firing (step 0 run first, no v1/v2 near-miss) · no push notification
+**2026-10-27** · build order: still 7/8 · no new evidence since 2026-08-11 (78 days) · no-op after
+a caught v1/v2 near-miss · no push notification
 
-Ran `git fetch origin routine/experiments` and diffed it against `origin/master` before reading
-the build order against anything: this branch is 93 commits / 109 files ahead of `master`, so it
-was checked out and treated as the repo's true state throughout. No duplicate step-1 build was
-attempted today.
+This firing's bootstrap prompt is still v1 (no step 0), so it read the build order against a
+fresh `master`-only checkout, concluded step 1 looked incomplete there, and built a full duplicate
+compiler-to-MuJoCo + hand-written baseline before running `git fetch origin routine/experiments`.
+That showed this branch 93 commits / 109 files ahead with steps 1–7 long done under an
+incompatible module layout — the exact 2026-08-03/2026-08-05 mistake v2's step 0 exists to catch.
+Discarded the duplicate before any commit and proceeded from this branch as the repo's true state,
+per v2's own recovery instruction.
 
-Re-verified every standing blocker fresh rather than trusting 2026-10-25's row:
+Re-verified every standing blocker fresh rather than trusting 2026-10-26's row:
 
 - `get_trigger` on this very trigger (`trig_012k5hZBEfTpeyTjTaJ2aGcb`) → stored prompt still v1
-  verbatim, `updated_at` unchanged since creation (2026-08-02T11:29:18Z) — **82 days** since v2
+  verbatim, `updated_at` unchanged since creation (2026-08-02T11:29:18Z) — **83 days** since v2
   shipped (2026-08-05) without being repointed; that needs a human `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_check_runs`/`get_reviews`) — open, draft,
-  `mergeable_state: clean`, head `9e4ca84`, 93 commits, 60 comments (no new comment since
-  2026-10-14), `get_reviews` → `[]`, `get_check_runs` → 0 total. No distinct human reviewer since
-  `created_at` 2026-08-02 — **85 days**.
+- PR #6 (`list_pull_requests`, `pull_request_read` `get`/`get_reviews`/`get_comments`) — open,
+  draft, `mergeable_state: clean`, head `c05d241`, 94 commits, `get_reviews` → `[]`. No distinct
+  human reviewer since `created_at` 2026-08-02 — **86 days**.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author,
   per spec.md §2/§9 — confirmed via a filename-only `holdout/` listing (just the warning README,
   no schema content read).
 - Actions (`loop-research.yml`) still exactly 1 total run (2026-08-08, success).
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **76 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **78 days** with no
   new compute-plane run.
+- `gh auth status` → **gh is installed but unauthenticated** ("the token in GH_TOKEN is invalid").
+  Not blocking today (PR #6 already exists; this push updates it directly), but flagged loudly
+  since a new PR would strand silently without it.
 
 `loop_research` test suite reran fresh in this sandbox today: **97/97 pass**, unchanged.
 
-**No push notification**: zero delta on all three standing blockers (PR #6 unreviewed 85 days,
-trigger still on v1, step 8 blocked on externally-supplied holdout schemas) from 2026-10-25's
-state. 2026-09-26's remains the most recent substantive push notification, now **30 days** old —
-inside this routine's own established re-notify cadence (2026-08-10 → 2026-08-25 → 2026-09-26,
-roughly 32 days apart each time), so held rather than repeated early on an unchanged state. If
-nothing changes, that cadence puts the next one due around 2026-10-28. Full detail in today's
-[registry row](routines/registry.md).
+**No push notification**: zero new delta on the three standing blockers beyond today's own caught
+near-miss. 2026-09-26's remains the most recent substantive push notification, now **31 days**
+old — inside this routine's own ~32-day re-notify cadence, not yet due (next around 2026-10-28).
+Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
