@@ -53,41 +53,45 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-27** · build order: still 7/8 · no new evidence since 2026-08-11 (78 days) · no-op after
-a caught v1/v2 near-miss · no push notification
+**2026-10-28** · build order: still 7/8 · no new evidence since 2026-08-11 (79 days) · no-op after
+a caught v1/v2 near-miss · **push notification sent**
 
 This firing's bootstrap prompt is still v1 (no step 0), so it read the build order against a
 fresh `master`-only checkout, concluded step 1 looked incomplete there, and built a full duplicate
-compiler-to-MuJoCo + hand-written baseline before running `git fetch origin routine/experiments`.
-That showed this branch 93 commits / 109 files ahead with steps 1–7 long done under an
-incompatible module layout — the exact 2026-08-03/2026-08-05 mistake v2's step 0 exists to catch.
+compiler-to-MuJoCo (`compiler.py`, a hand-written `dev-a` baseline, a CEM training-gate script,
+19 tests) — then actually installed MuJoCo fresh and ran it twice against real physics (480 and
+384 episodes; every return finite, no crash, but no learning signal and no `success`/`drop` ever
+fired, only `timeout`) before running `git fetch origin routine/experiments`. That showed this
+branch 95 commits / 109 files ahead with steps 1–7 long done under an incompatible module layout —
+the exact 2026-08-03/2026-08-05/2026-10-24/2026-10-27 mistake v2's step 0 exists to catch.
 Discarded the duplicate before any commit and proceeded from this branch as the repo's true state,
 per v2's own recovery instruction.
 
-Re-verified every standing blocker fresh rather than trusting 2026-10-26's row:
+Re-verified every standing blocker fresh rather than trusting 2026-10-27's row:
 
 - `get_trigger` on this very trigger (`trig_012k5hZBEfTpeyTjTaJ2aGcb`) → stored prompt still v1
-  verbatim, `updated_at` unchanged since creation (2026-08-02T11:29:18Z) — **83 days** since v2
-  shipped (2026-08-05) without being repointed; that needs a human `update_trigger` call.
-- PR #6 (`list_pull_requests`, `pull_request_read` `get`/`get_reviews`/`get_comments`) — open,
-  draft, `mergeable_state: clean`, head `c05d241`, 94 commits, `get_reviews` → `[]`. No distinct
-  human reviewer since `created_at` 2026-08-02 — **86 days**.
+  verbatim (`updated_at` ticked, but only for an unrelated schedule field — the prompt text itself
+  is unchanged) — **84 days** since v2 shipped (2026-08-05) without being repointed; that needs a
+  human `update_trigger` call.
+- PR #6 (`list_pull_requests`, `pull_request_read` `get`/`get_reviews`) — open, draft,
+  `mergeable_state: clean`, head `e559eea`, 95 commits, 60 comments, `get_reviews` → `[]`. No
+  distinct human reviewer since `created_at` 2026-08-02 — **87 days**.
 - Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author,
   per spec.md §2/§9 — confirmed via a filename-only `holdout/` listing (just the warning README,
   no schema content read).
 - Actions (`loop-research.yml`) still exactly 1 total run (2026-08-08, success).
   `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **78 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **79 days** with no
   new compute-plane run.
-- `gh auth status` → **gh is installed but unauthenticated** ("the token in GH_TOKEN is invalid").
-  Not blocking today (PR #6 already exists; this push updates it directly), but flagged loudly
-  since a new PR would strand silently without it.
 
-`loop_research` test suite reran fresh in this sandbox today: **97/97 pass**, unchanged.
+`loop_research` test suite reran fresh in this sandbox today (after reinstalling missing deps):
+**97/97 pass**, unchanged.
 
-**No push notification**: zero new delta on the three standing blockers beyond today's own caught
-near-miss. 2026-09-26's remains the most recent substantive push notification, now **31 days**
-old — inside this routine's own ~32-day re-notify cadence, not yet due (next around 2026-10-28).
+**Push notification sent** — the first in 32 days. 2026-09-26 was the last substantive one, inside
+this routine's own ~32-day re-notify cadence (2026-08-10 → 2026-08-25 → 2026-09-26), which
+yesterday's row flagged as due "around 2026-10-28." Today is that date, and today also adds a
+concrete new cost on top of the three unchanged standing blockers: a full session spent building
+and running real MuJoCo training before the branch divergence was caught.
 Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
