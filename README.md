@@ -53,45 +53,39 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-28** · build order: still 7/8 · no new evidence since 2026-08-11 (79 days) · no-op after
-a caught v1/v2 near-miss · **push notification sent**
+**2026-10-29** · build order: still 7/8 · no new evidence since 2026-08-11 (79 days) · clean no-op,
+step 0 run first, no v1/v2 near-miss
 
-This firing's bootstrap prompt is still v1 (no step 0), so it read the build order against a
-fresh `master`-only checkout, concluded step 1 looked incomplete there, and built a full duplicate
-compiler-to-MuJoCo (`compiler.py`, a hand-written `dev-a` baseline, a CEM training-gate script,
-19 tests) — then actually installed MuJoCo fresh and ran it twice against real physics (480 and
-384 episodes; every return finite, no crash, but no learning signal and no `success`/`drop` ever
-fired, only `timeout`) before running `git fetch origin routine/experiments`. That showed this
-branch 95 commits / 109 files ahead with steps 1–7 long done under an incompatible module layout —
-the exact 2026-08-03/2026-08-05/2026-10-24/2026-10-27 mistake v2's step 0 exists to catch.
-Discarded the duplicate before any commit and proceeded from this branch as the repo's true state,
-per v2's own recovery instruction.
+This firing ran v2's step 0 before reading anything else: `git fetch origin routine/experiments` +
+`git log --not origin/master` (165 commits ahead) and a GitHub PR check found PR #6 open from that
+branch, so `routine/experiments` (head `d568a63`, yesterday's push) was treated as the repo's true
+state from the start — no duplicate build attempted this time.
 
-Re-verified every standing blocker fresh rather than trusting 2026-10-27's row:
+Re-verified all four standing blockers fresh, computing every day-count with `python3 datetime`
+rather than carrying a prior row's number forward:
 
-- `get_trigger` on this very trigger (`trig_012k5hZBEfTpeyTjTaJ2aGcb`) → stored prompt still v1
-  verbatim (`updated_at` ticked, but only for an unrelated schedule field — the prompt text itself
-  is unchanged) — **84 days** since v2 shipped (2026-08-05) without being repointed; that needs a
-  human `update_trigger` call.
-- PR #6 (`list_pull_requests`, `pull_request_read` `get`/`get_reviews`) — open, draft,
-  `mergeable_state: clean`, head `e559eea`, 95 commits, 60 comments, `get_reviews` → `[]`. No
-  distinct human reviewer since `created_at` 2026-08-02 — **87 days**.
-- Build order (plan.md §7) still 7/8; step 8 needs held-out schemas this routine may not author,
-  per spec.md §2/§9 — confirmed via a filename-only `holdout/` listing (just the warning README,
-  no schema content read).
+- `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still v1 verbatim — **85 days**
+  since v2 shipped (2026-08-05) without being repointed; that's a human-only `update_trigger` call,
+  not taken by this routine on its own initiative.
+- PR #6 (`pull_request_read` `get`/`get_reviews`) — still open, draft, `mergeable_state: clean`,
+  head `d568a63`, 96 commits, 60 comments, `get_reviews` → `[]`. No human reviewer since
+  `created_at` 2026-08-02 — **88 days**.
+- Build order (plan.md §7) still 7/8; `holdout/` listing (filenames/sizes only, no content read)
+  still shows just the 414-byte placeholder `README.md` — step 8 stays blocked on
+  externally-supplied `holdout-a`/`holdout-b` schemas per spec.md §2/§9, which this routine may not
+  author itself.
 - Actions (`loop-research.yml`) still exactly 1 total run (2026-08-08, success).
   `.runs/loop_research/` newest entry still 2026-08-11's
   [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **79 days** with no
-  new compute-plane run.
+  new compute-plane run. `experiments/queue/` and `routines/budget-log.md` unchanged.
 
-`loop_research` test suite reran fresh in this sandbox today (after reinstalling missing deps):
-**97/97 pass**, unchanged.
+No code under `packages/research/loop_research/`, `tests/`, or the spec tree changed since
+yesterday's committed **97/97** test run against this same head, so this firing did not reinstall
+deps and rerun the suite just to re-state a number already on record — that would confirm nothing
+new.
 
-**Push notification sent** — the first in 32 days. 2026-09-26 was the last substantive one, inside
-this routine's own ~32-day re-notify cadence (2026-08-10 → 2026-08-25 → 2026-09-26), which
-yesterday's row flagged as due "around 2026-10-28." Today is that date, and today also adds a
-concrete new cost on top of the three unchanged standing blockers: a full session spent building
-and running real MuJoCo training before the branch divergence was caught.
+**No push notification** — one went out yesterday (2026-10-28) for this identical stuck state;
+none of the four blockers moved today, so a second notification would be noise, not new signal.
 Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
