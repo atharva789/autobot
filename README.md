@@ -53,39 +53,43 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-29** · build order: still 7/8 · no new evidence since 2026-08-11 (79 days) · clean no-op,
+**2026-10-30** · build order: still 7/8 · no new evidence since 2026-08-11 (80 days) · clean no-op,
 step 0 run first, no v1/v2 near-miss
 
-This firing ran v2's step 0 before reading anything else: `git fetch origin routine/experiments` +
-`git log --not origin/master` (165 commits ahead) and a GitHub PR check found PR #6 open from that
-branch, so `routine/experiments` (head `d568a63`, yesterday's push) was treated as the repo's true
-state from the start — no duplicate build attempted this time.
+This firing ran step 0 before reading anything else: `git fetch origin`, diffed `origin/master`
+against `origin/routine/experiments` (97 commits / 109 files ahead), and `pull_request_read`
+confirmed PR #6 open from that branch — so `routine/experiments` (head `b6a1b5a`, unchanged since
+yesterday's push) was treated as the repo's true state from the start. No duplicate build
+attempted.
 
 Re-verified all four standing blockers fresh, computing every day-count with `python3 datetime`
-rather than carrying a prior row's number forward:
+rather than carrying a prior row's number forward — all four are **identical to yesterday's row**:
 
-- `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still v1 verbatim — **85 days**
-  since v2 shipped (2026-08-05) without being repointed; that's a human-only `update_trigger` call,
-  not taken by this routine on its own initiative.
-- PR #6 (`pull_request_read` `get`/`get_reviews`) — still open, draft, `mergeable_state: clean`,
-  head `d568a63`, 96 commits, 60 comments, `get_reviews` → `[]`. No human reviewer since
+- `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still v1 verbatim, `updated_at`
+  unchanged (2026-10-27T19:09:52Z) — **86 days** since v2 shipped (2026-08-05) without being
+  repointed; a human-only `update_trigger` call, not taken by this routine on its own initiative.
+- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`) — still open, draft,
+  `mergeable_state: clean`, head `b6a1b5a`, 97 commits, 61 comments (the one new comment is this
+  routine's own 2026-10-29 self-report; `get_reviews` → `[]`, still zero). No human reviewer since
   `created_at` 2026-08-02 — **88 days**.
 - Build order (plan.md §7) still 7/8; `holdout/` listing (filenames/sizes only, no content read)
   still shows just the 414-byte placeholder `README.md` — step 8 stays blocked on
   externally-supplied `holdout-a`/`holdout-b` schemas per spec.md §2/§9, which this routine may not
-  author itself.
+  author itself. `dev/` unchanged (`dev-a.xml`, `dev-b.xml`).
 - Actions (`loop-research.yml`) still exactly 1 total run (2026-08-08, success).
-  `.runs/loop_research/` newest entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **79 days** with no
-  new compute-plane run. `experiments/queue/` and `routines/budget-log.md` unchanged.
+  `.runs/loop_research/` — same 12 run dirs, newest still 2026-08-11's
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **80 days** with no
+  new compute-plane run. `experiments/queue/` still only the 2026-08-08 placeholder;
+  `routines/budget-log.md` unchanged since its single 2026-08-03 row; no
+  `experiments/credits-ready.flag`.
 
-No code under `packages/research/loop_research/`, `tests/`, or the spec tree changed since
-yesterday's committed **97/97** test run against this same head, so this firing did not reinstall
-deps and rerun the suite just to re-state a number already on record — that would confirm nothing
-new.
+No code under `packages/research/loop_research/`, `tests/`, or the spec tree changed since the
+head this routine already verified at **97/97** (same commit as 2026-10-29), so this firing did not
+reinstall deps and rerun the suite just to restate a number already on record.
 
-**No push notification** — one went out yesterday (2026-10-28) for this identical stuck state;
-none of the four blockers moved today, so a second notification would be noise, not new signal.
+**No push notification** — the identical stuck state was already flagged 2026-10-28; nothing moved
+since, so another notification today would be noise, not new signal. **No new PR comment** either,
+for the same reason — yesterday's comment already covers this exact state.
 Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
