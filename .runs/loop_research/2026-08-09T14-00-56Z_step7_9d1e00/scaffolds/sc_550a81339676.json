@@ -1,0 +1,156 @@
+{
+  "scaffold_id": "sc_550a81339676",
+  "schema_id": "dev-a.limits_altered",
+  "schema_digest": "sha256:b4ea25f30e753bc1e3d464e026475272719e12e12b4882fea286f0dd38513184",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "reaching_payload",
+      "weight": 2.0,
+      "expression": "-(abs(site.grip_center.pos.x - body.payload.pos.x) + abs(site.grip_center.pos.y - body.payload.pos.y) + abs(site.grip_center.pos.z - body.payload.pos.z))",
+      "symbols": [
+        "site.grip_center.pos.x",
+        "site.grip_center.pos.y",
+        "site.grip_center.pos.z",
+        "body.payload.pos.x",
+        "body.payload.pos.y",
+        "body.payload.pos.z"
+      ],
+      "rationale": "Minimize L1 distance from gripper to payload center; drives initial reaching phase"
+    },
+    {
+      "name": "gripper_closure",
+      "weight": 1.0,
+      "expression": "clamp(-joint.j_finger_left.qpos / 0.3, 0, 1) + clamp(-joint.j_finger_right.qpos / 0.3, 0, 1)",
+      "symbols": [
+        "joint.j_finger_left.qpos",
+        "joint.j_finger_right.qpos"
+      ],
+      "rationale": "Reward closing finger joints up to a natural limit (negative qpos = closed)"
+    },
+    {
+      "name": "contact_bonus",
+      "weight": 0.5,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Bonus when left finger maintains contact with payload during grasp"
+    },
+    {
+      "name": "payload_height_progress",
+      "weight": 1.5,
+      "expression": "-abs(body.payload.pos.z - site.shelf_target.pos.z)",
+      "symbols": [
+        "body.payload.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Penalize vertical distance from target shelf height; primary lift objective"
+    },
+    {
+      "name": "payload_xy_alignment",
+      "weight": 0.5,
+      "expression": "-(abs(body.payload.pos.x - site.shelf_target.pos.x) + abs(body.payload.pos.y - site.shelf_target.pos.y))",
+      "symbols": [
+        "body.payload.pos.x",
+        "body.payload.pos.y",
+        "site.shelf_target.pos.x",
+        "site.shelf_target.pos.y"
+      ],
+      "rationale": "Guide horizontal placement precision once payload is lifted"
+    }
+  ],
+  "terminations": [
+    {
+      "name": "success",
+      "predicate": "abs(body.payload.pos.z - site.shelf_target.pos.z) < 0.05",
+      "symbols": [
+        "body.payload.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "Payload reached shelf height within 5cm tolerance"
+    },
+    {
+      "name": "payload_dropped",
+      "predicate": "body.payload.pos.z < 0.15",
+      "symbols": [
+        "body.payload.pos.z"
+      ],
+      "cause_label": "Payload fell below safe height; loss of grasp"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        0.8
+      ],
+      "advance_when": "body.payload.pos.z > 0.50"
+    },
+    {
+      "stage": 1,
+      "parameter": "payload_mass",
+      "range": [
+        0.8,
+        1.5
+      ],
+      "advance_when": "body.payload.pos.z > 0.70"
+    },
+    {
+      "stage": 2,
+      "parameter": "payload_mass",
+      "range": [
+        1.0,
+        2.0
+      ],
+      "advance_when": "abs(body.payload.pos.z - site.shelf_target.pos.z) < 0.08"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        2.0
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_initial_x_offset",
+      "range": [
+        -0.15,
+        0.15
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_initial_y_offset",
+      "range": [
+        -0.1,
+        0.1
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "gripper_friction_multiplier",
+      "range": [
+        0.3,
+        1.0
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 11,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}
