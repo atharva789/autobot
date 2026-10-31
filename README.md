@@ -53,43 +53,38 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-10-30** · build order: still 7/8 · no new evidence since 2026-08-11 (80 days) · clean no-op,
-step 0 run first, no v1/v2 near-miss
+**2026-10-31** · build order: still 7/8 · no new evidence since 2026-08-11 (81 days) · another
+v1/v2 near-miss, caught before any commit
 
-This firing ran step 0 before reading anything else: `git fetch origin`, diffed `origin/master`
-against `origin/routine/experiments` (97 commits / 109 files ahead), and `pull_request_read`
-confirmed PR #6 open from that branch — so `routine/experiments` (head `b6a1b5a`, unchanged since
-yesterday's push) was treated as the repo's true state from the start. No duplicate build
-attempted.
+This firing's bootstrap prompt is still v1 — no step 0, no pointer to `routine/experiments`.
+Followed it as given, read the spec tree against a bare `master` checkout, found only
+`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, and built a full duplicate of build-order
+step 1 (`compiler.py`, `rollout_smoke.py`, `baselines.py` + a frozen `dev-a` hand-written baseline,
+`compile_check.py`, 6 new tests) — installed `mujoco`/`numpy`/`pytest` and ran it for real: 12/12
+tests passed, G1 scored 1.0, 500/500 rollout steps with no divergence. Before any `git add`,
+`git fetch origin && git branch -a` surfaced `routine/experiments` 98 commits / 109 files ahead of
+`master`, with PR #6 already open from it carrying steps 1–7 under a different module layout.
+Discarded the entire duplicate — code, tests, baseline, run log — before staging anything, and
+checked out `routine/experiments` as the repo's true state. At least the 37th confirmed occurrence
+of this exact pattern; the root cause is unchanged: the live trigger's stored prompt still has no
+step 0, so nothing structurally prevents the next firing from doing this again.
 
-Re-verified all four standing blockers fresh, computing every day-count with `python3 datetime`
-rather than carrying a prior row's number forward — all four are **identical to yesterday's row**:
+Re-verified the three standing blockers fresh:
 
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still v1 verbatim, `updated_at`
-  unchanged (2026-10-27T19:09:52Z) — **86 days** since v2 shipped (2026-08-05) without being
-  repointed; a human-only `update_trigger` call, not taken by this routine on its own initiative.
-- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`) — still open, draft,
-  `mergeable_state: clean`, head `b6a1b5a`, 97 commits, 61 comments (the one new comment is this
-  routine's own 2026-10-29 self-report; `get_reviews` → `[]`, still zero). No human reviewer since
-  `created_at` 2026-08-02 — **88 days**.
+  unchanged (2026-10-27T19:09:52Z) — **87 days** since v2 shipped (2026-08-05) without being
+  repointed; a human-only `update_trigger` call.
+- PR #6 (`pull_request_read` `get`) — still open, draft, `mergeable_state: clean`, head `7c64698`,
+  98 commits, 61 comments. No human reviewer since `created_at` 2026-08-02 — **89 days**.
 - Build order (plan.md §7) still 7/8; `holdout/` listing (filenames/sizes only, no content read)
-  still shows just the 414-byte placeholder `README.md` — step 8 stays blocked on
-  externally-supplied `holdout-a`/`holdout-b` schemas per spec.md §2/§9, which this routine may not
-  author itself. `dev/` unchanged (`dev-a.xml`, `dev-b.xml`).
-- Actions (`loop-research.yml`) still exactly 1 total run (2026-08-08, success).
-  `.runs/loop_research/` — same 12 run dirs, newest still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **80 days** with no
-  new compute-plane run. `experiments/queue/` still only the 2026-08-08 placeholder;
-  `routines/budget-log.md` unchanged since its single 2026-08-03 row; no
-  `experiments/credits-ready.flag`.
+  still shows just the 414-byte placeholder `README.md` — step 8 stays externally blocked.
+  `dev/` unchanged (`dev-a.xml`, `dev-b.xml`). Newest `.runs/loop_research/` entry still 2026-08-11's
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **81 days** with no
+  new compute-plane run; `experiments/queue/` still only the 2026-08-08 placeholder.
 
-No code under `packages/research/loop_research/`, `tests/`, or the spec tree changed since the
-head this routine already verified at **97/97** (same commit as 2026-10-29), so this firing did not
-reinstall deps and rerun the suite just to restate a number already on record.
-
-**No push notification** — the identical stuck state was already flagged 2026-10-28; nothing moved
-since, so another notification today would be noise, not new signal. **No new PR comment** either,
-for the same reason — yesterday's comment already covers this exact state.
+**No push notification** — the last one went out 2026-10-28, only 3 days ago, well inside this
+routine's own ~32-day re-notify cadence; none of the three standing facts moved, so another one
+today would be noise. **No new PR comment**, same reasoning.
 Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
