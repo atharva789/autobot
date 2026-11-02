@@ -53,38 +53,32 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-01** · build order: still 7/8 · no new evidence since 2026-08-11 (82 days) · another
-v1/v2 near-miss, this time caught at push rejection rather than before any commit
+**2026-11-02** · build order: still 7/8 · no new evidence since 2026-08-11 (83 days) · clean
+firing, no v1/v2 near-miss
 
-This firing's bootstrap prompt is still v1 — no step 0, no pointer to `routine/experiments`.
-Followed it as given, read the spec tree against a bare `master` checkout, found only
-`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, and built a full duplicate of build-order
-step 1 (`compiler.py`, `baselines.py` + a frozen `dev-a` hand-written baseline, `step1_baseline_run.py`,
-7 new tests) — installed `mujoco`/`pytest` and ran it for real: 13/13 tests passed, G1 scored 1.0,
-a 20-episode rollout produced a structurally valid `RolloutBatch`. Committed locally this time
-before discovering the real branch: `git push -u origin routine/experiments` was rejected by
-GitHub, which is what prompted the fetch that surfaced `routine/experiments` 99 commits / 109 files
-ahead of `master` (matches PR #6's own `additions`/`deletions`/`changed_files` exactly), with PR #6
-already open from it carrying steps 1–7 under a different, more mature module layout. Discarded
-the entire duplicate — commit included — via `git reset --hard origin/routine/experiments` before
-pushing anything, and treated that branch as the repo's true state from there. At least the 38th
-confirmed occurrence of this exact pattern; root cause unchanged.
+This firing's bootstrap prompt is still v1 — no step 0, no pointer to `routine/experiments` —
+same stale trigger as every prior firing. This time, checked the real branch state with direct
+`git`/GitHub-tool calls (`git fetch`, `git log origin/master..origin/routine/experiments`,
+`pull_request_read`) *before* writing or building anything, so no duplicate build happened and
+nothing needed discarding.
 
-Re-verified the three standing blockers fresh:
+Re-verified the three standing blockers fresh, live, not carried forward:
 
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still v1 verbatim, `updated_at`
-  unchanged (2026-10-27T19:09:52Z) — **88 days** since v2 shipped (2026-08-05) without being
+  unchanged (2026-10-27T19:09:52Z) — **89 days** since v2 shipped (2026-08-05) without being
   repointed; a human-only `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`, all 61 comment bodies checked) —
-  still open, draft, `mergeable_state: clean`, head `dcf61cd`, 99 commits, 61 comments, every one of
-  them this routine's own self-report. No human reviewer since `created_at` 2026-08-02 — **91 days**.
+- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`) — still open, draft,
+  `mergeable_state: clean`, head `2303a32`, 100 commits, 61 comments, every one of them this
+  routine's own self-report, `get_reviews` → `[]`. No human reviewer since `created_at`
+  2026-08-02 — **92 days**.
 - Build order (plan.md §7) still 7/8; `holdout/` listing (filenames/sizes only, no content read)
   still shows just the 414-byte placeholder `README.md` — step 8 stays externally blocked.
   `dev/` unchanged (`dev-a.xml`, `dev-b.xml`). Newest `.runs/loop_research/` entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **82 days** with no
-  new compute-plane run; `experiments/queue/` still only the 2026-08-08 placeholder.
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **83 days** with no
+  new compute-plane run; `experiments/queue/` still only the 2026-08-08 placeholder; exactly 1
+  Actions run total (2026-08-08, success).
 
-**No push notification** — the last one went out 2026-10-28, only 4 days ago, well inside this
+**No push notification** — the last one went out 2026-10-28, only 5 days ago, inside this
 routine's own ~32-day re-notify cadence; none of the three standing facts moved beyond the
 calendar. **No new PR comment**, same reasoning.
 Full detail in today's [registry row](routines/registry.md).
