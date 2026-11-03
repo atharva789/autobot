@@ -53,7 +53,7 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-02** · build order: still 7/8 · no new evidence since 2026-08-11 (83 days) · clean
+**2026-11-03** · build order: still 7/8 · no new evidence since 2026-08-11 (84 days) · clean
 firing, no v1/v2 near-miss
 
 This firing's bootstrap prompt is still v1 — no step 0, no pointer to `routine/experiments` —
@@ -65,22 +65,23 @@ nothing needed discarding.
 Re-verified the three standing blockers fresh, live, not carried forward:
 
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still v1 verbatim, `updated_at`
-  unchanged (2026-10-27T19:09:52Z) — **89 days** since v2 shipped (2026-08-05) without being
+  unchanged (2026-10-27T19:09:52Z) — **90 days** since v2 shipped (2026-08-05) without being
   repointed; a human-only `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`) — still open, draft,
-  `mergeable_state: clean`, head `2303a32`, 100 commits, 61 comments, every one of them this
-  routine's own self-report, `get_reviews` → `[]`. No human reviewer since `created_at`
-  2026-08-02 — **92 days**.
+- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`/`get_status`) — still open, draft,
+  `mergeable_state: clean`, head `042ccc6`, 101 commits, 61 comments, every one of them this
+  routine's own self-report, `get_reviews` → `[]`, head commit has 0 CI statuses. No human
+  reviewer since `created_at` 2026-08-02 — **93 days**.
 - Build order (plan.md §7) still 7/8; `holdout/` listing (filenames/sizes only, no content read)
   still shows just the 414-byte placeholder `README.md` — step 8 stays externally blocked.
   `dev/` unchanged (`dev-a.xml`, `dev-b.xml`). Newest `.runs/loop_research/` entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **83 days** with no
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **84 days** with no
   new compute-plane run; `experiments/queue/` still only the 2026-08-08 placeholder; exactly 1
   Actions run total (2026-08-08, success).
 
-**No push notification** — the last one went out 2026-10-28, only 5 days ago, inside this
-routine's own ~32-day re-notify cadence; none of the three standing facts moved beyond the
-calendar. **No new PR comment**, same reasoning.
+**No push notification** — the last one from this routine went out 2026-10-28; a separate hourly
+PR #6 check-in already escalated this same stale-review state twice (independently of this
+routine) and none of the standing facts moved since 2026-11-02. **No new PR comment**, same
+reasoning.
 Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
