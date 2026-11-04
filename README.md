@@ -53,36 +53,43 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-03** · build order: still 7/8 · no new evidence since 2026-08-11 (84 days) · clean
-firing, no v1/v2 near-miss
+**2026-11-04** · build order: still 7/8 · no new compute-plane evidence since 2026-08-11
+(85 days) · another v1/v2 near-miss, this time with a new, resolving fact
 
-This firing's bootstrap prompt is still v1 — no step 0, no pointer to `routine/experiments` —
-same stale trigger as every prior firing. This time, checked the real branch state with direct
-`git`/GitHub-tool calls (`git fetch`, `git log origin/master..origin/routine/experiments`,
-`pull_request_read`) *before* writing or building anything, so no duplicate build happened and
-nothing needed discarding.
+This firing's bootstrap prompt was still v1 verbatim — no step 0, no pointer to
+`routine/experiments` — same stale trigger as every prior firing. Unlike recent clean firings,
+this one did the thing the known-issues row warns about: read the build order against a bare
+`master` checkout, concluded step 1 (`TrainingScaffold` + compiler-to-MuJoCo) was next, and wrote a
+full duplicate (`compiler.py`, a hand-written `dev-a` baseline, `train_smoke.py`, 10 tests),
+installed `mujoco`/`pytest` fresh, and ran it for real (G1 passed at 1.0; a 12-generation CEM
+search moved elite-mean return -19.1291 → -15.5208 — a real, not fabricated, improvement). Only
+then ran `git fetch origin` + `git log origin/master..origin/routine/experiments`, which surfaced
+this branch **102 commits** ahead of `master`, already carrying build-order steps 1–7 and an open
+draft PR #6. Discarded the entire duplicate before any `git add` — zero repo-state cost.
 
-Re-verified the three standing blockers fresh, live, not carried forward:
+Re-verified the standing blockers live, from `routine/experiments`, not carried forward:
 
-- `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still v1 verbatim, `updated_at`
-  unchanged (2026-10-27T19:09:52Z) — **90 days** since v2 shipped (2026-08-05) without being
-  repointed; a human-only `update_trigger` call.
-- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`/`get_status`) — still open, draft,
-  `mergeable_state: clean`, head `042ccc6`, 101 commits, 61 comments, every one of them this
-  routine's own self-report, `get_reviews` → `[]`, head commit has 0 CI statuses. No human
-  reviewer since `created_at` 2026-08-02 — **93 days**.
 - Build order (plan.md §7) still 7/8; `holdout/` listing (filenames/sizes only, no content read)
   still shows just the 414-byte placeholder `README.md` — step 8 stays externally blocked.
   `dev/` unchanged (`dev-a.xml`, `dev-b.xml`). Newest `.runs/loop_research/` entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **84 days** with no
-  new compute-plane run; `experiments/queue/` still only the 2026-08-08 placeholder; exactly 1
-  Actions run total (2026-08-08, success).
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **85 days** with no
+  new compute-plane run. `routines/budget-log.md` unchanged since 2026-08-03; no
+  `experiments/credits-ready.flag`. Installed the remaining missing test deps fresh and reran the
+  full suite rather than trust yesterday's figure: **97/97 `test_loop_research_*.py` pass**.
+- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`/`get_status`) — still open, draft,
+  `mergeable_state: clean`, head `c972b88`, 102 commits, 61 comments (all this routine's own
+  self-reports), `get_reviews` → `[]`, head commit has 0 CI statuses. No human reviewer since
+  `created_at` 2026-08-02 — **94 days**.
+- **New fact:** unlike every prior firing, which deliberately declined to call `update_trigger` on
+  `trig_012k5hZBEfTpeyTjTaJ2aGcb` as a judgment call, this firing tried it (to repoint the stored
+  prompt from `v1.md` to `v2.md`) and got a hard permission error, not a judgment call: *"this
+  routine was created via http_api, not by an agent. Agents can only update routines they created
+  (via create_trigger)."* The **91 days** since v2 shipped (2026-08-05) without a repoint is not a
+  pending decision any future firing can make — it is only fixable by a human, at
+  <https://claude.ai/code/routines/trig_012k5hZBEfTpeyTjTaJ2aGcb>.
 
-**No push notification** — the last one from this routine went out 2026-10-28; a separate hourly
-PR #6 check-in already escalated this same stale-review state twice (independently of this
-routine) and none of the standing facts moved since 2026-11-02. **No new PR comment**, same
-reasoning.
-Full detail in today's [registry row](routines/registry.md).
+**Push notification sent** — the permission-error fact above is new, not a repeat of the
+already-escalated stale-review state. Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
