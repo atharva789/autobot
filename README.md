@@ -53,43 +53,47 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-04** · build order: still 7/8 · no new compute-plane evidence since 2026-08-11
-(85 days) · another v1/v2 near-miss, this time with a new, resolving fact
+**2026-11-05** · build order: still 7/8 · no new compute-plane evidence since 2026-08-11
+(86 days) · clean no-op, step 0 run first, no v1/v2 near-miss
 
-This firing's bootstrap prompt was still v1 verbatim — no step 0, no pointer to
-`routine/experiments` — same stale trigger as every prior firing. Unlike recent clean firings,
-this one did the thing the known-issues row warns about: read the build order against a bare
-`master` checkout, concluded step 1 (`TrainingScaffold` + compiler-to-MuJoCo) was next, and wrote a
-full duplicate (`compiler.py`, a hand-written `dev-a` baseline, `train_smoke.py`, 10 tests),
-installed `mujoco`/`pytest` fresh, and ran it for real (G1 passed at 1.0; a 12-generation CEM
-search moved elite-mean return -19.1291 → -15.5208 — a real, not fabricated, improvement). Only
-then ran `git fetch origin` + `git log origin/master..origin/routine/experiments`, which surfaced
-this branch **102 commits** ahead of `master`, already carrying build-order steps 1–7 and an open
-draft PR #6. Discarded the entire duplicate before any `git add` — zero repo-state cost.
+This firing's bootstrap prompt is still v1 verbatim (no step 0, no pointer to
+`routine/experiments`) — same stale trigger as every prior firing. Did not follow it blind: fetched
+`origin master routine/experiments`, confirmed `routine/experiments` is **103 commits** ahead of
+`master` with an open PR #6 from it, and checked out that branch as the repo's true state before
+reading the build order or writing anything — no duplicate step-1 build attempted, nothing to
+discard.
 
-Re-verified the standing blockers live, from `routine/experiments`, not carried forward:
+Re-verified every standing fact live rather than carrying forward 2026-11-04's numbers, and found
+all of them unchanged:
 
-- Build order (plan.md §7) still 7/8; `holdout/` listing (filenames/sizes only, no content read)
-  still shows just the 414-byte placeholder `README.md` — step 8 stays externally blocked.
-  `dev/` unchanged (`dev-a.xml`, `dev-b.xml`). Newest `.runs/loop_research/` entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **85 days** with no
-  new compute-plane run. `routines/budget-log.md` unchanged since 2026-08-03; no
-  `experiments/credits-ready.flag`. Installed the remaining missing test deps fresh and reran the
-  full suite rather than trust yesterday's figure: **97/97 `test_loop_research_*.py` pass**.
+- `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still byte-for-byte v1,
+  `updated_at` still `2026-10-27T19:09:52Z` — **92 days** since v2 shipped (2026-08-05) without
+  being repointed. Yesterday's firing already established, via a hard tool-level permission error,
+  that no agent session can repoint this trigger; not re-attempted today.
 - PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`/`get_status`) — still open, draft,
-  `mergeable_state: clean`, head `c972b88`, 102 commits, 61 comments (all this routine's own
-  self-reports), `get_reviews` → `[]`, head commit has 0 CI statuses. No human reviewer since
-  `created_at` 2026-08-02 — **94 days**.
-- **New fact:** unlike every prior firing, which deliberately declined to call `update_trigger` on
-  `trig_012k5hZBEfTpeyTjTaJ2aGcb` as a judgment call, this firing tried it (to repoint the stored
-  prompt from `v1.md` to `v2.md`) and got a hard permission error, not a judgment call: *"this
-  routine was created via http_api, not by an agent. Agents can only update routines they created
-  (via create_trigger)."* The **91 days** since v2 shipped (2026-08-05) without a repoint is not a
-  pending decision any future firing can make — it is only fixable by a human, at
-  <https://claude.ai/code/routines/trig_012k5hZBEfTpeyTjTaJ2aGcb>.
+  `mergeable_state: clean`, head `e51bc86` (yesterday's push), 103 commits, 61 comments (all this
+  routine's own self-reports, last one 2026-10-29), `get_reviews` → `[]`, head commit 0 CI statuses.
+  No human reviewer since `created_at` 2026-08-02 — **95 days**.
+- The companion "Re-check PR #6 CI" check-in (`trig_017tHEXiQFm28C85bHyn7sva`) fired once as a
+  one-shot on 2026-11-03 and is `enabled: false`, `ended_reason: run_once_fired` — confirmed again
+  it did not re-arm itself, so this daily routine remains the only live check on PR #6.
+- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` listing (filenames/sizes
+  only, no content read) still just the 414-byte placeholder `README.md` — step 8 stays externally
+  blocked on human-supplied held-out schemas per spec.md §2/§9. `dev/` unchanged (`dev-a.xml`,
+  `dev-b.xml`). Newest `.runs/loop_research/` entry still 2026-08-11's
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **86 days** with no
+  new compute-plane run. `routines/budget-log.md` unchanged since 2026-08-03; no
+  `experiments/credits-ready.flag`. `experiments/queue/` still only the 2026-08-08 placeholder.
 
-**Push notification sent** — the permission-error fact above is new, not a repeat of the
-already-escalated stale-review state. Full detail in today's [registry row](routines/registry.md).
+No code under `packages/research/loop_research/`, `tests/`, or the spec/contracts tree moved since
+yesterday's committed 97/97 verification against this same head, so this firing did not reinstall
+deps and rerun the suite to restate an unchanged number.
+
+No gate threshold, τ, or rubric criterion touched; no `holdout-*` content read; `.runs/` history
+untouched (append-only, nothing written); no Compose service added; no new experiment queued.
+**No push notification sent** — nothing moved beyond the calendar since yesterday's escalation of
+the `update_trigger` permission fact. **No new PR comment posted** — would be the 62nd self-report
+with no new information. Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
