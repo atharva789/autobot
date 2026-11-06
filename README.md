@@ -53,47 +53,59 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-05** · build order: still 7/8 · no new compute-plane evidence since 2026-08-11
-(86 days) · clean no-op, step 0 run first, no v1/v2 near-miss
+**2026-11-06** · build order: still 7/8 · no new compute-plane evidence since 2026-08-11
+(87 days) · another v1/v2 near-miss, caught before any commit
 
-This firing's bootstrap prompt is still v1 verbatim (no step 0, no pointer to
-`routine/experiments`) — same stale trigger as every prior firing. Did not follow it blind: fetched
-`origin master routine/experiments`, confirmed `routine/experiments` is **103 commits** ahead of
-`master` with an open PR #6 from it, and checked out that branch as the repo's true state before
-reading the build order or writing anything — no duplicate step-1 build attempted, nothing to
-discard.
+This firing's bootstrap prompt was still v1 verbatim — no step 0, no pointer to
+`routine/experiments`. Followed it as given at first: read `spec.md`/`plan.md` §7 against a bare
+`master` checkout, found only `g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, and concluded
+step 1 (`TrainingScaffold` + compiler-to-MuJoCo) was the lowest incomplete step. Built a full
+duplicate — `compiler.py` (whitelisted-AST expression evaluator binding reward/termination symbols
+to live MuJoCo state), a frozen hand-written `dev-a` baseline, a CEM `train_smoke.py`, and 26 new
+tests — and ran it for real: G1 passed 1.0, a 12-iteration CEM search moved `best_return`
+**-28.213 → -27.129**. Only then ran `git fetch origin` and `git log origin/master..origin/routine/experiments`,
+which surfaced this branch **104 commits** ahead of `master`, already carrying build-order steps
+1–7 (`scaffold.py`/`symbols.py`/`expr.py`/`mujoco_compiler.py`/`rollout.py`/`scaffold_loop.py`/
+`static_scaffold_loop.py`/`structural_diff.py`/`orchestrator.py`, `dev-b.xml`) inside an open draft
+PR #6. Discarded the entire duplicate before any `git add` — zero repo-state cost — and treated
+`routine/experiments` as the repo's true state from that point on. This is at least the
+thirty-ninth confirmed occurrence of this exact near-miss; root cause (the trigger's stored
+bootstrap prompt is still v1, and no agent session can repoint it — confirmed as a hard
+tool-level permission error on 2026-11-04) is unchanged.
 
-Re-verified every standing fact live rather than carrying forward 2026-11-04's numbers, and found
-all of them unchanged:
+Re-verified every standing fact live rather than trusting 2026-11-05's numbers:
 
+- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_status`) — still open, draft,
+  `mergeable_state: clean`, head `c82ce6e`, 104 commits, 61 comments (unchanged — all this
+  routine's own self-reports), `get_reviews` → `[]`, `get_status` → pending, 0 statuses. No human
+  reviewer since `created_at` 2026-08-02 — **96 days**.
 - `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still byte-for-byte v1,
-  `updated_at` still `2026-10-27T19:09:52Z` — **92 days** since v2 shipped (2026-08-05) without
-  being repointed. Yesterday's firing already established, via a hard tool-level permission error,
-  that no agent session can repoint this trigger; not re-attempted today.
-- PR #6 (`pull_request_read` `get`/`get_reviews`/`get_comments`/`get_status`) — still open, draft,
-  `mergeable_state: clean`, head `e51bc86` (yesterday's push), 103 commits, 61 comments (all this
-  routine's own self-reports, last one 2026-10-29), `get_reviews` → `[]`, head commit 0 CI statuses.
-  No human reviewer since `created_at` 2026-08-02 — **95 days**.
-- The companion "Re-check PR #6 CI" check-in (`trig_017tHEXiQFm28C85bHyn7sva`) fired once as a
-  one-shot on 2026-11-03 and is `enabled: false`, `ended_reason: run_once_fired` — confirmed again
-  it did not re-arm itself, so this daily routine remains the only live check on PR #6.
-- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` listing (filenames/sizes
-  only, no content read) still just the 414-byte placeholder `README.md` — step 8 stays externally
-  blocked on human-supplied held-out schemas per spec.md §2/§9. `dev/` unchanged (`dev-a.xml`,
-  `dev-b.xml`). Newest `.runs/loop_research/` entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **86 days** with no
-  new compute-plane run. `routines/budget-log.md` unchanged since 2026-08-03; no
-  `experiments/credits-ready.flag`. `experiments/queue/` still only the 2026-08-08 placeholder.
+  `updated_at` still `2026-10-27T19:09:52Z` — **93 days** since v2 shipped (2026-08-05) unrepointed.
+- The companion "Re-check PR #6 CI" check-in (`trig_017tHEXiQFm28C85bHyn7sva`) is still
+  `enabled: false`, `ended_reason: run_once_fired` from its single 2026-11-03 firing — did not
+  re-arm; this daily routine remains the only live check on PR #6.
+- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` listing (`ls -la`,
+  filenames/sizes only, no content read) still just the 414-byte placeholder `README.md` — step 8
+  stays externally blocked on human-supplied held-out schemas per spec.md §2/§9. `dev/` unchanged
+  (`dev-a.xml` 4258B, `dev-b.xml` 3472B).
+- Newest `.runs/loop_research/` entry still 2026-08-11's
+  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **87 days** with no
+  new compute-plane run; confirmed via `actions_list`: `loop-research.yml` still exactly 1 total
+  run (2026-08-08, success). `experiments/queue/` still only the 2026-08-08 placeholder;
+  `specs/.../increments/` still doesn't exist. `routines/budget-log.md` unchanged since
+  2026-08-03; no `experiments/credits-ready.flag`.
 
-No code under `packages/research/loop_research/`, `tests/`, or the spec/contracts tree moved since
-yesterday's committed 97/97 verification against this same head, so this firing did not reinstall
-deps and rerun the suite to restate an unchanged number.
+Reinstalled this sandbox's missing test deps fresh (`pytest`, `mujoco`, `pydantic`,
+`python-dotenv`, `langsmith`, `langchain`, `langchain-openai`, `pyyaml`) and reran the suite myself
+rather than carry forward a prior count: **97/97 `test_loop_research_*.py` pass**, unchanged.
 
 No gate threshold, τ, or rubric criterion touched; no `holdout-*` content read; `.runs/` history
-untouched (append-only, nothing written); no Compose service added; no new experiment queued.
-**No push notification sent** — nothing moved beyond the calendar since yesterday's escalation of
-the `update_trigger` permission fact. **No new PR comment posted** — would be the 62nd self-report
-with no new information. Full detail in today's [registry row](routines/registry.md).
+untouched (the discarded duplicate's throwaway run log was deleted before any commit, so nothing
+was ever appended); no Compose service added; no new experiment queued. **No push notification
+sent** — nothing moved beyond the calendar since the last one (2026-10-28, 9 days ago, inside the
+established ~32-day re-notify cadence). **No new PR comment posted** — would be the 62nd
+self-report with no new information. Pushed this registry/README log entry only; no code diff
+survives from this firing. Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
