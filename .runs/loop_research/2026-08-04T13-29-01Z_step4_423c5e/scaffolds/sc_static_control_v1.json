@@ -1,0 +1,78 @@
+{
+  "scaffold_id": "sc_static_control_v1",
+  "schema_id": "dev-a",
+  "schema_digest": "sha256:5de2f0cdc712871799bb05c8d2fc76149bc9f98ed12757a62b273b969c5b8c0d",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "reach",
+      "weight": 0.3,
+      "expression": "-abs(joint.j_shoulder.qpos - joint.j_elbow.qpos)",
+      "symbols": [
+        "joint.j_shoulder.qpos",
+        "joint.j_elbow.qpos"
+      ],
+      "rationale": "Fixed template term: assumes a shoulder/elbow serial arm exists, regardless of the robot actually supplied."
+    },
+    {
+      "name": "lift",
+      "weight": 0.5,
+      "expression": "body.wrist.pos.z",
+      "symbols": [
+        "body.wrist.pos.z"
+      ],
+      "rationale": "Fixed template term: assumes a body named 'wrist' exists."
+    },
+    {
+      "name": "grip_engaged",
+      "weight": 0.2,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Fixed template term: assumes dev-a's specific touch-sensor name."
+    }
+  ],
+  "terminations": [
+    {
+      "name": "dropped",
+      "predicate": "body.finger_left.pos.z < 0.01",
+      "symbols": [
+        "body.finger_left.pos.z"
+      ],
+      "cause_label": "drop"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "payload_mass",
+      "range": [
+        0.3,
+        0.5
+      ],
+      "advance_when": "success_rate > 0.6 over 32 episodes"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "friction.tangential",
+      "range": [
+        0.6,
+        1.2
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "n/a",
+    "model_id": "static-control",
+    "model_tier": "cheap",
+    "seed": 0,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

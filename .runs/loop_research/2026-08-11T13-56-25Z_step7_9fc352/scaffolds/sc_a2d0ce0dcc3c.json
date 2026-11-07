@@ -1,0 +1,157 @@
+{
+  "scaffold_id": "sc_a2d0ce0dcc3c",
+  "schema_id": "dev-a.limits_altered",
+  "schema_digest": "sha256:b4ea25f30e753bc1e3d464e026475272719e12e12b4882fea286f0dd38513184",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "payload_height_tracking",
+      "weight": 2.5,
+      "expression": "-(abs(site.payload_center.pos.z - site.shelf_target.pos.z))",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Primary objective: minimize vertical distance to shelf target height"
+    },
+    {
+      "name": "payload_xy_positioning",
+      "weight": 1.5,
+      "expression": "-(abs(site.payload_center.pos.x - site.shelf_target.pos.x) + abs(site.payload_center.pos.y - site.shelf_target.pos.y))",
+      "symbols": [
+        "site.payload_center.pos.x",
+        "site.payload_center.pos.y",
+        "site.shelf_target.pos.x",
+        "site.shelf_target.pos.y"
+      ],
+      "rationale": "Secondary objective: minimize horizontal distance from target location"
+    },
+    {
+      "name": "gripper_contact",
+      "weight": 0.3,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Encourage sustained gripper-payload contact during manipulation"
+    },
+    {
+      "name": "action_efficiency",
+      "weight": -0.02,
+      "expression": "abs(actuator.m_shoulder) + abs(actuator.m_elbow) + abs(actuator.m_wrist) + abs(actuator.m_finger_left) + abs(actuator.m_finger_right)",
+      "symbols": [
+        "actuator.m_shoulder",
+        "actuator.m_elbow",
+        "actuator.m_wrist",
+        "actuator.m_finger_left",
+        "actuator.m_finger_right"
+      ],
+      "rationale": "Penalize control effort to promote smooth, energy-efficient trajectories"
+    }
+  ],
+  "terminations": [
+    {
+      "name": "task_success",
+      "predicate": "max(abs(site.payload_center.pos.x - site.shelf_target.pos.x), abs(site.payload_center.pos.y - site.shelf_target.pos.y), abs(site.payload_center.pos.z - site.shelf_target.pos.z)) < 0.03",
+      "symbols": [
+        "site.payload_center.pos.x",
+        "site.payload_center.pos.y",
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.x",
+        "site.shelf_target.pos.y",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "success"
+    },
+    {
+      "name": "payload_dropped",
+      "predicate": "site.payload_center.pos.z < 0.02",
+      "symbols": [
+        "site.payload_center.pos.z"
+      ],
+      "cause_label": "failure"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "shelf_height",
+      "range": [
+        0.2,
+        0.3
+      ],
+      "advance_when": "success_rate >= 0.75"
+    },
+    {
+      "stage": 1,
+      "parameter": "shelf_height",
+      "range": [
+        0.3,
+        0.5
+      ],
+      "advance_when": "success_rate >= 0.75"
+    },
+    {
+      "stage": 2,
+      "parameter": "shelf_height",
+      "range": [
+        0.5,
+        0.75
+      ],
+      "advance_when": "success_rate >= 0.75"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "initial_payload_x",
+      "range": [
+        -0.12,
+        0.12
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "initial_payload_y",
+      "range": [
+        -0.12,
+        0.12
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "initial_payload_z",
+      "range": [
+        0.02,
+        0.06
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "target_x_noise",
+      "range": [
+        -0.06,
+        0.06
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "target_y_noise",
+      "range": [
+        -0.06,
+        0.06
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 11,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

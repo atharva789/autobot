@@ -1,0 +1,26 @@
+{
+  "batch_id": "rb_8fe0ad489b94",
+  "scaffold_id": "sc_dev_a_baseline",
+  "episodes": 8,
+  "step_budget": 300,
+  "success_rate": 0.0,
+  "termination_histogram": {
+    "timeout": 8
+  },
+  "contact_events": {
+    "3_pad_left": 424,
+    "3_pad_right": 240,
+    "payload_box_table": 7840
+  },
+  "joint_saturation": {
+    "j_base_yaw": 0.0,
+    "j_shoulder": 0.0,
+    "j_elbow": 0.0,
+    "j_wrist": 0.0,
+    "j_finger_left": 0.08666666666666667,
+    "j_finger_right": 0.28
+  },
+  "seed": 7,
+  "wall_clock_s": 0.3286246130001018,
+  "trace_uri": null
+}

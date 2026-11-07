@@ -1,0 +1,144 @@
+{
+  "scaffold_id": "sc_3c2ce96dbc5c",
+  "schema_id": "dev-b",
+  "schema_digest": "sha256:ac4a0f25c61bc54e65bccba9bf83d7224cbdb5d5efb03e30a3eed84b5a5a2402",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "approach_gripper_to_payload",
+      "weight": 1.0,
+      "expression": "-(abs(site.grip_center.pos.x - site.payload_center.pos.x) + abs(site.grip_center.pos.y - site.payload_center.pos.y) + abs(site.grip_center.pos.z - site.payload_center.pos.z))",
+      "symbols": [
+        "site.grip_center.pos.x",
+        "site.grip_center.pos.y",
+        "site.grip_center.pos.z",
+        "site.payload_center.pos.x",
+        "site.payload_center.pos.y",
+        "site.payload_center.pos.z"
+      ],
+      "rationale": "Encourages gripper to move into position for grasping; uses Manhattan distance to avoid sqrt"
+    },
+    {
+      "name": "grasp_maintained",
+      "weight": 5.0,
+      "expression": "sensor.s_touch_jaw",
+      "symbols": [
+        "sensor.s_touch_jaw"
+      ],
+      "rationale": "Rewards sustained jaw contact; weight increased from 2.0 to 5.0 because 100% joint saturation indicates insufficient grip priority relative to lift rewards"
+    },
+    {
+      "name": "payload_lift",
+      "weight": 1.0,
+      "expression": "site.payload_center.pos.z",
+      "symbols": [
+        "site.payload_center.pos.z"
+      ],
+      "rationale": "Rewards vertical lift; weight reduced from 3.0 to 1.0 to de-prioritize lift until grasp is secure"
+    },
+    {
+      "name": "reach_shelf_target",
+      "weight": 1.0,
+      "expression": "-abs(site.payload_center.pos.z - site.shelf_target.pos.z)",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Convergence reward for payload reaching shelf height; weight reduced from 4.0 to 1.0 because failure mode is lost grasp, not failure to reach shelf"
+    }
+  ],
+  "terminations": [
+    {
+      "name": "task_success",
+      "predicate": "abs(site.payload_center.pos.z - site.shelf_target.pos.z) < 0.05",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "success_payload_at_shelf"
+    },
+    {
+      "name": "grasp_lost",
+      "predicate": "sensor.s_touch_jaw < 0.1",
+      "symbols": [
+        "sensor.s_touch_jaw"
+      ],
+      "cause_label": "failure_lost_contact"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "reach_task",
+      "range": [
+        0.0,
+        0.0
+      ],
+      "advance_when": "abs(site.grip_center.pos.x - site.payload_center.pos.x) + abs(site.grip_center.pos.y - site.payload_center.pos.y) + abs(site.grip_center.pos.z - site.payload_center.pos.z) < 0.15"
+    },
+    {
+      "stage": 1,
+      "parameter": "grasp_task",
+      "range": [
+        0.0,
+        0.0
+      ],
+      "advance_when": "sensor.s_touch_jaw > 0.5"
+    },
+    {
+      "stage": 2,
+      "parameter": "intermediate_lift",
+      "range": [
+        0.0,
+        0.35
+      ],
+      "advance_when": "site.payload_center.pos.z > 0.3"
+    },
+    {
+      "stage": 3,
+      "parameter": "full_shelf_lift",
+      "range": [
+        0.0,
+        1.0
+      ],
+      "advance_when": "abs(site.payload_center.pos.z - site.shelf_target.pos.z) < 0.05"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_position_x",
+      "range": [
+        -0.08,
+        0.08
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_position_y",
+      "range": [
+        -0.08,
+        0.08
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "shelf_target_height",
+      "range": [
+        -0.03,
+        0.03
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 7,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": "sc_59592391940d",
+  "motivating_batch_id": "rb_46adab5b304f"
+}

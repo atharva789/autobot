@@ -1,0 +1,144 @@
+{
+  "scaffold_id": "sc_77f0c1e78154",
+  "schema_id": "dev-a.link_scaled",
+  "schema_digest": "sha256:43017b33dede168860ed1d736555fa0b3df15afc9e21f5fa01b8a44be92c5b82",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "height_to_shelf",
+      "weight": 2.0,
+      "expression": "-abs(site.payload_center.pos.z - site.shelf_target.pos.z)",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "rationale": "Primary objective: minimize vertical distance between payload and shelf target. Continuous gradient guides the arm upward."
+    },
+    {
+      "name": "grip_stability",
+      "weight": 1.0,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Maintain contact throughout lift. Without grip, payload falls and task fails. Sensor directly measures gripper contact state."
+    },
+    {
+      "name": "payload_centering",
+      "weight": 0.5,
+      "expression": "-(abs(site.payload_center.pos.x - site.grip_center.pos.x) + abs(site.payload_center.pos.y - site.grip_center.pos.y)) / 10",
+      "symbols": [
+        "site.payload_center.pos.x",
+        "site.payload_center.pos.y",
+        "site.grip_center.pos.x",
+        "site.grip_center.pos.y"
+      ],
+      "rationale": "Prevent tilting by keeping payload aligned under gripper centerline. Lateral misalignment destabilizes the lift."
+    },
+    {
+      "name": "motion_smoothness",
+      "weight": -0.1,
+      "expression": "abs(joint.j_shoulder.qvel) + abs(joint.j_elbow.qvel) + abs(joint.j_wrist.qvel) + abs(joint.j_base_yaw.qvel)",
+      "symbols": [
+        "joint.j_shoulder.qvel",
+        "joint.j_elbow.qvel",
+        "joint.j_wrist.qvel",
+        "joint.j_base_yaw.qvel"
+      ],
+      "rationale": "Penalize high joint velocities to encourage smooth, controlled motion. Reduces energy consumption and improves transferability."
+    }
+  ],
+  "terminations": [
+    {
+      "name": "success",
+      "predicate": "abs(site.payload_center.pos.z - site.shelf_target.pos.z) < 0.02",
+      "symbols": [
+        "site.payload_center.pos.z",
+        "site.shelf_target.pos.z"
+      ],
+      "cause_label": "task_success"
+    },
+    {
+      "name": "grip_lost",
+      "predicate": "sensor.s_touch_left < 0.1",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "cause_label": "dropped_payload"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "payload_start_z",
+      "range": [
+        0.25,
+        0.25
+      ],
+      "advance_when": "mean_episode_reward > 2.0"
+    },
+    {
+      "stage": 1,
+      "parameter": "payload_start_z",
+      "range": [
+        0.15,
+        0.15
+      ],
+      "advance_when": "mean_episode_reward > 2.5"
+    },
+    {
+      "stage": 2,
+      "parameter": "payload_start_z",
+      "range": [
+        0.05,
+        0.05
+      ],
+      "advance_when": "mean_episode_reward > 2.0"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_start_z",
+      "range": [
+        0.05,
+        0.25
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "payload_mass",
+      "range": [
+        0.5,
+        3.0
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "friction_coeff",
+      "range": [
+        0.2,
+        1.2
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "gravity",
+      "range": [
+        8.5,
+        10.5
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 11,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}
