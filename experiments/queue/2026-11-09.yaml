@@ -1,0 +1,40 @@
+# Research-day experiment manifest — spec 012, build order step 7+ (research phase).
+#
+# Queues the proposal in
+# specs/012-schema-conditioned-policy-synthesis/increments/2026-11-09-initial-prompt-self-check.md
+# for whichever runner picks this up first: the compute plane (once OPENAI_API_KEY exists,
+# routines/budget-log.md) or a future local-substitute firing (routines/registry.md "Local
+# substitute mode"). Nothing in this repo currently auto-executes a queued manifest's described
+# change — orchestrator.py (build order step 6) runs steps 2/4/5's existing evidence generators,
+# not step 7 with a modified prompt — so this is a recorded intent for a human or a future firing
+# to act on, not a self-running job today. That gap (manifests aren't yet wired to an executable
+# diff) is itself worth a human's attention if this becomes a recurring pattern.
+purpose: research-proposal
+created: 2026-11-09
+created_by: routine/daily-loop-research
+increment: specs/012-schema-conditioned-policy-synthesis/increments/2026-11-09-initial-prompt-self-check.md
+targets_gate: G2
+targets_permutation_class: dof_removed
+baseline_run: .runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json
+baseline_structural_diff: 0.6357
+tau_source: .runs/loop_research/2026-08-06T13-35-51Z_step5_e3a5ab/run.json
+tau: 0.0278
+change:
+  file: packages/research/loop_research/scaffold_loop.py
+  target: _INITIAL_PROMPT
+  description: >
+    Add a required "self_check" field (parity with the existing _REVISION_PROMPT field of the
+    same name) naming any actuated joint/site/sensor in the entity table NOT referenced by the
+    generated scaffold, and why. No change to loop logic, gate code, tau, or the diff formula.
+method: >
+  Re-run only the dof_removed arm, same shape as
+  packages/research/loop_research/step7_dof_removed_recheck.py (seed=11, reused dev-a-g2-baseline
+  scaffold as the G2 "original" side, tau from the same step5 run), once with the modified
+  _INITIAL_PROMPT. Compare structural_diff against the 0.6357 baseline above.
+confirms_if: structural_diff materially exceeds 0.6357 with no new compile failure on any arm.
+refutes_if: structural_diff is at or below 0.6357, or any arm's G1/G2 result regresses.
+cost_estimate_usd: 0.0
+note: >
+  Not yet run. No compute-plane run exists (OPENAI_API_KEY unset,
+  routines/budget-log.md's single 2026-08-03 row); this manifest records the proposal for
+  whichever runner picks it up first.

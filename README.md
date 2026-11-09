@@ -53,65 +53,54 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-08** · build order: still 7/8 · no new compute-plane evidence since 2026-08-11
-(89 days) · another v1/v2 near-miss, caught earlier than usual — before any file was written
+**2026-11-09** · build order: still 7/8 · **first research-day proposal since 7/8 was reached**
+(2026-08-11) · forty-second confirmed v1/v2 near-miss, caught before any `git add`
 
-This firing's bootstrap prompt was still v1 verbatim — no step 0, no pointer to
-`routine/experiments`. Followed it as given at first: read `spec.md`/`plan.md` §7 against a bare
-`master` checkout, found only `g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, and concluded
-step 1 (`TrainingScaffold` + compiler-to-MuJoCo) was the lowest incomplete step — same conclusion
-every prior near-miss reached from the same stale view. Began scoping an implementation (confirmed
-`mujoco>=3.1` is already a `pyproject.toml` dependency, installed it, loaded `dev-a.xml` into real
-`mujoco.MjModel`/`MjData` and stepped it) and ran `git checkout -B routine/experiments origin/master`
-— v2's step-0 mistake. Caught it on the very next command, before writing or editing a single
-repository file: `git fetch origin routine/experiments` showed the real branch **106 commits**
-ahead of `master`, carrying a far more mature module layout under `packages/research/loop_research/`
-(`scaffold.py`/`symbols.py`/`expr.py`/`entity_table.py`/`mujoco_compiler.py`/`rollout.py`/
-`scaffold_loop.py`/`static_scaffold_loop.py`/`structural_diff.py`/`structural_gates.py`/`tau.py`/
-`orchestrator.py`/`sim_worker.py`/`gates.py`/`baselines.py`, plus `dev-b.xml`) inside an open draft
-PR #6. Re-pointed to `origin/routine/experiments` at once. This is at least the forty-first
-confirmed occurrence of this exact near-miss, and the earliest it has been caught — no duplicate
-module, baseline, or test file was ever created. Root cause unchanged: the trigger's stored
-bootstrap prompt is still v1, and no agent session can repoint it (confirmed as a hard tool-level
-permission error on 2026-11-04).
+Same near-miss as every recent firing: this session's bootstrap prompt was still v1 verbatim, no
+step 0. Read `spec.md`/`plan.md` §7 against a bare `master` checkout, found only
+`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was
+next, and built a full duplicate — `compiler.py` (whitelisted-`ast` expression evaluator),
+`mujoco_env.py` (MuJoCo wiring), a hand-written `dev-a` baseline, 18 new tests, and one real
+run log — installed `mujoco`/`pytest` fresh and ran all of it for real (G1 passed 1.0; the
+baseline compiled and stepped 2000/2000 real MuJoCo steps without crashing). Then ran
+`git fetch origin routine/experiments`, which surfaced the real branch **107 commits** ahead of
+`master` carrying steps 1–7 in open draft PR #6. Discarded the entire duplicate (`rm`, then
+`git checkout -B routine/experiments origin/routine/experiments`) before any `git add` — zero
+repo-state cost, same catch point as the cleanest prior occurrences.
 
-Re-verified every standing fact live rather than trusting 2026-11-07's numbers:
+Unlike every firing since 2026-08-11, this one did not stop at re-verifying standing facts. Build
+order is 7/8 and step 8 is externally blocked (held-out schemas spec.md §2/§9 bars this routine
+from authoring), which is a research day by the routine's own rule — a rule no firing had actually
+acted on in the ~90 days since reaching this state. Read the most recent run log
+([`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json)): all gates pass, but
+G2's `dof_removed` permutation has the narrowest margin of the four classes (`D=0.6357` vs.
+`~0.94` for the other three, τ=0.0278 for all). Proposed one change —
+[`2026-11-09-initial-prompt-self-check.md`](specs/012-schema-conditioned-policy-synthesis/increments/2026-11-09-initial-prompt-self-check.md):
+add a `self_check` field to `scaffold_loop.py`'s `_INITIAL_PROMPT` (the one-shot call every G2/G3
+arm actually makes, confirmed via `step7_dof_removed_recheck.py`'s `max_revisions=0`), mirroring
+the field `_REVISION_PROMPT` already has but `_INITIAL_PROMPT` does not — forcing the model to
+name any unreferenced entity on every independent call, without crossing loop-contract.md C6's
+independence boundary. Scored 5/5/5/5/4 against `contracts/eval-contract.md`'s rubric (falsifiability,
+grounding, scope, cost, cheat-resistance) — queued, not discarded. Queued as
+[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml); not run (no
+compute-plane access, `OPENAI_API_KEY` still unset) and not applied to `scaffold_loop.py` — this
+routine proposes and queues, it does not merge changes into the loop itself.
 
-- PR #6 (`pull_request_read` `get`/`get_reviews`) — still open, draft, `mergeable_state: clean`,
-  head `8ce14af`, 106 commits, 61 comments (unchanged — all this routine's own self-reports),
-  `get_reviews` → `[]`. No human reviewer since `created_at` 2026-08-02 — **98 days**.
-- `get_trigger` on `trig_012k5hZBEfTpeyTjTaJ2aGcb` → stored prompt still byte-for-byte v1,
-  `updated_at` still `2026-10-27T19:09:52Z` — **95 days** since v2 shipped (2026-08-05) unrepointed.
-- The companion "Re-check PR #6 CI" check-in (`trig_017tHEXiQFm28C85bHyn7sva`) is still
-  `enabled: false`, `ended_reason: run_once_fired` from its single 2026-11-03 firing — did not
-  re-arm; this daily routine remains the only live check on PR #6.
-- Build order (plan.md §7) still 7/8: `evals/policy_synthesis/holdout/` listing (`git ls-tree`,
-  filenames/sizes only, no schema content read) still just the 414-byte placeholder `README.md` —
-  step 8 stays externally blocked on human-supplied held-out schemas per spec.md §2/§9. `dev/`
-  unchanged (`dev-a.xml` 4258B, `dev-b.xml` 3472B).
-- Newest `.runs/loop_research/` entry still 2026-08-11's
-  [`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json) — **89 days** with no
-  new compute-plane run; confirmed via `actions_list`: `loop-research.yml` still exactly 1 total
-  run (2026-08-08, success). `experiments/queue/` still only the 2026-08-08 placeholder;
-  `specs/.../increments/` still doesn't exist. `routines/budget-log.md` unchanged since
-  2026-08-03; no `experiments/credits-ready.flag`.
-
-Installed this sandbox's missing test deps fresh (`pytest`, `mujoco`, `pydantic`,
-`python-dotenv`, `langsmith`, `langchain`, `langchain-openai`, `pyyaml`) and reran the suite myself
-rather than carry forward a prior count: **97/97 `test_loop_research_*.py` pass**, unchanged.
-
-One discrepancy noticed, not resolved: 2026-11-04's row claims a push notification was sent for
-the `update_trigger` permission error, while 2026-11-06's row dates the last notification to
-2026-10-28 without mentioning that send — left for a human to reconcile; it changes nothing about
-today's decision.
+Re-verified, unchanged: PR #6 still open/draft/`mergeable_state: clean`, 107 commits, 61 comments,
+zero reviews, open since 2026-08-02 (**99 days**). Trigger `trig_012k5hZBEfTpeyTjTaJ2aGcb`'s stored
+prompt still byte-for-byte v1, `updated_at` still `2026-10-27T19:09:52Z`. One new fact: a fresh
+"Re-check PR #6 CI" check-in (`trig_01FsCuVAcH5CYhhDVND2uLT3`) exists, created today 13:33 UTC —
+a different id from the one noted disabled in prior rows — but its own stored prompt carries the
+same no-renotify-on-no-new-fact policy, so this changes nothing about today's notification
+decision. `evals/policy_synthesis/holdout/` still only the placeholder `README.md`;
+`routines/budget-log.md` unchanged since 2026-08-03. Reran the suite rather than trust a prior
+count: **97/97 `test_loop_research_*.py` pass**.
 
 No gate threshold, τ, or rubric criterion touched; no `holdout-*` schema content read; `.runs/`
-history untouched (nothing was ever written this run, since the near-miss was caught before any
-file was created); no Compose service added; no new experiment queued. **No push notification
-sent** — nothing moved beyond the calendar since the last one, well inside the established
-~32-day re-notify cadence. **No new PR comment posted** — would be the 62nd self-report with no
-new information. Pushed this registry/README log entry only; no code diff survives from this
-firing. Full detail in today's [registry row](routines/registry.md).
+history untouched; no Compose service added. **No push notification sent** — the standing facts
+(trigger stale, PR unreviewed) are unchanged and already escalated twice; today's new fact (a
+queued research proposal) needs no one's immediate action. Full detail in today's
+[registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
