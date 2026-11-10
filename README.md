@@ -53,53 +53,38 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-09** · build order: still 7/8 · **first research-day proposal since 7/8 was reached**
-(2026-08-11) · forty-second confirmed v1/v2 near-miss, caught before any `git add`
+**2026-11-10** · build order: still 7/8 · 43rd confirmed v1/v2 near-miss, caught before any file
+was written
 
-Same near-miss as every recent firing: this session's bootstrap prompt was still v1 verbatim, no
-step 0. Read `spec.md`/`plan.md` §7 against a bare `master` checkout, found only
-`g1.py`/`records.py`/`smoke.py` and one `dev-a.xml`, concluded step 1 (compiler-to-MuJoCo) was
-next, and built a full duplicate — `compiler.py` (whitelisted-`ast` expression evaluator),
-`mujoco_env.py` (MuJoCo wiring), a hand-written `dev-a` baseline, 18 new tests, and one real
-run log — installed `mujoco`/`pytest` fresh and ran all of it for real (G1 passed 1.0; the
-baseline compiled and stepped 2000/2000 real MuJoCo steps without crashing). Then ran
-`git fetch origin routine/experiments`, which surfaced the real branch **107 commits** ahead of
-`master` carrying steps 1–7 in open draft PR #6. Discarded the entire duplicate (`rm`, then
-`git checkout -B routine/experiments origin/routine/experiments`) before any `git add` — zero
-repo-state cost, same catch point as the cleanest prior occurrences.
+Same root cause as every recent firing: the trigger's stored prompt is still v1 verbatim
+(`get_trigger` confirms it byte-for-byte, `updated_at` unchanged since 2026-10-27 — **104 days**
+since v2 shipped 2026-08-05). This firing began scoping step 1 (compiler-to-MuJoCo) against a bare
+`master` checkout, same as every prior near-miss, but caught it from `git log
+origin/routine/experiments` before writing or editing a single file — one step earlier than most
+prior catches. No duplicate file was ever created.
 
-Unlike every firing since 2026-08-11, this one did not stop at re-verifying standing facts. Build
-order is 7/8 and step 8 is externally blocked (held-out schemas spec.md §2/§9 bars this routine
-from authoring), which is a research day by the routine's own rule — a rule no firing had actually
-acted on in the ~90 days since reaching this state. Read the most recent run log
-([`9fc352`](.runs/loop_research/2026-08-11T13-56-25Z_step7_9fc352/run.json)): all gates pass, but
-G2's `dof_removed` permutation has the narrowest margin of the four classes (`D=0.6357` vs.
-`~0.94` for the other three, τ=0.0278 for all). Proposed one change —
-[`2026-11-09-initial-prompt-self-check.md`](specs/012-schema-conditioned-policy-synthesis/increments/2026-11-09-initial-prompt-self-check.md):
-add a `self_check` field to `scaffold_loop.py`'s `_INITIAL_PROMPT` (the one-shot call every G2/G3
-arm actually makes, confirmed via `step7_dof_removed_recheck.py`'s `max_revisions=0`), mirroring
-the field `_REVISION_PROMPT` already has but `_INITIAL_PROMPT` does not — forcing the model to
-name any unreferenced entity on every independent call, without crossing loop-contract.md C6's
-independence boundary. Scored 5/5/5/5/4 against `contracts/eval-contract.md`'s rubric (falsifiability,
-grounding, scope, cost, cheat-resistance) — queued, not discarded. Queued as
-[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml); not run (no
-compute-plane access, `OPENAI_API_KEY` still unset) and not applied to `scaffold_loop.py` — this
-routine proposes and queues, it does not merge changes into the loop itself.
+Re-verified rather than trusted: PR #6 unchanged (open, draft, `mergeable_state: clean`, 61
+comments, zero reviews, open since 2026-08-02 — **100 days**); build order still 7/8;
+`evals/policy_synthesis/holdout/` still only the placeholder `README.md` (metadata-only listing,
+content not read); no new `.runs/loop_research/` entry since 2026-08-11 (**91 days**);
+[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) (yesterday's proposal)
+still unexecuted, `OPENAI_API_KEY` still unset; reran the suite live — **97/97
+`test_loop_research_*.py` pass**, unchanged.
 
-Re-verified, unchanged: PR #6 still open/draft/`mergeable_state: clean`, 107 commits, 61 comments,
-zero reviews, open since 2026-08-02 (**99 days**). Trigger `trig_012k5hZBEfTpeyTjTaJ2aGcb`'s stored
-prompt still byte-for-byte v1, `updated_at` still `2026-10-27T19:09:52Z`. One new fact: a fresh
-"Re-check PR #6 CI" check-in (`trig_01FsCuVAcH5CYhhDVND2uLT3`) exists, created today 13:33 UTC —
-a different id from the one noted disabled in prior rows — but its own stored prompt carries the
-same no-renotify-on-no-new-fact policy, so this changes nothing about today's notification
-decision. `evals/policy_synthesis/holdout/` still only the placeholder `README.md`;
-`routines/budget-log.md` unchanged since 2026-08-03. Reran the suite rather than trust a prior
-count: **97/97 `test_loop_research_*.py` pass**.
+Considered running yesterday's queued proposal myself via the local `claude-code` substitute
+provider — the manifest invites exactly that, and nothing technical blocks it — and declined:
+yesterday's increment reasoned explicitly that a research-day proposal is written and queued, not
+merged or run unilaterally (spec.md §9). Overriding that on no new information would be the kind
+of self-authorized loop change the propose/execute split exists to prevent, so it stays queued for
+a human call.
 
-No gate threshold, τ, or rubric criterion touched; no `holdout-*` schema content read; `.runs/`
-history untouched; no Compose service added. **No push notification sent** — the standing facts
-(trigger stale, PR unreviewed) are unchanged and already escalated twice; today's new fact (a
-queued research proposal) needs no one's immediate action. Full detail in today's
+A dedicated hourly watcher now owns PR #6/trigger escalation and suppresses re-notification for an
+unchanged-facts firing like this one — **no push notification sent**, duplicating it would be
+noise. One new process note: `routines/registry.md` is now ~487KB, with one Known Issues cell
+alone ~17KB of appended daily essays; flagged as its own short row rather than added to.
+
+No gate threshold, τ, or rubric criterion touched; no code changed; `.runs/` history untouched; no
+Compose service added; no `holdout-*` content read. Full detail in today's
 [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
