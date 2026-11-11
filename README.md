@@ -53,39 +53,23 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-10** · build order: still 7/8 · 43rd confirmed v1/v2 near-miss, caught before any file
-was written
+**2026-11-11** · build order: still 7/8 · clean no-op, no new evidence since the 2026-08-11 run
 
-Same root cause as every recent firing: the trigger's stored prompt is still v1 verbatim
-(`get_trigger` confirms it byte-for-byte, `updated_at` unchanged since 2026-10-27 — **104 days**
-since v2 shipped 2026-08-05). This firing began scoping step 1 (compiler-to-MuJoCo) against a bare
-`master` checkout, same as every prior near-miss, but caught it from `git log
-origin/routine/experiments` before writing or editing a single file — one step earlier than most
-prior catches. No duplicate file was ever created.
+Checked `origin/routine/experiments` and PR #6 (step 0) before deciding anything, so no v1/v2
+near-miss occurred this firing. Re-verified live, nothing changed from 2026-11-10: trigger's
+stored prompt is still v1 verbatim (**105 days** since v2 shipped); PR #6 unchanged (open, draft,
+`mergeable_state: clean`, 109 commits, 62 comments, zero reviews); build order still 7/8; step 8
+remains externally blocked (`evals/policy_synthesis/holdout/` still placeholder-only;
+`OPENAI_API_KEY` still unset); no new `.runs/loop_research/` entry since 2026-08-11 (**92 days**).
+[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) remains unexecuted and is
+not self-run today — propose/execute stays split per spec.md §9.
 
-Re-verified rather than trusted: PR #6 unchanged (open, draft, `mergeable_state: clean`, 61
-comments, zero reviews, open since 2026-08-02 — **100 days**); build order still 7/8;
-`evals/policy_synthesis/holdout/` still only the placeholder `README.md` (metadata-only listing,
-content not read); no new `.runs/loop_research/` entry since 2026-08-11 (**91 days**);
-[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) (yesterday's proposal)
-still unexecuted, `OPENAI_API_KEY` still unset; reran the suite live — **97/97
-`test_loop_research_*.py` pass**, unchanged.
+No code was touched, so no suite rerun this firing. The hourly PR watcher's last check matches
+today's live state, so **no push notification sent**. This block is shortened from 2026-11-10's,
+in direct response to that day's registry-bloat flag.
 
-Considered running yesterday's queued proposal myself via the local `claude-code` substitute
-provider — the manifest invites exactly that, and nothing technical blocks it — and declined:
-yesterday's increment reasoned explicitly that a research-day proposal is written and queued, not
-merged or run unilaterally (spec.md §9). Overriding that on no new information would be the kind
-of self-authorized loop change the propose/execute split exists to prevent, so it stays queued for
-a human call.
-
-A dedicated hourly watcher now owns PR #6/trigger escalation and suppresses re-notification for an
-unchanged-facts firing like this one — **no push notification sent**, duplicating it would be
-noise. One new process note: `routines/registry.md` is now ~487KB, with one Known Issues cell
-alone ~17KB of appended daily essays; flagged as its own short row rather than added to.
-
-No gate threshold, τ, or rubric criterion touched; no code changed; `.runs/` history untouched; no
-Compose service added; no `holdout-*` content read. Full detail in today's
-[registry row](routines/registry.md).
+No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
+service added. Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
