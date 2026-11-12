@@ -53,20 +53,19 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-11** · build order: still 7/8 · clean no-op, no new evidence since the 2026-08-11 run
+**2026-11-12** · build order: still 7/8 · clean no-op, no new evidence since the 2026-08-11 run
 
-Checked `origin/routine/experiments` and PR #6 (step 0) before deciding anything, so no v1/v2
-near-miss occurred this firing. Re-verified live, nothing changed from 2026-11-10: trigger's
-stored prompt is still v1 verbatim (**105 days** since v2 shipped); PR #6 unchanged (open, draft,
-`mergeable_state: clean`, 109 commits, 62 comments, zero reviews); build order still 7/8; step 8
-remains externally blocked (`evals/policy_synthesis/holdout/` still placeholder-only;
-`OPENAI_API_KEY` still unset); no new `.runs/loop_research/` entry since 2026-08-11 (**92 days**).
-[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) remains unexecuted and is
-not self-run today — propose/execute stays split per spec.md §9.
+Step 0 run first (checked `origin/routine/experiments` + PR #6 live) before concluding anything,
+so no v1/v2 near-miss. Nothing changed since 2026-11-11: trigger's stored prompt still v1 verbatim;
+PR #6 unchanged in substance (draft, `mergeable_state: clean`, 110 commits — the +1 is yesterday's
+own log commit — 62 comments, zero reviews); step 8 remains externally blocked
+(`evals/policy_synthesis/holdout/` still placeholder-only, `OPENAI_API_KEY` still unset); no new
+`.runs/loop_research/` entry since 2026-08-11.
+[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) remains unexecuted —
+propose/execute stays split per spec.md §9.
 
-No code was touched, so no suite rerun this firing. The hourly PR watcher's last check matches
-today's live state, so **no push notification sent**. This block is shortened from 2026-11-10's,
-in direct response to that day's registry-bloat flag.
+No code was touched, so no suite rerun. **No push notification sent** — nothing actionable; the
+hourly PR watcher already covers escalation.
 
 No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
 service added. Full detail in today's [registry row](routines/registry.md).
