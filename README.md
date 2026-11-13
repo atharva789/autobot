@@ -53,19 +53,25 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-12** · build order: still 7/8 · clean no-op, no new evidence since the 2026-08-11 run
+**2026-11-13** · build order: still 7/8 · no-op, v1/v2 near-miss caught at push rejection
 
-Step 0 run first (checked `origin/routine/experiments` + PR #6 live) before concluding anything,
-so no v1/v2 near-miss. Nothing changed since 2026-11-11: trigger's stored prompt still v1 verbatim;
-PR #6 unchanged in substance (draft, `mergeable_state: clean`, 110 commits — the +1 is yesterday's
-own log commit — 62 comments, zero reviews); step 8 remains externally blocked
-(`evals/policy_synthesis/holdout/` still placeholder-only, `OPENAI_API_KEY` still unset); no new
-`.runs/loop_research/` entry since 2026-08-11.
-[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) remains unexecuted —
-propose/execute stays split per spec.md §9.
+Bootstrap was v1 verbatim (no step 0), so this firing began against a bare `master` checkout,
+concluded step 1 looked incomplete there, and built a duplicate (`compiler.py`, a hand-written
+`dev-a` baseline, a hill-climb smoke, new tests) — the same conclusion every prior near-miss
+reached. Caught at `git push` rejection, before anything landed on the real branch: fetched
+`origin/routine/experiments`, found it ahead of `master`, and discarded the duplicate rather than
+pushing a second implementation (per `daily-loop-research.v2.md`'s step 0 and the 2026-08-03
+precedent of escalating conflicts, not resolving them unilaterally). Verified live after switching:
+nothing changed since 2026-11-12 — trigger's stored prompt still v1 verbatim; PR #6 unchanged in
+substance (draft, `mergeable_state: clean`, 111 commits, 62 comments, zero reviews); step 8 remains
+externally blocked (`evals/policy_synthesis/holdout/` still placeholder-only — size unchanged,
+content not read — `OPENAI_API_KEY` still unset); no new `.runs/loop_research/` entry since
+2026-08-11. [`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) remains
+unexecuted — propose/execute stays split per spec.md §9.
 
-No code was touched, so no suite rerun. **No push notification sent** — nothing actionable; the
-hourly PR watcher already covers escalation.
+No code on `routine/experiments` was touched, so no suite rerun. **No push notification sent** —
+nothing actionable beyond today's near-miss, already a well-established pattern; the hourly PR
+watcher already covers escalation.
 
 No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
 service added. Full detail in today's [registry row](routines/registry.md).
