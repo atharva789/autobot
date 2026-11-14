@@ -1,0 +1,26 @@
+# Compute-plane "sim-worker" service (plan.md §4). The only component that scales with rollout
+# count -- runs at 2 replicas (docker-compose.yml). Same minimal dependency set as
+# Dockerfile.orchestrator, plus libosmesa6 for MUJOCO_GL=osmesa (docker-compose.yml sets this
+# because there is no display in CI; physics-only rollouts don't call MuJoCo's renderer today,
+# but the env var is honored rather than silently ignored so a future rendering need doesn't
+# fail surprisingly).
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libosmesa6 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY infra/loop-research/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+COPY packages/__init__.py packages/__init__.py
+COPY packages/research/__init__.py packages/research/__init__.py
+COPY packages/research/loop_research packages/research/loop_research
+COPY evals/policy_synthesis/dev evals/policy_synthesis/dev
+
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+CMD ["python", "-m", "packages.research.loop_research.sim_worker"]

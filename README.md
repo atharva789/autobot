@@ -53,19 +53,23 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-03** · build order: steps 1–3 partially implemented · first local run recorded
+**2026-11-14** · build order: still 7/8 · no-op, clean firing (step 0 run first, no v1/v2 near-miss)
 
-First smoke of the loop ran locally on a substitute provider (Haiku via the repo's `claude-code`
-adapter, subscription auth, $0 API spend), pending OpenAI credits. One evidence-dense call emitted
-a 5-reward-term, 4-termination scaffold for schema `dev-a`; **G1 passed at score 1.0**
-(21/21 symbols resolved). The G1 resolver carries 6 passing tests, including proof it fails
-scaffolds with fabricated entities. Evidence:
-[`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json).
+Ran step 0 (checked `origin/routine/experiments` and PR #6) before concluding anything, so no
+duplicate-build risk today. Nothing changed since 2026-11-13: trigger's stored prompt still v1
+verbatim (**104 days** since v2 shipped); PR #6 unchanged in substance (draft, `mergeable_state:
+clean`, 112 commits, 62 comments, zero reviews, **open 104 days**); step 8 remains externally
+blocked (`evals/policy_synthesis/holdout/` still placeholder-only — metadata checked, content not
+read — `OPENAI_API_KEY` still unset); no new `.runs/loop_research/` entry since 2026-08-11.
+[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) remains unexecuted —
+propose/execute stays split per spec.md §9.
 
-Honest boundaries: no MuJoCo compilation or training has run (step 1's gate is unmet); dev-b and
-both holdout schemas do not exist yet; the negative control (step 4) is not implemented, so G1's
-pass is not yet calibrated against a cheating loop. A daily local budget check unlocks the OpenAI
-compute plane when credits exceed $500 ([`budget log`](routines/budget-log.md)).
+No code on `routine/experiments` was touched, so no suite rerun. The hourly PR watcher
+(`trig_01FWuPWAha4jnKcVh4By95gV`, re-arming) already covers escalation for PR #6; **no push
+notification sent** — nothing actionable beyond this well-established unchanged state.
+
+No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
+service added. Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
@@ -230,7 +234,9 @@ Next.js + optional Electron shell                    FastAPI + RobotWorkspaceSDK
                                                         |
                                              packages/research
                                              strategies, prompts,
-                                             experiments, metrics, storage
+                                             experiments, metrics, storage,
+                                             loop_research (spec 012 — schema-conditioned
+                                             policy synthesis, self-contained)
 ```
 
 Allowed dependency directions:
@@ -328,10 +334,13 @@ apps/
 packages/
 ├── pipeline/                    shared deterministic robotics kernel
 └── research/                    loops, strategies, experiments, metrics, prompts, agent eval POC
+    └── loop_research/           spec 012 — TrainingScaffold, MuJoCo compiler, G1-G4 gates
 
 specs/                           Spec Kit feature directories and acceptance contracts
 tests/                           backend, pipeline, research, and frontend-contract tests
 evals/                           protected robot-design tasks plus trace/loop evaluation tooling
+├── policy_synthesis/dev/        spec 012 development schemas (dev-a; dev-b not yet added)
+└── policy_synthesis/holdout/    spec 012 held-out schemas — generalization test, untouched by design
 supabase/migrations/             hosted schema history and grammar catalog migrations
 docs/                            detailed GitBook-compatible documentation
 ```
