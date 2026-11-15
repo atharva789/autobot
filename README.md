@@ -53,20 +53,29 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-14** · build order: still 7/8 · no-op, clean firing (step 0 run first, no v1/v2 near-miss)
+**2026-11-15** · build order: still 7/8 · no-op, step 0 caught a near-miss before anything was pushed
 
-Ran step 0 (checked `origin/routine/experiments` and PR #6) before concluding anything, so no
-duplicate-build risk today. Nothing changed since 2026-11-13: trigger's stored prompt still v1
-verbatim (**104 days** since v2 shipped); PR #6 unchanged in substance (draft, `mergeable_state:
-clean`, 112 commits, 62 comments, zero reviews, **open 104 days**); step 8 remains externally
-blocked (`evals/policy_synthesis/holdout/` still placeholder-only — metadata checked, content not
-read — `OPENAI_API_KEY` still unset); no new `.runs/loop_research/` entry since 2026-08-11.
-[`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml) remains unexecuted —
-propose/execute stays split per spec.md §9.
+This firing's bootstrap prompt was v1 verbatim again (`get_trigger`: stored prompt unchanged since
+2026-10-27, **102 days** since v2 shipped). Followed it at first on a bare `master` checkout,
+concluded step 1 (compiler-to-MuJoCo) looked incomplete there, and built a full duplicate
+(`compiler.py`, a hand-written `dev-a` baseline, 16 tests) before running v2's step 0
+(`git fetch origin routine/experiments`, `list_pull_requests`) — found PR #6 already far past this
+point, discarded the duplicate (`git stash drop`) before anything reached this branch.
 
-No code on `routine/experiments` was touched, so no suite rerun. The hourly PR watcher
-(`trig_01FWuPWAha4jnKcVh4By95gV`, re-arming) already covers escalation for PR #6; **no push
-notification sent** — nothing actionable beyond this well-established unchanged state.
+Nothing changed since 2026-11-14 on the real state: PR #6 unchanged in substance (draft,
+`mergeable_state: clean`, 113 commits, 62 comments, zero reviews, **open 105 days**); the hourly PR
+watcher (`trig_01G6vr846CMswnD9YSZYag1i`) last checked against this same commit and found nothing
+new; build order still 7/8 — step 8 remains externally blocked
+(`evals/policy_synthesis/holdout/` still placeholder-only, metadata checked, content not read);
+`loop-research.yml` still only 2 total Actions runs ever (`actions_list`), none since 2026-11-09;
+`OPENAI_API_KEY` still unset (`routines/budget-log.md` still one row); no new `.runs/loop_research/`
+entry since 2026-08-11 (**96 days**). [`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml)
+remains unexecuted — propose/execute stays split per spec.md §9.
+
+Could not re-run the physics-dependent `loop_research` test suite live — this session's sandbox has
+no `mujoco` installed (unlike some prior firings'), so today relies on 2026-11-10's committed 97/97
+result rather than restating it as if re-verified. No push notification sent — nothing actionable
+beyond an already-well-established unchanged state.
 
 No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
 service added. Full detail in today's [registry row](routines/registry.md).
