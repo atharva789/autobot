@@ -53,25 +53,21 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-16** · build order: still 7/8 · no-op, clean firing, step 0 run first
+**2026-11-17** · build order: still 7/8 · no-op, v1/v2 near-miss caught pre-commit, suite re-verified live with real MuJoCo
 
-Ran v2's step 0 (`git fetch origin routine/experiments` + `list_pull_requests`) before reading the
-build order, so no v1/v2 near-miss today. Nothing changed since 2026-11-15: trigger's stored
-bootstrap prompt still v1 verbatim (`get_trigger`, unchanged since 2026-10-27, **103 days** since
-v2 shipped); PR #6 unchanged in substance (draft, `mergeable_state: clean`, head `bb7bbc7`, 114
-commits, zero reviews, **open 106 days** — its three newest comments are this routine's own prior
-self-reports, none from a human); the hourly PR watcher
-(`trig_01ApkDGbEoUG27VDvoyHQfbd`) checked the same head minutes before this firing and found
-nothing new; build order still 7/8 — step 8 remains externally blocked
-(`evals/policy_synthesis/holdout/` still placeholder-only, metadata checked, content not read);
-`OPENAI_API_KEY` still unset (`routines/budget-log.md` still one row); no new `.runs/loop_research/`
-entry since 2026-08-11 (**97 days**). [`experiments/queue/2026-11-09.yaml`](experiments/queue/2026-11-09.yaml)
-remains unexecuted (**7 days**) — propose/execute stays split per spec.md §9.
+Bootstrap was still v1 (no step 0): began reimplementing step 1 against a bare `master` checkout,
+caught it via `git fetch` before anything was staged, and discarded the duplicate. `routine/experiments`
+remains the true state — 115 commits ahead of `master`, steps 1–7 already done. PR #6 unchanged
+(draft, `mergeable_state: clean`, head `b2e5655`, zero human reviews, **open 107 days**); trigger's
+stored bootstrap prompt still v1 verbatim (**104 days** since v2 shipped); build order still 7/8 —
+step 8 externally blocked (`evals/policy_synthesis/holdout/` still a 414-byte placeholder);
+`OPENAI_API_KEY` still unset; no new [`.runs/loop_research/`](.runs/loop_research/) entry since
+2026-08-11 (**98 days**); `experiments/queue/2026-11-09.yaml` still unexecuted (**8 days**).
 
-Could not re-run the physics-dependent `loop_research` test suite live — this sandbox has no
-`mujoco` installed — so today relies on 2026-11-10's committed 97/97 result rather than restating
-it as if re-verified. No push notification sent — nothing actionable beyond an already-well-
-established unchanged state that prior firings have escalated.
+New today: this sandbox had `mujoco` installed, so the full physics-dependent suite was rerun live
+against `routine/experiments` HEAD rather than cited from a prior commit — **97/97
+`test_loop_research_*.py` pass**, unchanged. A new self-rescheduling hourly trigger now owns PR #6
+escalation and found nothing new either, so no push notification was sent.
 
 No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
 service added. Full detail in today's [registry row](routines/registry.md).
