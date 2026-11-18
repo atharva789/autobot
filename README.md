@@ -53,21 +53,25 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-17** · build order: still 7/8 · no-op, v1/v2 near-miss caught pre-commit, suite re-verified live with real MuJoCo
+**2026-11-18** · build order: still 7/8 · no-op, v1/v2 near-miss caught pre-commit (44th+), suite re-verified live
 
-Bootstrap was still v1 (no step 0): began reimplementing step 1 against a bare `master` checkout,
-caught it via `git fetch` before anything was staged, and discarded the duplicate. `routine/experiments`
-remains the true state — 115 commits ahead of `master`, steps 1–7 already done. PR #6 unchanged
-(draft, `mergeable_state: clean`, head `b2e5655`, zero human reviews, **open 107 days**); trigger's
-stored bootstrap prompt still v1 verbatim (**104 days** since v2 shipped); build order still 7/8 —
-step 8 externally blocked (`evals/policy_synthesis/holdout/` still a 414-byte placeholder);
-`OPENAI_API_KEY` still unset; no new [`.runs/loop_research/`](.runs/loop_research/) entry since
-2026-08-11 (**98 days**); `experiments/queue/2026-11-09.yaml` still unexecuted (**8 days**).
+Bootstrap was still v1 (no step 0): began reimplementing step 1 against a bare `master` checkout
+again, caught it via `git fetch` before anything was staged — a real path collision on `baselines.py`
+confirmed the branches had diverged — and discarded the duplicate. `routine/experiments` remains the
+true state, unchanged since yesterday: steps 1–7 already done. PR #6 unchanged (draft,
+`mergeable_state: clean`, head `620a242`, 65 comments, zero human reviews, **open 108 days**);
+trigger's stored bootstrap prompt still v1 verbatim (**105 days** since v2 shipped); build order
+still 7/8 — step 8 externally blocked (`evals/policy_synthesis/holdout/` still a 414-byte
+placeholder); `OPENAI_API_KEY` still unset; no new [`.runs/loop_research/`](.runs/loop_research/)
+entry since 2026-08-11 (**99 days**); `experiments/queue/2026-11-09.yaml` still unexecuted
+(**9 days**).
 
-New today: this sandbox had `mujoco` installed, so the full physics-dependent suite was rerun live
-against `routine/experiments` HEAD rather than cited from a prior commit — **97/97
-`test_loop_research_*.py` pass**, unchanged. A new self-rescheduling hourly trigger now owns PR #6
-escalation and found nothing new either, so no push notification was sent.
+Re-verified rather than cited: installed this sandbox's missing deps and reran the full
+physics-dependent suite live against `routine/experiments` HEAD — **97/97 `test_loop_research_*.py`
+pass**, unchanged. The hourly PR-#6 watcher a prior firing created fired once yesterday, found
+nothing new, and did not re-arm (`enabled: false`, `ended_reason: run_once_fired`) — no live watcher
+currently owns PR #6 escalation; flagged for the human rather than recreated. No push notification
+sent: nothing here is new relative to three prior escalations on this same standing situation.
 
 No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
 service added. Full detail in today's [registry row](routines/registry.md).
