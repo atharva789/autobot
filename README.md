@@ -53,24 +53,26 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-19** · build order: still 7/8 · no-op, clean firing (step 0 run first)
+**2026-11-20** · build order: still 7/8 · no-op, clean firing (caught before any file was written)
 
-Checked `routine/experiments` and PR #6 before reading the build order — no v1/v2 near-miss today.
-Nothing changed since 2026-11-18: trigger's stored bootstrap prompt still v1 verbatim (**106 days**
-since v2 shipped); PR #6 unchanged (draft, `mergeable_state: clean`, head `fe644ea`, 117 commits,
-66 comments, zero human reviews, **open 109 days**, CI status `pending`/0 statuses); build order
-still 7/8 — step 8 externally blocked (`evals/policy_synthesis/holdout/` still a 414-byte
-placeholder); no new [`.runs/loop_research/`](.runs/loop_research/) entry since 2026-08-11
-(**100 days**); `experiments/queue/2026-11-09.yaml` still unexecuted (**10 days**); `OPENAI_API_KEY`
-still unset.
+Read `spec.md`/`plan.md` against a bare `master` checkout before checking branches — the same
+stale view every near-miss starts from — but caught it via `git fetch`/`list_pull_requests` before
+any `Write`/`Edit` call, so no duplicate build happened. Nothing changed since 2026-11-19: trigger's
+stored bootstrap prompt still v1 verbatim (**107 days** since v2 shipped); PR #6 unchanged in
+substance (draft, `mergeable_state: clean`, head `48fddff`, 118 commits, 67 comments, zero human
+reviews, **open 110 days**, CI status `pending`/0 statuses); build order still 7/8 — step 8
+externally blocked (`evals/policy_synthesis/holdout/` still a 414-byte placeholder); no new
+[`.runs/loop_research/`](.runs/loop_research/) entry since 2026-08-11 (**101 days**);
+`experiments/queue/2026-11-09.yaml` still unexecuted (**11 days**); `OPENAI_API_KEY` still unset.
 
-No code changed, so no suite rerun — last live reconfirmation remains 2026-11-18's
-**97/97 `test_loop_research_*.py` passing**. A new hourly PR-#6 watcher exists
-(`trig_01BGffZbeDx3HRAVdLkSXvYH`, not created by this routine) and its own instructions note three
+Reinstalled deps fresh and reran the suite live rather than carry forward a figure: **97/97
+`test_loop_research_*.py` passing**, unchanged. A new hourly PR-#6 watcher exists
+(`trig_01MVTBZmnnxpdxJ2pKe8hxok`, not created by this routine) whose own instructions cite three
 prior push-notification escalations on this exact standing situation; no fourth was sent today.
 
-No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
-service added. Full detail in today's [registry row](routines/registry.md).
+No gate/τ/rubric touched, no `holdout-*` schema content read, `.runs/` history untouched, no
+Compose service added, `update_trigger` not called (confirmed agent-unfixable 2026-11-04). Full
+detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
