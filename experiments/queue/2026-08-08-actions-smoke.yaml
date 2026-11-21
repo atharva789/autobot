@@ -1,0 +1,24 @@
+# Placeholder manifest -- NOT a real queued experiment.
+#
+# Purpose: fire .github/workflows/loop-research.yml's push trigger for the first time ever
+# (confirmed via actions_list: 0 prior runs of this workflow, on any branch). Build order step 6's
+# stated gate is "green run [in CI], logs committed" -- until today that had only been verified
+# locally (routines/registry.md, 2026-08-07 entry: real Docker daemon inside the sandbox, not
+# GitHub Actions itself). This manifest exists only to let the preflight job actually execute
+# under real Actions and report its (expected) not-ready status for real, rather than that status
+# being inferred from local `docker compose config` + local `docker compose up`.
+#
+# Expected outcome: preflight reports OPENAI_API_KEY unset and exits 0 with
+# "::warning::OPENAI_API_KEY is not set" -- no experiment job runs, no cost, nothing to commit.
+# That is the correct, designed behavior (plan.md S8: the OpenAI key is a human action, required
+# before the first *real* compute run) -- this manifest tests the wiring around that gate, not the
+# gate itself, and does not attempt to bypass it.
+#
+# step 7 (the real loop) does not exist yet, so there is no experiment for the compute plane to
+# run against this manifest even once the secret is set.
+purpose: ci-smoke
+created: 2026-08-08
+created_by: routine/daily-loop-research
+note: >
+  Placeholder to verify the Actions workflow itself executes correctly in CI (build order step 6).
+  Not a real experiment queue entry; step 7 (the real loop) is not implemented yet.

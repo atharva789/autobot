@@ -53,19 +53,26 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-08-03** · build order: steps 1–3 partially implemented · first local run recorded
+**2026-11-21** · build order: still 7/8 · no-op, v1/v2 near-miss caught before any file was written
 
-First smoke of the loop ran locally on a substitute provider (Haiku via the repo's `claude-code`
-adapter, subscription auth, $0 API spend), pending OpenAI credits. One evidence-dense call emitted
-a 5-reward-term, 4-termination scaffold for schema `dev-a`; **G1 passed at score 1.0**
-(21/21 symbols resolved). The G1 resolver carries 6 passing tests, including proof it fails
-scaffolds with fabricated entities. Evidence:
-[`run.json`](.runs/loop_research/2026-08-03T01-42-44Z_smoke_19ffde/run.json).
+Bootstrap was v1 verbatim again (**108 days** since v2 shipped). Began scoping build-order step 1
+(a from-scratch compiler-to-MuJoCo) against a bare `master` checkout before `git fetch` +
+`git log origin/master..origin/routine/experiments` (119 commits) + the GitHub PR tools surfaced
+this branch already carrying steps 1-7 under open draft PR #6. Discarded the plan before any
+`Write`/`Edit` call. Re-verified live rather than carry forward a number: **97/97
+`test_loop_research_*.py` passing**, unchanged, against HEAD `5d90b3e`.
 
-Honest boundaries: no MuJoCo compilation or training has run (step 1's gate is unmet); dev-b and
-both holdout schemas do not exist yet; the negative control (step 4) is not implemented, so G1's
-pass is not yet calibrated against a cheating loop. A daily local budget check unlocks the OpenAI
-compute plane when credits exceed $500 ([`budget log`](routines/budget-log.md)).
+Re-attempted `update_trigger` to reconfirm (not to change it unilaterally): same hard refusal,
+`"this routine was created via http_api, not by an agent"`, no `ask_owner` offered — still
+agent-unfixable (2026-11-04). PR #6 unchanged in substance (draft, `mergeable_state: clean`,
+67 comments, zero human reviews, **open 111 days**); step 8 still externally blocked
+(`evals/policy_synthesis/holdout/` still a placeholder); `experiments/queue/2026-11-09.yaml`
+still unexecuted (**12 days**); `OPENAI_API_KEY` still unset. No push notification sent — the
+hourly PR-#6 watcher already escalated this exact situation three times and nothing changed today.
+
+No gate/τ/rubric touched, no `holdout-*` schema content read, `.runs/` history untouched, no
+Compose service added, `routines/registry.md`'s existing rows left as-is (a prior firing already
+weighed pruning them and declined). Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
@@ -230,7 +237,9 @@ Next.js + optional Electron shell                    FastAPI + RobotWorkspaceSDK
                                                         |
                                              packages/research
                                              strategies, prompts,
-                                             experiments, metrics, storage
+                                             experiments, metrics, storage,
+                                             loop_research (spec 012 — schema-conditioned
+                                             policy synthesis, self-contained)
 ```
 
 Allowed dependency directions:
@@ -328,10 +337,13 @@ apps/
 packages/
 ├── pipeline/                    shared deterministic robotics kernel
 └── research/                    loops, strategies, experiments, metrics, prompts, agent eval POC
+    └── loop_research/           spec 012 — TrainingScaffold, MuJoCo compiler, G1-G4 gates
 
 specs/                           Spec Kit feature directories and acceptance contracts
 tests/                           backend, pipeline, research, and frontend-contract tests
 evals/                           protected robot-design tasks plus trace/loop evaluation tooling
+├── policy_synthesis/dev/        spec 012 development schemas (dev-a; dev-b not yet added)
+└── policy_synthesis/holdout/    spec 012 held-out schemas — generalization test, untouched by design
 supabase/migrations/             hosted schema history and grammar catalog migrations
 docs/                            detailed GitBook-compatible documentation
 ```

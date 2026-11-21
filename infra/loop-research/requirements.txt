@@ -1,0 +1,12 @@
+# Compute-plane runtime dependencies for packages/research/loop_research only.
+#
+# Deliberately not pyproject.toml's full dependency set: nothing under loop_research imports
+# torch, transformers, langchain, or supabase (verified by `python -m packages.research.loop_research.orchestrator`
+# importing cleanly with only these five installed). Installing the monorepo's full surface into
+# every sim-worker replica would make the image, and every CI build of it, needlessly slow --
+# plan.md §5's "cheap end-to-end" applies to build time, not only model spend.
+mujoco>=3.1
+numpy>=1.26
+pyyaml>=6.0
+redis>=5.0
+minio>=7.2
