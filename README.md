@@ -53,26 +53,26 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-20** · build order: still 7/8 · no-op, clean firing (caught before any file was written)
+**2026-11-21** · build order: still 7/8 · no-op, v1/v2 near-miss caught before any file was written
 
-Read `spec.md`/`plan.md` against a bare `master` checkout before checking branches — the same
-stale view every near-miss starts from — but caught it via `git fetch`/`list_pull_requests` before
-any `Write`/`Edit` call, so no duplicate build happened. Nothing changed since 2026-11-19: trigger's
-stored bootstrap prompt still v1 verbatim (**107 days** since v2 shipped); PR #6 unchanged in
-substance (draft, `mergeable_state: clean`, head `48fddff`, 118 commits, 67 comments, zero human
-reviews, **open 110 days**, CI status `pending`/0 statuses); build order still 7/8 — step 8
-externally blocked (`evals/policy_synthesis/holdout/` still a 414-byte placeholder); no new
-[`.runs/loop_research/`](.runs/loop_research/) entry since 2026-08-11 (**101 days**);
-`experiments/queue/2026-11-09.yaml` still unexecuted (**11 days**); `OPENAI_API_KEY` still unset.
+Bootstrap was v1 verbatim again (**108 days** since v2 shipped). Began scoping build-order step 1
+(a from-scratch compiler-to-MuJoCo) against a bare `master` checkout before `git fetch` +
+`git log origin/master..origin/routine/experiments` (119 commits) + the GitHub PR tools surfaced
+this branch already carrying steps 1-7 under open draft PR #6. Discarded the plan before any
+`Write`/`Edit` call. Re-verified live rather than carry forward a number: **97/97
+`test_loop_research_*.py` passing**, unchanged, against HEAD `5d90b3e`.
 
-Reinstalled deps fresh and reran the suite live rather than carry forward a figure: **97/97
-`test_loop_research_*.py` passing**, unchanged. A new hourly PR-#6 watcher exists
-(`trig_01MVTBZmnnxpdxJ2pKe8hxok`, not created by this routine) whose own instructions cite three
-prior push-notification escalations on this exact standing situation; no fourth was sent today.
+Re-attempted `update_trigger` to reconfirm (not to change it unilaterally): same hard refusal,
+`"this routine was created via http_api, not by an agent"`, no `ask_owner` offered — still
+agent-unfixable (2026-11-04). PR #6 unchanged in substance (draft, `mergeable_state: clean`,
+67 comments, zero human reviews, **open 111 days**); step 8 still externally blocked
+(`evals/policy_synthesis/holdout/` still a placeholder); `experiments/queue/2026-11-09.yaml`
+still unexecuted (**12 days**); `OPENAI_API_KEY` still unset. No push notification sent — the
+hourly PR-#6 watcher already escalated this exact situation three times and nothing changed today.
 
 No gate/τ/rubric touched, no `holdout-*` schema content read, `.runs/` history untouched, no
-Compose service added, `update_trigger` not called (confirmed agent-unfixable 2026-11-04). Full
-detail in today's [registry row](routines/registry.md).
+Compose service added, `routines/registry.md`'s existing rows left as-is (a prior firing already
+weighed pruning them and declined). Full detail in today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
