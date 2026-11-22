@@ -53,22 +53,23 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-21** · build order: still 7/8 · no-op, v1/v2 near-miss caught before any file was written
+**2026-11-22** · build order: still 7/8 · no-op, v1/v2 near-miss caught before any file was written
 
-Bootstrap was v1 verbatim again (**108 days** since v2 shipped). Began scoping build-order step 1
+Bootstrap was v1 verbatim again (**109 days** since v2 shipped). Began scoping build-order step 1
 (a from-scratch compiler-to-MuJoCo) against a bare `master` checkout before `git fetch` +
-`git log origin/master..origin/routine/experiments` (119 commits) + the GitHub PR tools surfaced
+`git log origin/master...origin/routine/experiments` (120 commits) + the GitHub PR tools surfaced
 this branch already carrying steps 1-7 under open draft PR #6. Discarded the plan before any
 `Write`/`Edit` call. Re-verified live rather than carry forward a number: **97/97
-`test_loop_research_*.py` passing**, unchanged, against HEAD `5d90b3e`.
+`test_loop_research_*.py` passing**, unchanged, against HEAD `a16d707`.
 
-Re-attempted `update_trigger` to reconfirm (not to change it unilaterally): same hard refusal,
-`"this routine was created via http_api, not by an agent"`, no `ask_owner` offered — still
-agent-unfixable (2026-11-04). PR #6 unchanged in substance (draft, `mergeable_state: clean`,
-67 comments, zero human reviews, **open 111 days**); step 8 still externally blocked
-(`evals/policy_synthesis/holdout/` still a placeholder); `experiments/queue/2026-11-09.yaml`
-still unexecuted (**12 days**); `OPENAI_API_KEY` still unset. No push notification sent — the
-hourly PR-#6 watcher already escalated this exact situation three times and nothing changed today.
+Re-attempted `update_trigger` with the actual intended fix this time (prompt repointed at v2, not
+a no-op query): same hard refusal, `"this routine was created via http_api, not by an agent"`, no
+`ask_owner` offered — still agent-unfixable. PR #6 unchanged in substance (draft,
+`mergeable_state: clean`, 68 comments, zero human reviews, **open 112 days**); step 8 still
+externally blocked (`evals/policy_synthesis/holdout/` still a placeholder);
+`experiments/queue/2026-11-09.yaml` still unexecuted (**13 days**); `OPENAI_API_KEY` still unset.
+No push notification sent — the hourly PR-#6 watcher already escalated this exact situation three
+times and nothing changed today.
 
 No gate/τ/rubric touched, no `holdout-*` schema content read, `.runs/` history untouched, no
 Compose service added, `routines/registry.md`'s existing rows left as-is (a prior firing already
