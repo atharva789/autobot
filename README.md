@@ -53,24 +53,24 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-23** · build order: still 7/8 · no-op, v1/v2 near-miss caught via `git stash drop`
+**2026-11-24** · build order: still 7/8 · no-op, v1/v2 near-miss caught before any `git add`
 
-Bootstrap was v1 verbatim again (**110 days** since v2 shipped). Began re-deriving build-order
-step 1 against a bare `master` checkout — including independently rediscovering a joint-range bug
-(`<compiler angle="radian"/>` missing from `dev-a.xml`) a 2026-08-25 firing already found and fixed
-on `routine/experiments` — before `git fetch` + `git log --not origin/master` (121 commits) + the
-GitHub PR tools surfaced this branch already carrying steps 1-7, that exact fix included, under
-open draft PR #6. Discarded the edit via `git stash drop` before any `git add`. Re-verified live
+Bootstrap was v1 verbatim again (**111 days** since v2 shipped). Began re-deriving build-order
+step 1 against a bare `master` checkout and built a full duplicate compiler-to-MuJoCo (`expr.py`,
+`compiler.py`, `mujoco_env.py`, a frozen `dev-a` baseline, 31 tests) — ran it for real against
+live MuJoCo physics (37/37 passing) — before `git fetch` + `git log` (122 commits) + the GitHub PR
+tools surfaced `routine/experiments` already carrying steps 1-7 under open draft PR #6. Discarded
+before any `git add` (nothing was ever staged) and switched to the real branch. Re-verified live
 rather than carry forward a number: **97/97 `test_loop_research_*.py` passing**, unchanged, against
-HEAD `cb1d2ae`.
+HEAD `b2de832`.
 
 PR #6 unchanged in substance (draft, `mergeable_state: clean`, 69 comments, zero human reviews,
-**open 113 days**); trigger still bootstraps from v1 (confirmed via `get_trigger`, agent-unfixable
+**open 114 days**); trigger still bootstraps from v1 (confirmed via `get_trigger`, agent-unfixable
 per the standing hard refusal); step 8 still externally blocked
 (`evals/policy_synthesis/holdout/` still a placeholder); `experiments/queue/2026-11-09.yaml` still
-unexecuted (**14 days**); `loop-research.yml` still only 2 Actions runs total, none since
-2026-11-09; `OPENAI_API_KEY` still unset. No push notification sent — the live PR-#6 watcher
-already covers this exact situation and nothing changed today.
+unexecuted (**15 days**); `loop-research.yml` still only 2 Actions runs total, none since
+2026-11-09; `OPENAI_API_KEY` still unset. The hourly PR-#6 watcher re-armed minutes before this
+firing and already covers escalation, so no push notification was sent.
 
 No gate/τ/rubric touched, no `holdout-*` schema content read, `.runs/` history untouched, no
 Compose service added, no new experiment queued. Full detail in today's
