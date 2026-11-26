@@ -53,26 +53,20 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-25** · build order: still 7/8 · no-op, v1/v2 near-miss caught at push rejection
+**2026-11-26** · build order: still 7/8 · no-op, clean firing (branch/PR checked before any file write)
 
-Bootstrap was v1 verbatim again (**112 days** since v2 shipped). Began re-deriving build-order
-step 1 against a bare `master` checkout and built a full duplicate compiler-to-MuJoCo
-(`compiler.py`, a frozen `dev-a` baseline, a scripted-controller grid-search harness, 10 tests) —
-ran it for real against live MuJoCo physics (16/16 passing; G1 1.0; eval batch `success_rate` 0.0,
-`{"drop": 16}`) — and committed it to a local branch before `git push` was rejected four times
-(non-fast-forward). `git fetch` + `git log` (123 commits) + the GitHub PR tools then surfaced
-`routine/experiments` already carrying steps 1-7 under open draft PR #6. Discarded the local
-branch entirely — nothing of it ever reached the remote — and switched to the real branch.
-Re-verified live rather than carry forward a number: **97/97 `test_loop_research_*.py` passing**,
-unchanged, against HEAD `5d00fb2`.
+Checked `origin/routine/experiments` and PR #6 before touching anything, per `v2.md`'s step 0 —
+no v1/v2 near-miss today. Re-verified live rather than carry forward numbers: **97/97
+`test_loop_research_*.py` passing** against HEAD `0fbda9c`.
 
-PR #6 unchanged in substance (draft, `mergeable_state: clean`, 69 comments, zero human reviews,
-**open 115 days**); trigger still bootstraps from v1 (confirmed via `get_trigger`, agent-unfixable
-per the standing hard refusal); step 8 still externally blocked
-(`evals/policy_synthesis/holdout/` still a placeholder); `experiments/queue/2026-11-09.yaml` still
-unexecuted (**16 days**); `loop-research.yml` still only 2 Actions runs total, none since
-2026-11-09; `OPENAI_API_KEY` still unset. The standing PR-#6 watcher already covers escalation on
-this exact situation, so no push notification was sent.
+Trigger still bootstraps from v1 (confirmed via `get_trigger`, **113 days** since v2 shipped,
+agent-unfixable per the standing hard refusal); PR #6 unchanged in substance (draft,
+`mergeable_state: clean`, 69 comments, zero human reviews, **open 116 days**); step 8 still
+externally blocked (`evals/policy_synthesis/holdout/` still a placeholder, metadata listing
+only); `experiments/queue/2026-11-09.yaml` still unexecuted (**17 days**); `loop-research.yml`
+still only 2 Actions runs total, none since 2026-11-09; `OPENAI_API_KEY` still unset. Nothing
+changed versus 2026-11-25 — the standing PR-#6 watcher already covers escalation on this exact
+situation, so no push notification was sent.
 
 No gate/τ/rubric touched, no `holdout-*` schema content read, `.runs/` history untouched, no
 Compose service added, no new experiment queued. Full detail in today's
