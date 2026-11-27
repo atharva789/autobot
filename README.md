@@ -53,23 +53,22 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-26** · build order: still 7/8 · no-op, clean firing (branch/PR checked before any file write)
+**2026-11-27** · build order: still 7/8 · no-op, nothing changed since 2026-11-26
 
-Checked `origin/routine/experiments` and PR #6 before touching anything, per `v2.md`'s step 0 —
-no v1/v2 near-miss today. Re-verified live rather than carry forward numbers: **97/97
-`test_loop_research_*.py` passing** against HEAD `0fbda9c`.
+Checked `origin/routine/experiments` and PR #6 before touching anything (no v1/v2 near-miss
+today). Re-verified live rather than carry forward numbers: **97/97 `test_loop_research_*.py`
+passing** against HEAD `8e3795f`.
 
-Trigger still bootstraps from v1 (confirmed via `get_trigger`, **113 days** since v2 shipped,
-agent-unfixable per the standing hard refusal); PR #6 unchanged in substance (draft,
-`mergeable_state: clean`, 69 comments, zero human reviews, **open 116 days**); step 8 still
-externally blocked (`evals/policy_synthesis/holdout/` still a placeholder, metadata listing
-only); `experiments/queue/2026-11-09.yaml` still unexecuted (**17 days**); `loop-research.yml`
-still only 2 Actions runs total, none since 2026-11-09; `OPENAI_API_KEY` still unset. Nothing
-changed versus 2026-11-25 — the standing PR-#6 watcher already covers escalation on this exact
-situation, so no push notification was sent.
+Trigger still bootstraps from v1 (**114 days** since v2 shipped, agent-unfixable — confirmed
+again via `get_trigger`); PR #6 unchanged in substance (draft, `mergeable_state: clean`, 69
+comments, zero human reviews, **open 117 days**); step 8 still externally blocked
+(`evals/policy_synthesis/holdout/` untouched beyond its top-level name); `experiments/queue/
+2026-11-09.yaml` still unexecuted (**18 days**); `loop-research.yml` still only 2 Actions runs
+total; `OPENAI_API_KEY` still unset. No push notification sent — the standing PR-#6 watcher
+already owns escalation here and nothing changed.
 
-No gate/τ/rubric touched, no `holdout-*` schema content read, `.runs/` history untouched, no
-Compose service added, no new experiment queued. Full detail in today's
+No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
+service added, no new experiment queued. Full detail in today's
 [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
