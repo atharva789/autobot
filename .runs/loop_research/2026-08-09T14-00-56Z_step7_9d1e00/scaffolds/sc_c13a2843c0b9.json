@@ -1,0 +1,126 @@
+{
+  "scaffold_id": "sc_c13a2843c0b9",
+  "schema_id": "dev-a.link_scaled",
+  "schema_digest": "sha256:43017b33dede168860ed1d736555fa0b3df15afc9e21f5fa01b8a44be92c5b82",
+  "task_text": "lift the payload to shelf height",
+  "reward_terms": [
+    {
+      "name": "payload_height_progress",
+      "weight": 1.0,
+      "expression": "max(0, 1 - 10 * abs(sensor.s_payload_pos - sensor.s_target_pos))",
+      "symbols": [
+        "sensor.s_payload_pos",
+        "sensor.s_target_pos"
+      ],
+      "rationale": "Primary task: reward narrowing the gap between payload and shelf target height. Peaks at 1.0 when within ~0.1m of goal, providing dense guidance throughout the lift."
+    },
+    {
+      "name": "grasp_maintenance",
+      "weight": 0.3,
+      "expression": "sensor.s_touch_left",
+      "symbols": [
+        "sensor.s_touch_left"
+      ],
+      "rationale": "Encourage sustained contact with left finger gripper to prevent accidental release before reaching shelf height."
+    },
+    {
+      "name": "control_efficiency",
+      "weight": 0.02,
+      "expression": "-(abs(actuator.m_shoulder.ctrl) + abs(actuator.m_elbow.ctrl) + abs(actuator.m_wrist.ctrl) + abs(actuator.m_base_yaw.ctrl) + abs(actuator.m_finger_left.ctrl) + abs(actuator.m_finger_right.ctrl)) / 6",
+      "symbols": [
+        "actuator.m_shoulder.ctrl",
+        "actuator.m_elbow.ctrl",
+        "actuator.m_wrist.ctrl",
+        "actuator.m_base_yaw.ctrl",
+        "actuator.m_finger_left.ctrl",
+        "actuator.m_finger_right.ctrl"
+      ],
+      "rationale": "Penalize large control magnitudes across all actuators to encourage smooth, energy-efficient arm and gripper motion."
+    }
+  ],
+  "terminations": [
+    {
+      "name": "payload_dropped",
+      "predicate": "body.payload.pos.z < 0.05",
+      "symbols": [
+        "body.payload.pos.z"
+      ],
+      "cause_label": "Payload fell below safe minimum height"
+    },
+    {
+      "name": "success",
+      "predicate": "abs(sensor.s_payload_pos - sensor.s_target_pos) < 0.05",
+      "symbols": [
+        "sensor.s_payload_pos",
+        "sensor.s_target_pos"
+      ],
+      "cause_label": "Payload lifted to shelf height within 5cm tolerance"
+    }
+  ],
+  "curriculum": [
+    {
+      "stage": 0,
+      "parameter": "target_height",
+      "range": [
+        0.35,
+        0.45
+      ],
+      "advance_when": "success_rate >= 0.6"
+    },
+    {
+      "stage": 1,
+      "parameter": "target_height",
+      "range": [
+        0.5,
+        0.75
+      ],
+      "advance_when": "success_rate >= 0.6"
+    },
+    {
+      "stage": 2,
+      "parameter": "target_height",
+      "range": [
+        0.8,
+        1.1
+      ],
+      "advance_when": "success_rate >= 0.55"
+    }
+  ],
+  "randomization": [
+    {
+      "parameter": "payload_mass",
+      "range": [
+        0.3,
+        2.5
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "gripper_friction",
+      "range": [
+        0.2,
+        1.2
+      ],
+      "distribution": "uniform"
+    },
+    {
+      "parameter": "table_friction",
+      "range": [
+        0.4,
+        0.8
+      ],
+      "distribution": "uniform"
+    }
+  ],
+  "provenance": {
+    "prompt_version": "v1",
+    "model_id": "claude-code/haiku",
+    "model_tier": "cheap",
+    "seed": 11,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "cost_usd": 0.0
+  },
+  "parent_scaffold_id": null,
+  "motivating_batch_id": null
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "gate": "G2",
+    "scaffold_id": "sc_ddad1d555c06",
+    "passed": true,
+    "score": 0.9167,
+    "threshold": 0.0278,
+    "detail": {
+      "permutation": "dof_removed",
+      "structural_diff": 0.9167,
+      "tau": 0.0278,
+      "original_scaffold_id": "sc_9a69529415bb",
+      "mutant_scaffold_id": "sc_ddad1d555c06",
+      "dof_removed_hard_check": {
+        "deleted_joint": "j_shoulder",
+        "offending_symbols": [],
+        "passed": true
+      }
+    },
+    "rubric_version": "v1"
+  }
+]

@@ -89,7 +89,13 @@ jobs:
           LOOP_MANIFEST: ${{ needs.preflight.outputs.manifest }}
           LOOP_RUN_ID: ${{ needs.preflight.outputs.run_id }}
           LOOP_USD_CEILING: ${{ vars.LOOP_USD_CEILING || '5.00' }}
-        run: docker compose up --build --abort-on-container-failure --exit-code-from orchestrator
+          GIT_SHA: ${{ github.sha }}
+        # `--exit-code-from` implies `--abort-on-container-exit` (any exit, not just failure) --
+        # verified locally that adding `--abort-on-container-failure` alongside it defeats that:
+        # the stack no longer aborts when orchestrator exits 0, and just hangs (sim-worker/runlog/
+        # queue/artifacts are long-running services that never exit on their own) until something
+        # else kills it -- here, that would be the job's 120-minute timeout, not a real teardown.
+        run: docker compose up --build --exit-code-from orchestrator
 
       # Gates run against the produced run log, in a separate step, so a loop that
       # crashes still leaves gradeable evidence behind.
@@ -102,6 +108,14 @@ jobs:
       - name: Tear down
         if: always()
         working-directory: infra/loop-research
+        env:
+          # docker-compose.yml declares these with the `:?` required-var syntax, and compose
+          # interpolates the whole file for `down` too, not only `up` -- verified locally that
+          # `docker compose down -v` exits 1 without them, even though teardown doesn't logically
+          # need an OpenAI key or a manifest path. Real values aren't required, just presence.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LOOP_MANIFEST: ${{ needs.preflight.outputs.manifest }}
+          LOOP_RUN_ID: ${{ needs.preflight.outputs.run_id }}
         run: docker compose down -v
 
       - name: Commit the run log
