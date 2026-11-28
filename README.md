@@ -53,23 +53,23 @@ is not permitted to state a figure it did not read from a file. Everything outsi
 hand-authored.
 
 <!-- ROUTINE:BEGIN -->
-**2026-11-27** · build order: still 7/8 · no-op, nothing changed since 2026-11-26
+**2026-11-28** · build order: still 7/8 · no-op, nothing changed since 2026-11-27
 
-Checked `origin/routine/experiments` and PR #6 before touching anything (no v1/v2 near-miss
-today). Re-verified live rather than carry forward numbers: **97/97 `test_loop_research_*.py`
-passing** against HEAD `8e3795f`.
+Checked `origin/routine/experiments` and PR #6 — belatedly this time (a minor step-0 process
+note in today's registry row), with no duplicate build resulting. Re-verified live rather than
+carry forward numbers: **97/97 `test_loop_research_*.py` passing** against HEAD `0f365aa`.
 
-Trigger still bootstraps from v1 (**114 days** since v2 shipped, agent-unfixable — confirmed
+Trigger still bootstraps from v1 (**115 days** since v2 shipped, agent-unfixable — confirmed
 again via `get_trigger`); PR #6 unchanged in substance (draft, `mergeable_state: clean`, 69
-comments, zero human reviews, **open 117 days**); step 8 still externally blocked
+comments, zero human reviews, **open 118 days**); step 8 still externally blocked
 (`evals/policy_synthesis/holdout/` untouched beyond its top-level name); `experiments/queue/
-2026-11-09.yaml` still unexecuted (**18 days**); `loop-research.yml` still only 2 Actions runs
+2026-11-09.yaml` still unexecuted (**19 days**); `loop-research.yml` still only 2 Actions runs
 total; `OPENAI_API_KEY` still unset. No push notification sent — the standing PR-#6 watcher
 already owns escalation here and nothing changed.
 
-No gate/τ/rubric touched, no `holdout-*` content read, `.runs/` history untouched, no Compose
-service added, no new experiment queued. Full detail in today's
-[registry row](routines/registry.md).
+No gate/τ/rubric touched, no `holdout-*` content read after switching to the real branch,
+`.runs/` history untouched, no Compose service added, no new experiment queued. Full detail in
+today's [registry row](routines/registry.md).
 <!-- ROUTINE:END -->
 
 ### Why the direction changed
